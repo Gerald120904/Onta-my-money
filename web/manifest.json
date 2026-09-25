@@ -1,0 +1,11 @@
+{
+  "name": "¿Dónde se fue mi plata?",
+  "short_name": "Mi plata",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F5F7FB",
+  "theme_color": "#2563EB",
+  "description": "Aplicación para entender gastos, compromisos, ahorro y dinero disponible.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
