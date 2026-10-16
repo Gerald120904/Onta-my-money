@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
@@ -60,17 +61,26 @@ class ReportsScreen extends StatelessWidget {
             // ÚNICO BOTÓN PARA CREAR REPORTE
             // =================================================
 
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: onCreateReview,
-                icon: const Icon(
-                  Icons.add_chart_rounded,
-                ),
-                label: Text(
-                  reports.isEmpty
-                      ? 'Hacer mi primer reporte'
-                      : 'Hacer un nuevo reporte',
+            _AccessibleFocusAction(
+              semanticLabel: reports.isEmpty
+                  ? 'Hacer mi primer reporte'
+                  : 'Hacer un nuevo reporte',
+              onActivate: onCreateReview,
+              borderRadius: 14,
+              child: ExcludeFocus(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: onCreateReview,
+                    icon: const Icon(
+                      Icons.add_chart_rounded,
+                    ),
+                    label: Text(
+                      reports.isEmpty
+                          ? 'Hacer mi primer reporte'
+                          : 'Hacer un nuevo reporte',
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -182,6 +192,100 @@ class ReportsScreen extends StatelessWidget {
             report: report,
           );
         },
+      ),
+    );
+  }
+}
+
+
+// =============================================================
+// FOCO ACCESIBLE PARA CONTROLES PERSONALIZADOS
+// =============================================================
+
+class _AccessibleFocusAction
+    extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onActivate;
+  final String semanticLabel;
+  final double borderRadius;
+
+  const _AccessibleFocusAction({
+    required this.child,
+    required this.onActivate,
+    required this.semanticLabel,
+    required this.borderRadius,
+  });
+
+  @override
+  State<_AccessibleFocusAction> createState() =>
+      _AccessibleFocusActionState();
+}
+
+class _AccessibleFocusActionState
+    extends State<_AccessibleFocusAction> {
+  bool _showFocus = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: widget.semanticLabel,
+      child: FocusableActionDetector(
+        onShowFocusHighlight: (value) {
+          if (_showFocus == value) {
+            return;
+          }
+
+          setState(() {
+            _showFocus = value;
+          });
+        },
+        shortcuts: const {
+          SingleActivator(
+            LogicalKeyboardKey.enter,
+          ): ActivateIntent(),
+          SingleActivator(
+            LogicalKeyboardKey.space,
+          ): ActivateIntent(),
+        },
+        actions: {
+          ActivateIntent:
+              CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onActivate();
+              return null;
+            },
+          ),
+        },
+        child: AnimatedContainer(
+          duration: const Duration(
+            milliseconds: 100,
+          ),
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            borderRadius:
+                BorderRadius.circular(
+              widget.borderRadius,
+            ),
+            border: Border.all(
+              color: _showFocus
+                  ? AppTheme.primaryDark
+                  : Colors.transparent,
+              width: 3,
+            ),
+            boxShadow: _showFocus
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primary
+                          .withOpacity(.24),
+                      blurRadius: 0,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : const [],
+          ),
+          child: widget.child,
+        ),
       ),
     );
   }
@@ -325,7 +429,7 @@ class _DecisionSection extends StatelessWidget {
 // GRUPO DE DECISIONES
 // =============================================================
 
-class _DecisionGroup extends StatelessWidget {
+class _DecisionGroup extends StatefulWidget {
   final String title;
   final String subtitle;
   final IconData icon;
@@ -345,7 +449,26 @@ class _DecisionGroup extends StatelessWidget {
   });
 
   @override
+  State<_DecisionGroup> createState() =>
+      _DecisionGroupState();
+}
+
+class _DecisionGroupState
+    extends State<_DecisionGroup> {
+  bool _expanded = true;
+
+  void _toggleExpanded() {
+    setState(() {
+      _expanded = !_expanded;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final countText =
+        '${widget.reports.length} '
+        '${widget.reports.length == 1 ? 'decisión' : 'decisiones'}';
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -355,95 +478,191 @@ class _DecisionGroup extends StatelessWidget {
           color: AppTheme.border,
         ),
       ),
-      child: ExpansionTile(
-        initiallyExpanded: true,
-        tilePadding:
-            const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 5,
-        ),
-        childrenPadding:
-            const EdgeInsets.fromLTRB(
-          12,
-          0,
-          12,
-          12,
-        ),
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color:
-                color.withOpacity(0.10),
-            borderRadius:
-                BorderRadius.circular(11),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-          ),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w900,
-            color: AppTheme.text,
-          ),
-        ),
-        subtitle: Text(
-          '${reports.length} ${reports.length == 1 ? 'decisión' : 'decisiones'}',
-          style: const TextStyle(
-            fontSize: 10,
-            color: AppTheme.muted,
-          ),
-        ),
+      child: Column(
         children: [
-          Align(
-            alignment:
-                Alignment.centerLeft,
-            child: Padding(
-              padding:
-                  const EdgeInsets.only(
-                left: 2,
-                right: 2,
-                bottom: 5,
-              ),
-              child: Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 9.5,
-                  color: AppTheme.muted,
+          // ===================================================
+          // CABECERA DEL GRUPO
+          // ===================================================
+
+          _AccessibleFocusAction(
+            semanticLabel:
+                '${widget.title}. $countText. '
+                '${_expanded ? 'Expandido' : 'Contraído'}.',
+            onActivate: _toggleExpanded,
+            borderRadius: 16,
+            child: Material(
+              color: Colors.transparent,
+              borderRadius:
+                  BorderRadius.circular(16),
+              child: InkWell(
+                canRequestFocus: false,
+                onTap: _toggleExpanded,
+                borderRadius:
+                    BorderRadius.circular(16),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration:
+                            BoxDecoration(
+                          color: widget.color
+                              .withOpacity(0.10),
+                          borderRadius:
+                              BorderRadius.circular(
+                            11,
+                          ),
+                        ),
+                        child: Icon(
+                          widget.icon,
+                          color: widget.color,
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment
+                                  .start,
+                          children: [
+                            Text(
+                              widget.title,
+                              style:
+                                  const TextStyle(
+                                fontSize: 13,
+                                fontWeight:
+                                    FontWeight
+                                        .w900,
+                                color:
+                                    AppTheme.text,
+                              ),
+                            ),
+
+                            const SizedBox(
+                              height: 2,
+                            ),
+
+                            Text(
+                              countText,
+                              style:
+                                  const TextStyle(
+                                fontSize: 10,
+                                color:
+                                    AppTheme.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      Icon(
+                        _expanded
+                            ? Icons
+                                .keyboard_arrow_up_rounded
+                            : Icons
+                                .keyboard_arrow_down_rounded,
+                        color: AppTheme.primary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
 
-          ...reports.map(
-            (report) {
-              return Padding(
-                padding:
-                    const EdgeInsets.only(
-                  top: 7,
-                ),
-                child: _DecisionCard(
-                  report: report,
-                  color: color,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) {
-                          return _ReportDetailScreen(
-                            state: state,
-                            report: report,
-                          );
-                        },
+          // ===================================================
+          // CONTENIDO
+          // ===================================================
+
+          AnimatedCrossFade(
+            duration:
+                const Duration(
+              milliseconds: 180,
+            ),
+            crossFadeState: _expanded
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            firstChild: Padding(
+              padding:
+                  const EdgeInsets.fromLTRB(
+                12,
+                0,
+                12,
+                12,
+              ),
+              child: Column(
+                children: [
+                  Align(
+                    alignment:
+                        Alignment.centerLeft,
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.only(
+                        left: 2,
+                        right: 2,
+                        bottom: 5,
                       ),
-                    );
-                  },
-                ),
-              );
-            },
+                      child: Text(
+                        widget.subtitle,
+                        style:
+                            const TextStyle(
+                          fontSize: 9.5,
+                          color:
+                              AppTheme.muted,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  ...widget.reports.map(
+                    (report) {
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(
+                          top: 7,
+                        ),
+                        child:
+                            _DecisionCard(
+                          report: report,
+                          color:
+                              widget.color,
+                          onTap: () {
+                            Navigator.of(
+                              context,
+                            ).push(
+                              MaterialPageRoute(
+                                builder: (_) {
+                                  return _ReportDetailScreen(
+                                    state:
+                                        widget.state,
+                                    report:
+                                        report,
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            secondChild:
+                const SizedBox(
+              width: double.infinity,
+            ),
           ),
         ],
       ),
@@ -468,61 +687,75 @@ class _DecisionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: color.withOpacity(
-        0.05,
-      ),
-      borderRadius:
-          BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
+    return _AccessibleFocusAction(
+      semanticLabel:
+          '${report.decision}. '
+          '${_decisionSummary(report)}. '
+          'Abrir detalle de la decisión.',
+      onActivate: onTap,
+      borderRadius: 14,
+      child: Material(
+        color: color.withOpacity(
+          0.05,
+        ),
         borderRadius:
             BorderRadius.circular(12),
-        child: Padding(
-          padding:
-              const EdgeInsets.all(12),
-          child: Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _decisionSummary(
-                        report,
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius:
+              BorderRadius.circular(12),
+          child: Padding(
+            padding:
+                const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _decisionSummary(
+                          report,
+                        ),
+                        style:
+                            const TextStyle(
+                          fontSize: 11,
+                          fontWeight:
+                              FontWeight
+                                  .w800,
+                          color:
+                              AppTheme.text,
+                          height: 1.4,
+                        ),
                       ),
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight:
-                            FontWeight.w800,
-                        color: AppTheme.text,
-                        height: 1.4,
-                      ),
-                    ),
 
-                    const SizedBox(height: 5),
+                      const SizedBox(height: 5),
 
-                    Text(
-                      'Decisión tomada el ${_formatDate(report.createdAt)}',
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: AppTheme.muted,
+                      Text(
+                        'Decisión tomada el ${_formatDate(report.createdAt)}',
+                        style:
+                            const TextStyle(
+                          fontSize: 9,
+                          color:
+                              AppTheme.muted,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
 
-              Icon(
-                Icons.chevron_right_rounded,
-                color: color,
-              ),
-            ],
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: color,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -551,146 +784,183 @@ class _ReportHistoryCard
       report.decision,
     );
 
-    return Material(
-      color: Colors.white,
-      borderRadius:
-          BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+    return _AccessibleFocusAction(
+      semanticLabel:
+          'Reporte ${report.periodTitle}. '
+          '${report.transactionIds.length} movimientos. '
+          'Decisión: ${report.decision}. '
+          'Abrir reporte completo.',
+      onActivate: onTap,
+      borderRadius: 18,
+      child: Material(
+        color: Colors.white,
         borderRadius:
             BorderRadius.circular(16),
-        child: Container(
-          padding:
-              const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.border,
+        child: InkWell(
+          canRequestFocus: false,
+          onTap: onTap,
+          borderRadius:
+              BorderRadius.circular(16),
+          child: Container(
+            padding:
+                const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius:
+                  BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.border,
+              ),
             ),
-          ),
-          child: Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color:
-                      const Color(0xFFEAF3FF),
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
+            child: Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration:
+                      BoxDecoration(
+                    color:
+                        const Color(
+                      0xFFEAF3FF,
+                    ),
+                    borderRadius:
+                        BorderRadius
+                            .circular(
+                      12,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons
+                        .insert_chart_outlined,
+                    color:
+                        AppTheme.primary,
                   ),
                 ),
-                child: const Icon(
-                  Icons.insert_chart_outlined,
-                  color: AppTheme.primary,
-                ),
-              ),
 
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            report.periodTitle,
-                            style:
-                                const TextStyle(
-                              fontSize: 13,
-                              fontWeight:
-                                  FontWeight.w900,
-                              color: AppTheme.text,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              report
+                                  .periodTitle,
+                              style:
+                                  const TextStyle(
+                                fontSize: 13,
+                                fontWeight:
+                                    FontWeight
+                                        .w900,
+                                color:
+                                    AppTheme
+                                        .text,
+                              ),
                             ),
                           ),
-                        ),
 
-                        Text(
-                          _formatDate(
-                            report.createdAt,
+                          Text(
+                            _formatDate(
+                              report.createdAt,
+                            ),
+                            style:
+                                const TextStyle(
+                              fontSize: 9,
+                              color: AppTheme
+                                  .muted,
+                            ),
                           ),
-                          style:
-                              const TextStyle(
-                            fontSize: 9,
+                        ],
+                      ),
+
+                      const SizedBox(
+                        height: 3,
+                      ),
+
+                      Text(
+                        report.periodSubtitle,
+                        style:
+                            const TextStyle(
+                          fontSize: 9.5,
+                          color:
+                              AppTheme.muted,
+                        ),
+                      ),
+
+                      const SizedBox(
+                        height: 8,
+                      ),
+
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _SmallChip(
+                            text:
+                                '${report.transactionIds.length} movimientos',
                             color:
-                                AppTheme.muted,
+                                AppTheme.primary,
                           ),
-                        ),
-                      ],
-                    ),
 
-                    const SizedBox(height: 3),
-
-                    Text(
-                      report.periodSubtitle,
-                      style: const TextStyle(
-                        fontSize: 9.5,
-                        color: AppTheme.muted,
+                          _SmallChip(
+                            text:
+                                report.decision,
+                            color:
+                                decisionColor,
+                          ),
+                        ],
                       ),
-                    ),
 
-                    const SizedBox(height: 8),
+                      const SizedBox(
+                        height: 8,
+                      ),
 
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        _SmallChip(
-                          text:
-                              '${report.transactionIds.length} movimientos',
+                      Text(
+                        _decisionSummary(
+                          report,
+                        ),
+                        maxLines: 2,
+                        overflow:
+                            TextOverflow
+                                .ellipsis,
+                        style:
+                            const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight:
+                              FontWeight
+                                  .w700,
                           color:
-                              AppTheme.primary,
+                              AppTheme.text,
+                          height: 1.35,
                         ),
+                      ),
 
-                        _SmallChip(
-                          text:
-                              report.decision,
-                          color:
-                              decisionColor,
+                      const SizedBox(
+                        height: 7,
+                      ),
+
+                      const Text(
+                        'Ver reporte completo →',
+                        style:
+                            TextStyle(
+                          fontSize: 9.5,
+                          fontWeight:
+                              FontWeight
+                                  .w800,
+                          color: AppTheme
+                              .primary,
                         ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Text(
-                      _decisionSummary(
-                        report,
                       ),
-                      maxLines: 2,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight:
-                            FontWeight.w700,
-                        color: AppTheme.text,
-                        height: 1.35,
-                      ),
-                    ),
-
-                    const SizedBox(height: 7),
-
-                    const Text(
-                      'Ver reporte completo →',
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight:
-                            FontWeight.w800,
-                        color: AppTheme.primary,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

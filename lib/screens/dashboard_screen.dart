@@ -39,7 +39,8 @@ class DashboardScreen extends StatelessWidget {
     return _monthTransactions
         .where(
           (transaction) =>
-              transaction.type.toLowerCase() == 'income',
+              transaction.type.toLowerCase() ==
+              'income',
         )
         .fold<double>(
           0,
@@ -56,7 +57,8 @@ class DashboardScreen extends StatelessWidget {
     return _monthTransactions
         .where(
           (transaction) =>
-              transaction.type.toLowerCase() == 'expense',
+              transaction.type.toLowerCase() ==
+              'expense',
         )
         .fold<double>(
           0,
@@ -109,7 +111,8 @@ class DashboardScreen extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: state.refreshAll,
       child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics:
+            const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(
           18,
           18,
@@ -170,101 +173,120 @@ class DashboardScreen extends StatelessWidget {
                 // SALDO ACTUAL
                 // =================================================
 
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(
-                    13,
-                    13,
-                    13,
-                    13,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE7F2FF),
-                    borderRadius:
-                        BorderRadius.circular(13),
-                  ),
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Saldo actual',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight:
-                              FontWeight.w700,
-                          color: AppTheme.text,
+                Semantics(
+                  container: true,
+                  label:
+                      'Saldo actual. '
+                      '${money(_currentBalance)}. '
+                      'Dinero restante después de ingresos y gastos. '
+                      'Ingresos ${money(_totalIncome)}. '
+                      'Gastos ${money(_totalExpenses)}.',
+                  child: ExcludeSemantics(
+                    child: Container(
+                      width: double.infinity,
+                      padding:
+                          const EdgeInsets.fromLTRB(
+                        13,
+                        13,
+                        13,
+                        13,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            const Color(0xFFE7F2FF),
+                        borderRadius:
+                            BorderRadius.circular(13),
+                        border: Border.all(
+                          color: AppTheme.border,
                         ),
                       ),
-
-                      const SizedBox(height: 4),
-
-                      Text(
-                        money(_currentBalance),
-                        style: TextStyle(
-                          fontSize: 25,
-                          height: 1.05,
-                          fontWeight:
-                              FontWeight.w900,
-                          color: _currentBalance >= 0
-                              ? AppTheme.text
-                              : Colors.red.shade700,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      Row(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons
-                                .arrow_downward_rounded,
-                            size: 14,
-                            color: AppTheme.success,
+                          const Row(
+                            children: [
+                              Icon(
+                                Icons
+                                    .account_balance_wallet_outlined,
+                                size: 19,
+                                color:
+                                    AppTheme.primary,
+                              ),
+                              SizedBox(width: 7),
+                              Expanded(
+                                child: Text(
+                                  'Saldo actual',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight:
+                                        FontWeight
+                                            .w800,
+                                    color:
+                                        AppTheme.text,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
 
-                          const SizedBox(width: 3),
+                          const SizedBox(height: 4),
+
+                          const Text(
+                            'Dinero restante después de ingresos y gastos',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              height: 1.3,
+                              color: AppTheme.muted,
+                            ),
+                          ),
+
+                          const SizedBox(height: 7),
 
                           Text(
-                            'Ingresos: ${money(_totalIncome)}',
-                            style: const TextStyle(
-                              fontSize: 10.5,
-                              color:
-                                  AppTheme.success,
+                            money(_currentBalance),
+                            style: TextStyle(
+                              fontSize: 25,
+                              height: 1.05,
                               fontWeight:
-                                  FontWeight.w700,
+                                  FontWeight.w900,
+                              color:
+                                  _currentBalance >= 0
+                                      ? AppTheme.text
+                                      : Colors
+                                          .red.shade700,
                             ),
                           ),
 
-                          const SizedBox(width: 12),
+                          const SizedBox(height: 10),
 
-                          Icon(
-                            Icons
-                                .arrow_upward_rounded,
-                            size: 14,
-                            color:
-                                Colors.red.shade700,
-                          ),
-
-                          const SizedBox(width: 3),
-
-                          Flexible(
-                            child: Text(
-                              'Gastos: ${money(_totalExpenses)}',
-                              overflow:
-                                  TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 10.5,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 7,
+                            children: [
+                              _BalanceDetail(
+                                icon: Icons
+                                    .add_circle_outline_rounded,
+                                label: 'Ingreso',
+                                amount:
+                                    _totalIncome,
+                                color:
+                                    AppTheme.success,
+                              ),
+                              _BalanceDetail(
+                                icon: Icons
+                                    .remove_circle_outline_rounded,
+                                label: 'Gasto',
+                                amount:
+                                    _totalExpenses,
                                 color:
                                     Colors.red.shade700,
-                                fontWeight:
-                                    FontWeight.w700,
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
 
@@ -274,47 +296,75 @@ class DashboardScreen extends StatelessWidget {
                 // COMPROMETIDO
                 // =================================================
 
-                MoneyCard(
-                  title: 'Dinero comprometido',
-                  amount: _committed,
-                  subtitle:
-                      'Pagos y compromisos pendientes',
-                  icon: Icons
-                      .account_balance_wallet_outlined,
-                  showArrow: false,
+                Semantics(
+                  container: true,
+                  label:
+                      'Dinero comprometido. '
+                      '${money(_committed)}. '
+                      'Dinero reservado para pagos y compromisos pendientes.',
+                  child: ExcludeSemantics(
+                    child: MoneyCard(
+                      title:
+                          'Dinero comprometido',
+                      amount: _committed,
+                      subtitle:
+                          'Reservado para pagos y compromisos pendientes',
+                      icon: Icons
+                          .event_note_outlined,
+                      showArrow: false,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 9),
 
                 // =================================================
-                // AHORRO
+                // AHORRO RESERVADO
                 // =================================================
 
-                MoneyCard(
-                  title: 'Ahorro reservado',
-                  amount: _saved,
-                  subtitle:
-                      'Dinero separado para tus metas',
-                  icon:
-                      Icons.savings_outlined,
-                  showArrow: false,
+                Semantics(
+                  container: true,
+                  label:
+                      'Ahorro reservado. '
+                      '${money(_saved)}. '
+                      'Dinero protegido para tus metas.',
+                  child: ExcludeSemantics(
+                    child: MoneyCard(
+                      title: 'Ahorro reservado',
+                      amount: _saved,
+                      subtitle:
+                          'Dinero protegido para tus metas',
+                      icon:
+                          Icons.savings_outlined,
+                      showArrow: false,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 9),
 
                 // =================================================
-                // DISPONIBLE
+                // DISPONIBLE REAL
                 // =================================================
 
-                MoneyCard(
-                  title: 'Disponible real',
-                  amount: _available,
-                  subtitle:
-                      'Lo que podés utilizar sin afectar compromisos ni ahorro',
-                  icon:
-                      Icons.wallet_outlined,
-                  green: _available >= 0,
-                  showArrow: false,
+                Semantics(
+                  container: true,
+                  label:
+                      'Disponible real. '
+                      '${money(_available)}. '
+                      'Dinero que podés utilizar sin afectar compromisos ni ahorro.',
+                  child: ExcludeSemantics(
+                    child: MoneyCard(
+                      title: 'Disponible real',
+                      amount: _available,
+                      subtitle:
+                          'Dinero que podés utilizar sin afectar compromisos ni ahorro',
+                      icon:
+                          Icons.check_circle_outline_rounded,
+                      green: _available >= 0,
+                      showArrow: false,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -323,7 +373,7 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 17),
 
           // ===================================================
-          // REGISTRAR AVANCE
+          // REVISAR DINERO
           // ===================================================
 
           FilledButton.icon(
@@ -353,6 +403,17 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
 
+            const SizedBox(height: 4),
+
+            const Text(
+              'Cada movimiento indica por texto si corresponde a un ingreso o un gasto.',
+              style: TextStyle(
+                fontSize: 10.5,
+                height: 1.3,
+                color: AppTheme.muted,
+              ),
+            ),
+
             const SizedBox(height: 10),
 
             ..._latestTransactions.map(
@@ -361,113 +422,266 @@ class DashboardScreen extends StatelessWidget {
                     transaction.type.toLowerCase() ==
                         'income';
 
+                final typeLabel =
+                    isIncome ? 'INGRESO' : 'GASTO';
+
+                final semanticDescription =
+                    transaction.description
+                            .trim()
+                            .isEmpty
+                        ? ''
+                        : '. ${transaction.description}';
+
                 return Padding(
                   padding:
                       const EdgeInsets.only(
                     bottom: 8,
                   ),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(
-                      horizontal: 13,
-                      vertical: 11,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.circular(13),
-                      border: Border.all(
-                        color:
-                            AppTheme.border,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration:
-                              BoxDecoration(
-                            color: isIncome
-                                ? const Color(
-                                    0xFFE9FFF2,
-                                  )
-                                : const Color(
-                                    0xFFEAF3FF,
-                                  ),
-                            borderRadius:
-                                BorderRadius
-                                    .circular(10),
+                  child: Semantics(
+                    container: true,
+                    label:
+                        '$typeLabel. '
+                        '${transaction.category}. '
+                        '${money(transaction.amount)}'
+                        '$semanticDescription.',
+                    child: ExcludeSemantics(
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(
+                          horizontal: 13,
+                          vertical: 11,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              BorderRadius.circular(
+                            13,
                           ),
-                          child: Icon(
-                            isIncome
-                                ? Icons
-                                    .arrow_downward_rounded
-                                : Icons
-                                    .arrow_upward_rounded,
-                            color: isIncome
-                                ? AppTheme.success
-                                : AppTheme.primary,
+                          border: Border.all(
+                            color:
+                                AppTheme.border,
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            // =====================================
+                            // ICONO
+                            // =====================================
 
-                        const SizedBox(width: 11),
-
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              Text(
-                                transaction.category,
-                                style:
-                                    const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight:
-                                      FontWeight
-                                          .w900,
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration:
+                                  BoxDecoration(
+                                color: isIncome
+                                    ? const Color(
+                                        0xFFE9FFF2,
+                                      )
+                                    : const Color(
+                                        0xFFFFF1F1,
+                                      ),
+                                borderRadius:
+                                    BorderRadius
+                                        .circular(10),
+                                border:
+                                    Border.all(
+                                  color: isIncome
+                                      ? AppTheme
+                                          .success
+                                          .withOpacity(
+                                            .25,
+                                          )
+                                      : Colors
+                                          .red
+                                          .shade700
+                                          .withOpacity(
+                                            .25,
+                                          ),
                                 ),
                               ),
+                              child: Icon(
+                                isIncome
+                                    ? Icons
+                                        .add_rounded
+                                    : Icons
+                                        .remove_rounded,
+                                color: isIncome
+                                    ? AppTheme
+                                        .success
+                                    : Colors
+                                        .red
+                                        .shade700,
+                                size: 23,
+                              ),
+                            ),
 
-                              if (transaction
-                                  .description
-                                  .trim()
-                                  .isNotEmpty)
+                            const SizedBox(
+                              width: 11,
+                            ),
+
+                            // =====================================
+                            // INFORMACIÓN
+                            // =====================================
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
+                                children: [
+                                  // =================================
+                                  // ETIQUETA EXPLÍCITA
+                                  // =================================
+
+                                  Container(
+                                    padding:
+                                        const EdgeInsets
+                                            .symmetric(
+                                      horizontal: 7,
+                                      vertical: 3,
+                                    ),
+                                    decoration:
+                                        BoxDecoration(
+                                      color: isIncome
+                                          ? const Color(
+                                              0xFFE9FFF2,
+                                            )
+                                          : const Color(
+                                              0xFFFFF1F1,
+                                            ),
+                                      borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                        20,
+                                      ),
+                                      border:
+                                          Border.all(
+                                        color: isIncome
+                                            ? AppTheme
+                                                .success
+                                            : Colors
+                                                .red
+                                                .shade700,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      typeLabel,
+                                      style:
+                                          TextStyle(
+                                        fontSize: 8.5,
+                                        letterSpacing:
+                                            .4,
+                                        fontWeight:
+                                            FontWeight
+                                                .w900,
+                                        color: isIncome
+                                            ? AppTheme
+                                                .success
+                                            : Colors
+                                                .red
+                                                .shade700,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+
+                                  Text(
+                                    transaction
+                                        .category,
+                                    style:
+                                        const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight:
+                                          FontWeight
+                                              .w900,
+                                      color:
+                                          AppTheme.text,
+                                    ),
+                                  ),
+
+                                  if (transaction
+                                      .description
+                                      .trim()
+                                      .isNotEmpty) ...[
+                                    const SizedBox(
+                                      height: 2,
+                                    ),
+                                    Text(
+                                      transaction
+                                          .description,
+                                      maxLines: 1,
+                                      overflow:
+                                          TextOverflow
+                                              .ellipsis,
+                                      style:
+                                          const TextStyle(
+                                        fontSize: 10,
+                                        color:
+                                            AppTheme
+                                                .muted,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(
+                              width: 8,
+                            ),
+
+                            // =====================================
+                            // MONTO
+                            // =====================================
+
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment
+                                      .end,
+                              children: [
                                 Text(
-                                  transaction
-                                      .description,
-                                  maxLines: 1,
-                                  overflow:
-                                      TextOverflow
-                                          .ellipsis,
-                                  style:
-                                      const TextStyle(
-                                    fontSize: 10,
-                                    color:
-                                        AppTheme.muted,
+                                  isIncome
+                                      ? '+${money(transaction.amount)}'
+                                      : '-${money(transaction.amount)}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight:
+                                        FontWeight
+                                            .w900,
+                                    color: isIncome
+                                        ? AppTheme
+                                            .success
+                                        : AppTheme
+                                            .text,
                                   ),
                                 ),
-                            ],
-                          ),
-                        ),
 
-                        const SizedBox(width: 8),
+                                const SizedBox(
+                                  height: 2,
+                                ),
 
-                        Text(
-                          isIncome
-                              ? '+${money(transaction.amount)}'
-                              : '-${money(transaction.amount)}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight:
-                                FontWeight.w900,
-                            color: isIncome
-                                ? AppTheme.success
-                                : AppTheme.text,
-                          ),
+                                Text(
+                                  isIncome
+                                      ? 'Recibido'
+                                      : 'Gastado',
+                                  style:
+                                      const TextStyle(
+                                    fontSize: 9,
+                                    color:
+                                        AppTheme.muted,
+                                    fontWeight:
+                                        FontWeight
+                                            .w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -495,5 +709,62 @@ class DashboardScreen extends StatelessWidget {
     );
 
     return list.take(3).toList();
+  }
+}
+
+// =============================================================
+// DETALLE DE INGRESOS / GASTOS
+// =============================================================
+
+class _BalanceDetail extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final double amount;
+  final Color color;
+
+  const _BalanceDetail({
+    required this.icon,
+    required this.label,
+    required this.amount,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(.75),
+        borderRadius:
+            BorderRadius.circular(9),
+        border: Border.all(
+          color: AppTheme.border,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: color,
+          ),
+
+          const SizedBox(width: 4),
+
+          Text(
+            '$label: ${money(amount)}',
+            style: const TextStyle(
+              fontSize: 10.5,
+              color: AppTheme.text,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

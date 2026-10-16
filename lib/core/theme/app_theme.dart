@@ -18,6 +18,12 @@ class AppTheme {
   static const lightBlue = Color(0xFFEAF3FF);
   static const lightGreen = Color(0xFFF0FFF6);
 
+  // =========================================================
+  // ACCESIBILIDAD - FOCO
+  // =========================================================
+
+  static const focus = Color(0xFF061747);
+
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: primary,
@@ -35,9 +41,22 @@ class AppTheme {
 
       fontFamily: 'Arial',
 
-      splashColor: primary.withOpacity(.06),
+      // =======================================================
+      // ESTADOS GENERALES
+      // =======================================================
 
-      highlightColor: primary.withOpacity(.03),
+      splashColor: primary.withOpacity(.08),
+
+      highlightColor: primary.withOpacity(.06),
+
+      // Foco más perceptible para navegación mediante teclado.
+      focusColor: primary.withOpacity(.22),
+
+      hoverColor: primary.withOpacity(.08),
+
+      // =======================================================
+      // TEXTOS
+      // =======================================================
 
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
@@ -68,6 +87,10 @@ class AppTheme {
         ),
       ),
 
+      // =======================================================
+      // APP BAR
+      // =======================================================
+
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
         foregroundColor: text,
@@ -75,71 +98,353 @@ class AppTheme {
         elevation: 0,
       ),
 
+      // =======================================================
+      // BOTONES PRINCIPALES
+      // =======================================================
+
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(54),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        style: ButtonStyle(
+          backgroundColor:
+              WidgetStateProperty.resolveWith<Color?>(
+            (states) {
+              if (states.contains(
+                WidgetState.disabled,
+              )) {
+                return primary.withOpacity(.45);
+              }
+
+              return primary;
+            },
           ),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
+
+          foregroundColor:
+              const WidgetStatePropertyAll(
+            Colors.white,
+          ),
+
+          minimumSize:
+              const WidgetStatePropertyAll(
+            Size.fromHeight(54),
+          ),
+
+          elevation:
+              const WidgetStatePropertyAll(0),
+
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(12),
+            ),
+          ),
+
+          textStyle:
+              const WidgetStatePropertyAll(
+            TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+
+          // Foco claramente visible.
+          side:
+              WidgetStateProperty.resolveWith<
+                  BorderSide?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return const BorderSide(
+                  color: focus,
+                  width: 3,
+                );
+              }
+
+              return BorderSide.none;
+            },
+          ),
+
+          overlayColor:
+              WidgetStateProperty.resolveWith<Color?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return Colors.white.withOpacity(.18);
+              }
+
+              if (states.contains(
+                WidgetState.hovered,
+              )) {
+                return Colors.white.withOpacity(.08);
+              }
+
+              if (states.contains(
+                WidgetState.pressed,
+              )) {
+                return Colors.white.withOpacity(.12);
+              }
+
+              return null;
+            },
           ),
         ),
       ),
 
+      // =======================================================
+      // BOTONES OUTLINED
+      // =======================================================
+
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: primary,
-          minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(
-            color: primary,
-            width: 1.5,
+        style: ButtonStyle(
+          foregroundColor:
+              const WidgetStatePropertyAll(
+            primary,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+
+          minimumSize:
+              const WidgetStatePropertyAll(
+            Size.fromHeight(52),
           ),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
+
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(12),
+            ),
+          ),
+
+          textStyle:
+              const WidgetStatePropertyAll(
+            TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+
+          side:
+              WidgetStateProperty.resolveWith<
+                  BorderSide?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return const BorderSide(
+                  color: focus,
+                  width: 3,
+                );
+              }
+
+              return const BorderSide(
+                color: primary,
+                width: 1.5,
+              );
+            },
+          ),
+
+          overlayColor:
+              WidgetStateProperty.resolveWith<Color?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return primary.withOpacity(.15);
+              }
+
+              if (states.contains(
+                WidgetState.hovered,
+              )) {
+                return primary.withOpacity(.07);
+              }
+
+              return null;
+            },
           ),
         ),
       ),
+
+      // =======================================================
+      // TEXT BUTTONS
+      // =======================================================
+
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor:
+              const WidgetStatePropertyAll(
+            primary,
+          ),
+
+          overlayColor:
+              WidgetStateProperty.resolveWith<Color?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return primary.withOpacity(.18);
+              }
+
+              if (states.contains(
+                WidgetState.hovered,
+              )) {
+                return primary.withOpacity(.08);
+              }
+
+              return null;
+            },
+          ),
+
+          side:
+              WidgetStateProperty.resolveWith<
+                  BorderSide?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return const BorderSide(
+                  color: focus,
+                  width: 2,
+                );
+              }
+
+              return BorderSide.none;
+            },
+          ),
+
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(10),
+            ),
+          ),
+        ),
+      ),
+
+      // =======================================================
+      // ICON BUTTONS
+      // =======================================================
+
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor:
+              const WidgetStatePropertyAll(
+            text,
+          ),
+
+          overlayColor:
+              WidgetStateProperty.resolveWith<Color?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return primary.withOpacity(.20);
+              }
+
+              if (states.contains(
+                WidgetState.hovered,
+              )) {
+                return primary.withOpacity(.08);
+              }
+
+              return null;
+            },
+          ),
+
+          side:
+              WidgetStateProperty.resolveWith<
+                  BorderSide?>(
+            (states) {
+              if (states.contains(
+                WidgetState.focused,
+              )) {
+                return const BorderSide(
+                  color: focus,
+                  width: 2.5,
+                );
+              }
+
+              return BorderSide.none;
+            },
+          ),
+
+          shape:
+              const WidgetStatePropertyAll(
+            CircleBorder(),
+          ),
+        ),
+      ),
+
+      // =======================================================
+      // CAMPOS DE TEXTO
+      // =======================================================
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
+
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
+
+        contentPadding:
+            const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
+
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius:
+              BorderRadius.circular(14),
         ),
+
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius:
+              BorderRadius.circular(14),
           borderSide: const BorderSide(
             color: border,
+            width: 1,
           ),
         ),
+
+        // El campo enfocado ahora tiene un borde
+        // considerablemente más visible.
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius:
+              BorderRadius.circular(14),
           borderSide: const BorderSide(
-            color: primary,
+            color: focus,
+            width: 3,
+          ),
+        ),
+
+        errorBorder: OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: Colors.red.shade700,
             width: 1.5,
+          ),
+        ),
+
+        focusedErrorBorder:
+            OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: Colors.red.shade900,
+            width: 3,
           ),
         ),
       ),
 
-      navigationBarTheme: const NavigationBarThemeData(
+      // =======================================================
+      // NAVEGACIÓN INFERIOR
+      // =======================================================
+
+      navigationBarTheme:
+          const NavigationBarThemeData(
         backgroundColor: Colors.white,
-        indicatorColor: Color(0xFFE7F0FF),
+        indicatorColor:
+            Color(0xFFE7F0FF),
         elevation: 0,
         height: 68,
-        labelTextStyle: WidgetStatePropertyAll(
+        labelTextStyle:
+            WidgetStatePropertyAll(
           TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,

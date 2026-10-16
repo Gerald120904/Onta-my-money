@@ -675,6 +675,8 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPositive = balance >= 0;
+
     return PrototypePanel(
       padding: const EdgeInsets.all(15),
       child: Column(
@@ -709,8 +711,10 @@ class _SummarySection extends StatelessWidget {
               Expanded(
                 child: _SummaryValue(
                   icon: Icons
-                      .arrow_downward_rounded,
+                      .add_circle_outline_rounded,
                   title: 'Ingresos',
+                  description:
+                      'Dinero recibido',
                   amount: income,
                   color:
                       AppTheme.success,
@@ -726,8 +730,10 @@ class _SummarySection extends StatelessWidget {
               Expanded(
                 child: _SummaryValue(
                   icon: Icons
-                      .arrow_upward_rounded,
+                      .remove_circle_outline_rounded,
                   title: 'Gastos',
+                  description:
+                      'Dinero utilizado',
                   amount: expenses,
                   color:
                       AppTheme.primary,
@@ -742,46 +748,96 @@ class _SummarySection extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          Container(
-            width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
-            decoration: BoxDecoration(
-              color:
-                  const Color(0xFFF8FAFD),
-              borderRadius:
-                  BorderRadius.circular(14),
-              border: Border.all(
-                color: AppTheme.border,
-              ),
-            ),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Balance de movimientos',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight:
-                          FontWeight.w800,
+          Semantics(
+            container: true,
+            label:
+                'Balance de movimientos. '
+                '${money(balance)}. '
+                '${isPositive ? 'Balance disponible positivo' : 'Balance negativo'}.',
+            child: ExcludeSemantics(
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      const Color(0xFFF8FAFD),
+                  borderRadius:
+                      BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppTheme.border,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      isPositive
+                          ? Icons
+                              .check_circle_outline_rounded
+                          : Icons
+                              .warning_amber_rounded,
+                      size: 20,
+                      color: isPositive
+                          ? AppTheme.success
+                          : Colors.red.shade700,
                     ),
-                  ),
+
+                    const SizedBox(width: 8),
+
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
+                        children: [
+                          const Text(
+                            'Balance de movimientos',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight:
+                                  FontWeight
+                                      .w800,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 2,
+                          ),
+                          Text(
+                            isPositive
+                                ? 'Saldo disponible después de ingresos y gastos'
+                                : 'Los gastos superan los ingresos registrados',
+                            style:
+                                const TextStyle(
+                              fontSize: 9.5,
+                              height: 1.25,
+                              color:
+                                  AppTheme.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    Text(
+                      money(balance),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight:
+                            FontWeight.w900,
+                        color: isPositive
+                            ? AppTheme.success
+                            : Colors.red
+                                .shade700,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  money(balance),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: balance >= 0
-                        ? AppTheme.success
-                        : Colors.red.shade700,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -793,6 +849,7 @@ class _SummarySection extends StatelessWidget {
 class _SummaryValue extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String description;
   final double amount;
   final Color color;
   final Color background;
@@ -800,6 +857,7 @@ class _SummaryValue extends StatelessWidget {
   const _SummaryValue({
     required this.icon,
     required this.title,
+    required this.description,
     required this.amount,
     required this.color,
     required this.background,
@@ -807,55 +865,79 @@ class _SummaryValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius:
-            BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Semantics(
+      container: true,
+      label:
+          '$title. ${money(amount)}. $description.',
+      child: ExcludeSemantics(
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius:
+                BorderRadius.circular(14),
+            border: Border.all(
+              color: AppTheme.border,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
-              Icon(
-                icon,
-                size: 17,
-                color: color,
+              Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 17,
+                    color: color,
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style:
+                          const TextStyle(
+                        fontSize: 11,
+                        fontWeight:
+                            FontWeight
+                                .w900,
+                        color:
+                            AppTheme.text,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 5),
-              Expanded(
+
+              const SizedBox(height: 3),
+
+              Text(
+                description,
+                style: const TextStyle(
+                  fontSize: 9.5,
+                  color: AppTheme.muted,
+                ),
+              ),
+
+              const SizedBox(height: 7),
+
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment:
+                    Alignment.centerLeft,
                 child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  money(amount),
+                  style: TextStyle(
+                    fontSize: 18,
                     fontWeight:
-                        FontWeight.w800,
+                        FontWeight.w900,
+                    color: color,
                   ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 7),
-
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment:
-                Alignment.centerLeft,
-            child: Text(
-              money(amount),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight:
-                    FontWeight.w900,
-                color: color,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -884,250 +966,368 @@ class _TransactionCard extends StatelessWidget {
         transaction.type.toLowerCase() ==
         'income';
 
+    final typeLabel =
+        isIncome ? 'INGRESO' : 'GASTO';
+
+    final amountAction =
+        isIncome ? 'Recibido' : 'Gastado';
+
     final accent = isIncome
         ? AppTheme.success
-        : AppTheme.primary;
+        : Colors.red.shade700;
 
     final iconBackground = isIncome
         ? const Color(0xFFE9FFF2)
-        : const Color(0xFFEAF3FF);
+        : const Color(0xFFFFF1F1);
 
-    return Material(
-      color: Colors.white,
-      borderRadius:
-          BorderRadius.circular(14),
-      child: InkWell(
+    final description =
+        transaction.description.trim();
+
+    final recognizedLabel =
+        !isIncome && !transaction.recognized
+            ? 'Movimiento no reconocido'
+            : '';
+
+    return Semantics(
+      container: true,
+      button: true,
+      label:
+          '$typeLabel. '
+          '${transaction.category}. '
+          '${money(transaction.amount)}. '
+          '$amountAction. '
+          '${shortDate(transaction.date)}.'
+          '${description.isNotEmpty ? ' $description.' : ''}'
+          '${recognizedLabel.isNotEmpty ? ' $recognizedLabel.' : ''} '
+          'Tocá para editar el movimiento.',
+      child: Material(
+        color: Colors.white,
         borderRadius:
             BorderRadius.circular(14),
-        onTap: onEdit,
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(
-            horizontal: 13,
-            vertical: 12,
-          ),
-          decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(14),
-            border: Border.all(
-              color: AppTheme.border,
+        child: InkWell(
+          borderRadius:
+              BorderRadius.circular(14),
+          onTap: onEdit,
+          focusColor:
+              AppTheme.primary.withOpacity(.10),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(
+              horizontal: 13,
+              vertical: 12,
             ),
-          ),
-          child: Row(
-            children: [
-              // ICONO
+            decoration: BoxDecoration(
+              borderRadius:
+                  BorderRadius.circular(14),
+              border: Border.all(
+                color: AppTheme.border,
+              ),
+            ),
+            child: Row(
+              children: [
+                // ICONO DE CATEGORÍA
 
-              Container(
-                width: 43,
-                height: 43,
-                decoration: BoxDecoration(
-                  color: iconBackground,
-                  borderRadius:
-                      BorderRadius.circular(
-                    11,
+                ExcludeSemantics(
+                  child: Container(
+                    width: 43,
+                    height: 43,
+                    decoration: BoxDecoration(
+                      color: iconBackground,
+                      borderRadius:
+                          BorderRadius.circular(
+                        11,
+                      ),
+                      border: Border.all(
+                        color:
+                            accent.withOpacity(.25),
+                      ),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: accent,
+                      size: 22,
+                    ),
                   ),
                 ),
-                child: Icon(
-                  icon,
-                  color: accent,
-                  size: 22,
-                ),
-              ),
 
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
 
-              // INFORMACIÓN
+                // INFORMACIÓN
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                Expanded(
+                  child: ExcludeSemantics(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            transaction.category,
-                            maxLines: 1,
-                            overflow:
-                                TextOverflow
-                                    .ellipsis,
-                            style:
-                                const TextStyle(
-                              fontSize: 14,
-                              fontWeight:
-                                  FontWeight
-                                      .w900,
-                              color:
-                                  AppTheme.text,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 6),
-
+                        // ETIQUETA DEL TIPO DE MOVIMIENTO
                         Container(
                           padding:
                               const EdgeInsets
                                   .symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                            horizontal: 7,
+                            vertical: 3,
                           ),
                           decoration:
                               BoxDecoration(
-                            color:
-                                iconBackground,
+                            color: iconBackground,
                             borderRadius:
                                 BorderRadius
                                     .circular(20),
-                          ),
-                          child: Text(
-                            isIncome
-                                ? 'Ingreso'
-                                : 'Gasto',
-                            style:
-                                TextStyle(
-                              fontSize: 8.5,
-                              fontWeight:
-                                  FontWeight
-                                      .w800,
+                            border: Border.all(
                               color: accent,
                             ),
                           ),
+                          child: Row(
+                            mainAxisSize:
+                                MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isIncome
+                                    ? Icons
+                                        .add_rounded
+                                    : Icons
+                                        .remove_rounded,
+                                size: 11,
+                                color: accent,
+                              ),
+                              const SizedBox(
+                                width: 3,
+                              ),
+                              Text(
+                                typeLabel,
+                                style: TextStyle(
+                                  fontSize: 8.5,
+                                  letterSpacing: .35,
+                                  fontWeight:
+                                      FontWeight
+                                          .w900,
+                                  color: accent,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+
+                        const SizedBox(height: 5),
+
+                        Text(
+                          transaction.category,
+                          maxLines: 1,
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style:
+                              const TextStyle(
+                            fontSize: 14,
+                            fontWeight:
+                                FontWeight.w900,
+                            color:
+                                AppTheme.text,
+                          ),
+                        ),
+
+                        const SizedBox(height: 3),
+
+                        Text(
+                          description.isEmpty
+                              ? shortDate(
+                                  transaction.date,
+                                )
+                              : '$description • ${shortDate(transaction.date)}',
+                          maxLines: 1,
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style:
+                              const TextStyle(
+                            fontSize: 10.5,
+                            color:
+                                AppTheme.muted,
+                          ),
+                        ),
+
+                        if (!isIncome &&
+                            !transaction
+                                .recognized)
+                          Padding(
+                            padding:
+                                const EdgeInsets
+                                    .only(
+                              top: 6,
+                            ),
+                            child: Container(
+                              padding:
+                                  const EdgeInsets
+                                      .symmetric(
+                                horizontal: 7,
+                                vertical: 4,
+                              ),
+                              decoration:
+                                  BoxDecoration(
+                                color:
+                                    const Color(
+                                  0xFFFFF7E8,
+                                ),
+                                borderRadius:
+                                    BorderRadius
+                                        .circular(
+                                  8,
+                                ),
+                                border:
+                                    Border.all(
+                                  color: Colors
+                                      .orange
+                                      .shade700,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize:
+                                    MainAxisSize
+                                        .min,
+                                children: [
+                                  Icon(
+                                    Icons
+                                        .help_outline_rounded,
+                                    size: 13,
+                                    color: Colors
+                                        .orange
+                                        .shade800,
+                                  ),
+                                  const SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    'MOVIMIENTO NO RECONOCIDO',
+                                    style:
+                                        TextStyle(
+                                      fontSize: 8.5,
+                                      color: Colors
+                                          .orange
+                                          .shade900,
+                                      fontWeight:
+                                          FontWeight
+                                              .w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                       ],
                     ),
+                  ),
+                ),
 
-                    const SizedBox(height: 4),
+                const SizedBox(width: 8),
 
-                    Text(
-                      transaction.description
-                              .trim()
-                              .isEmpty
-                          ? shortDate(
-                              transaction.date,
-                            )
-                          : '${transaction.description} • ${shortDate(transaction.date)}',
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style:
-                          const TextStyle(
-                        fontSize: 10.5,
-                        color:
-                            AppTheme.muted,
-                      ),
-                    ),
+                // MONTO Y SIGNIFICADO
 
-                    if (!isIncome &&
-                        !transaction.recognized)
-                      const Padding(
-                        padding:
-                            EdgeInsets.only(
-                          top: 4,
+                ExcludeSemantics(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        isIncome
+                            ? '+${money(transaction.amount)}'
+                            : '-${money(transaction.amount)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight:
+                              FontWeight.w900,
+                          color: isIncome
+                              ? AppTheme.success
+                              : AppTheme.text,
                         ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        amountAction,
+                        style:
+                            const TextStyle(
+                          fontSize: 9,
+                          color:
+                              AppTheme.muted,
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // MENÚ
+
+                Semantics(
+                  label:
+                      'Opciones de ${transaction.category}',
+                  button: true,
+                  child:
+                      PopupMenuButton<String>(
+                    tooltip: 'Opciones',
+                    icon: const Icon(
+                      Icons
+                          .more_vert_rounded,
+                      color: AppTheme.muted,
+                    ),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        onEdit();
+                      }
+
+                      if (value ==
+                          'delete') {
+                        onDelete();
+                      }
+                    },
+                    itemBuilder: (_) =>
+                        const [
+                      PopupMenuItem(
+                        value: 'edit',
                         child: Row(
                           children: [
                             Icon(
                               Icons
-                                  .help_outline_rounded,
-                              size: 13,
-                              color:
-                                  Colors.orange,
+                                  .edit_outlined,
+                              size: 19,
                             ),
-                            SizedBox(width: 4),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text('Editar'),
+                          ],
+                        ),
+                      ),
+
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons
+                                  .delete_outline_rounded,
+                              size: 19,
+                              color:
+                                  Colors.red,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
                             Text(
-                              'No reconocido',
+                              'Eliminar',
                               style:
                                   TextStyle(
-                                fontSize: 10,
                                 color:
-                                    Colors.orange,
-                                fontWeight:
-                                    FontWeight
-                                        .w700,
+                                    Colors.red,
                               ),
                             ),
                           ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // MONTO
-
-              Text(
-                isIncome
-                    ? '+${money(transaction.amount)}'
-                    : '-${money(transaction.amount)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight:
-                      FontWeight.w900,
-                  color: isIncome
-                      ? AppTheme.success
-                      : AppTheme.text,
-                ),
-              ),
-
-              // MENÚ
-
-              PopupMenuButton<String>(
-                tooltip: 'Opciones',
-                icon: const Icon(
-                  Icons.more_vert_rounded,
-                  color: AppTheme.muted,
-                ),
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    onEdit();
-                  }
-
-                  if (value == 'delete') {
-                    onDelete();
-                  }
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          size: 19,
-                        ),
-                        SizedBox(width: 10),
-                        Text('Editar'),
-                      ],
-                    ),
+                    ],
                   ),
-
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons
-                              .delete_outline_rounded,
-                          size: 19,
-                          color: Colors.red,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Eliminar',
-                          style: TextStyle(
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1139,7 +1339,7 @@ class _TransactionCard extends StatelessWidget {
 // FILTRO TIPO
 // =============================================================
 
-class _TypeFilterButton extends StatelessWidget {
+class _TypeFilterButton extends StatefulWidget {
   final String label;
   final bool selected;
   final bool green;
@@ -1153,42 +1353,116 @@ class _TypeFilterButton extends StatelessWidget {
   });
 
   @override
+  State<_TypeFilterButton> createState() =>
+      _TypeFilterButtonState();
+}
+
+class _TypeFilterButtonState
+    extends State<_TypeFilterButton> {
+  bool _hasFocus = false;
+
+  @override
   Widget build(BuildContext context) {
-    final accent = green
+    final accent = widget.green
         ? AppTheme.success
         : AppTheme.primary;
 
-    return InkWell(
-      borderRadius:
-          BorderRadius.circular(12),
-      onTap: onTap,
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      label:
+          'Filtro ${widget.label}${widget.selected ? ', seleccionado' : ''}',
       child: AnimatedContainer(
         duration: const Duration(
-          milliseconds: 150,
+          milliseconds: 120,
         ),
-        height: 43,
-        alignment: Alignment.center,
+        padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
-          color: selected
-              ? accent
-              : Colors.white,
+          borderRadius:
+              BorderRadius.circular(15),
+          border: Border.all(
+            color: _hasFocus
+                ? AppTheme.primaryDark
+                : Colors.transparent,
+            width: 3,
+          ),
+          boxShadow: _hasFocus
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primaryDark
+                        .withOpacity(.28),
+                    blurRadius: 0,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : const [],
+        ),
+        child: Material(
+          color: Colors.transparent,
           borderRadius:
               BorderRadius.circular(12),
-          border: Border.all(
-            color: selected
-                ? accent
-                : AppTheme.border,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight:
-                FontWeight.w800,
-            color: selected
-                ? Colors.white
-                : AppTheme.text,
+          child: InkWell(
+            borderRadius:
+                BorderRadius.circular(12),
+            onTap: widget.onTap,
+            onFocusChange: (focused) {
+              if (_hasFocus == focused) {
+                return;
+              }
+
+              setState(() {
+                _hasFocus = focused;
+              });
+            },
+            focusColor: Colors.transparent,
+            child: AnimatedContainer(
+              duration: const Duration(
+                milliseconds: 150,
+              ),
+              height: 43,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: widget.selected
+                    ? accent
+                    : Colors.white,
+                borderRadius:
+                    BorderRadius.circular(12),
+                border: Border.all(
+                  color: widget.selected
+                      ? accent
+                      : AppTheme.border,
+                  width:
+                      widget.selected ? 2 : 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize:
+                    MainAxisSize.min,
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  if (widget.selected) ...[
+                    const Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight:
+                          FontWeight.w800,
+                      color: widget.selected
+                          ? Colors.white
+                          : AppTheme.text,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -1200,7 +1474,7 @@ class _TypeFilterButton extends StatelessWidget {
 // FILTRO CATEGORÍA
 // =============================================================
 
-class _CategoryChip extends StatelessWidget {
+class _CategoryChip extends StatefulWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -1212,47 +1486,122 @@ class _CategoryChip extends StatelessWidget {
   });
 
   @override
+  State<_CategoryChip> createState() =>
+      _CategoryChipState();
+}
+
+class _CategoryChipState
+    extends State<_CategoryChip> {
+  bool _hasFocus = false;
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding:
           const EdgeInsets.only(
         right: 8,
       ),
-      child: InkWell(
-        borderRadius:
-            BorderRadius.circular(50),
-        onTap: onTap,
+      child: Semantics(
+        button: true,
+        selected: widget.selected,
+        label:
+            'Categoría ${widget.label}${widget.selected ? ', seleccionada' : ''}',
         child: AnimatedContainer(
-          duration:
-              const Duration(
-            milliseconds: 150,
+          duration: const Duration(
+            milliseconds: 120,
           ),
-          padding:
-              const EdgeInsets.symmetric(
-            horizontal: 15,
-            vertical: 9,
-          ),
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: selected
-                ? AppTheme.primary
-                : Colors.white,
+            borderRadius:
+                BorderRadius.circular(54),
+            border: Border.all(
+              color: _hasFocus
+                  ? AppTheme.primaryDark
+                  : Colors.transparent,
+              width: 3,
+            ),
+            boxShadow: _hasFocus
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primaryDark
+                          .withOpacity(.28),
+                      blurRadius: 0,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : const [],
+          ),
+          child: Material(
+            color: Colors.transparent,
             borderRadius:
                 BorderRadius.circular(50),
-            border: Border.all(
-              color: selected
-                  ? AppTheme.primary
-                  : AppTheme.border,
-            ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight:
-                  FontWeight.w800,
-              color: selected
-                  ? Colors.white
-                  : AppTheme.text,
+            child: InkWell(
+              borderRadius:
+                  BorderRadius.circular(50),
+              onTap: widget.onTap,
+              onFocusChange: (focused) {
+                if (_hasFocus == focused) {
+                  return;
+                }
+
+                setState(() {
+                  _hasFocus = focused;
+                });
+              },
+              focusColor:
+                  Colors.transparent,
+              child: AnimatedContainer(
+                duration:
+                    const Duration(
+                  milliseconds: 150,
+                ),
+                padding:
+                    const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: widget.selected
+                      ? AppTheme.primary
+                      : Colors.white,
+                  borderRadius:
+                      BorderRadius.circular(50),
+                  border: Border.all(
+                    color: widget.selected
+                        ? AppTheme.primary
+                        : AppTheme.border,
+                    width:
+                        widget.selected ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize:
+                      MainAxisSize.min,
+                  children: [
+                    if (widget.selected) ...[
+                      const Icon(
+                        Icons.check_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                    ],
+                    Text(
+                      widget.label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight:
+                            FontWeight.w800,
+                        color: widget.selected
+                            ? Colors.white
+                            : AppTheme.text,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
