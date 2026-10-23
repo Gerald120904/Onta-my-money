@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
 import '../widgets/prototype_ui.dart';
+import 'sync_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   final AppState state;
@@ -29,6 +30,22 @@ class MoreScreen extends StatelessWidget {
         PrototypePanel(
           child: Column(
             children: [
+              _OptionTile(
+                icon: Icons.sync_rounded,
+                title: 'Sincronización y datos locales',
+                subtitle: 'Historial de cambios, modo offline y sincronización',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => SyncScreen(state: state),
+                    ),
+                  );
+                },
+              ),
+              const Divider(
+                height: 1,
+                color: AppTheme.border,
+              ),
               _OptionTile(
                 icon: Icons.person_outline_rounded,
                 title: 'Mi perfil',

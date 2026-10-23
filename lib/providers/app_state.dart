@@ -1,871 +1,540 @@
-import 'dart:convert';
-
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../core/api/api_client.dart';
+import '../core/sync/conflict_resolver.dart';
+import '../core/sync/sync_service.dart';
+import '../core/sync/sync_status.dart';
+import '../data/local/app_database.dart';
+import '../data/repositories/finance_repository.dart';
+import '../data/repositories/review_repository.dart';
 import '../models/models.dart';
 import '../models/review_result.dart';
 
 class AppState extends ChangeNotifier {
   final ApiClient api = ApiClient();
+  final AppDatabase db;
+  final FinanceRepository financeRepository;
+  final ReviewRepository reviewRepository;
+  late final ClientSyncService syncService;
+
+  static const _uuid = Uuid();
 
   bool loading = false;
   String? error;
 
   DashboardSummary? dashboard;
-
   List<MoneyTransaction> transactions = [];
   List<Commitment> commitments = [];
   List<SavingsGoal> goals = [];
-
-  // =========================================================
-  // USUARIO ACTUAL
-  // =========================================================
-
-  String? currentUserEmail;
-
-  // =========================================================
-  // HISTORIAL DE REPORTES
-  // =========================================================
-
   List<ReviewResult> reviews = [];
 
-  ReviewResult? get latestReview {
-    if (reviews.isEmpty) {
-      return null;
-    }
+  String? currentUserId;
+  String? currentUserEmail;
+  double openingBalance = 0.0;
 
-    return reviews.first;
+  SyncReport syncReport = const SyncReport();
+  List<EntityConflict> conflicts = [];
+  StreamSubscription? _syncSub;
+
+  AppState({AppDatabase? customDb})
+      : db = customDb ?? AppDatabase(),
+        financeRepository = FinanceRepository(customDb ?? AppDatabase()),
+        reviewRepository = ReviewRepository(customDb ?? AppDatabase()) {
+    syncService = ClientSyncService(
+      api: api,
+      db: db,
+      repository: financeRepository,
+    );
+
+    _syncSub = syncService.statusStream.listen((report) {
+      syncReport = report;
+      notifyListeners();
+    });
   }
 
-  bool get isAuthenticated {
-    return api.token != null;
-  }
+  ReviewResult? get latestReview => reviews.isEmpty ? null : reviews.first;
+
+  bool get isAuthenticated => api.token != null && api.token!.isNotEmpty;
+
+  int get pendingOperationsCount => syncReport.pendingCount;
+
+  bool get isSyncing => syncReport.state == SyncState.syncing;
+
+  bool get hasConflicts => syncReport.conflictCount > 0;
 
   // =========================================================
-  // SALDO ACTUAL
+  // SALDO LOCAL UNIFICADO
   // =========================================================
 
   double get totalIncome {
     return transactions
-        .where(
-          (transaction) =>
-              transaction.type.toLowerCase() ==
-              'income',
-        )
-        .fold<double>(
-          0,
-          (
-            total,
-            transaction,
-          ) {
-            return total + transaction.amount;
-          },
-        );
+        .where((t) => t.type.toLowerCase() == 'income')
+        .fold<double>(0.0, (total, t) => total + t.amount);
   }
 
   double get totalExpenses {
     return transactions
-        .where(
-          (transaction) =>
-              transaction.type.toLowerCase() ==
-              'expense',
-        )
-        .fold<double>(
-          0,
-          (
-            total,
-            transaction,
-          ) {
-            return total + transaction.amount;
-          },
-        );
+        .where((t) => t.type.toLowerCase() == 'expense')
+        .fold<double>(0.0, (total, t) => total + t.amount);
   }
 
   double get currentBalance {
-    return totalIncome - totalExpenses;
+    return openingBalance + totalIncome - totalExpenses;
+  }
+
+  double get committedAmount {
+    return commitments
+        .where((c) => c.status.toLowerCase() == 'pending')
+        .fold<double>(0.0, (total, c) => total + c.amount);
+  }
+
+  double get savedAmount {
+    return goals.fold<double>(0.0, (total, g) => total + g.savedAmount);
+  }
+
+  double get availableBalance {
+    return currentBalance - committedAmount - savedAmount;
   }
 
   // =========================================================
-  // CLAVE DE ALMACENAMIENTO
-  // =========================================================
-
-  String _reviewStorageKey(
-    String email,
-  ) {
-    return 'review_history_${email.trim().toLowerCase()}';
-  }
-
-  // =========================================================
-  // RESTAURAR SESIÓN
+  // RESTAURAR SESIÓN (OFFLINE-FIRST)
   // =========================================================
 
   Future<void> restoreSession() async {
-    final prefs =
-        await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
-    api.token =
-        prefs.getString('token');
+    api.token = prefs.getString('token');
+    currentUserEmail = prefs.getString('current_user_email');
+    currentUserId = prefs.getString('current_user_id');
+    openingBalance = prefs.getDouble('opening_balance') ?? 0.0;
 
-    currentUserEmail =
-        prefs.getString(
-      'current_user_email',
-    );
+    // Verificar también el usuario actual en la base de datos local
+    final localUser = await financeRepository.getCurrentUser();
+    if (localUser != null) {
+      currentUserId ??= localUser.id;
+      currentUserEmail ??= localUser.email;
+      api.token ??= localUser.token;
+      openingBalance = localUser.openingBalance;
+    }
 
-    if (api.token == null) {
+    if (currentUserId == null || currentUserEmail == null || api.token == null) {
       reviews = [];
-      return;
-    }
-
-    if (currentUserEmail != null) {
-      await _loadReviewHistory(
-        prefs,
-        currentUserEmail!,
-      );
-    }
-
-    try {
-      await refreshAll();
-    } catch (_) {
-      api.token = null;
-
-      dashboard = null;
       transactions = [];
       commitments = [];
       goals = [];
-
-      reviews = [];
-      currentUserEmail = null;
-
-      await prefs.remove(
-        'token',
-      );
-
-      await prefs.remove(
-        'current_user_email',
-      );
-
+      dashboard = null;
       notifyListeners();
+      return;
+    }
+
+    // Cargar inmediatamente desde la base local (funciona 100% offline)
+    await _loadFromLocalDatabase(currentUserId!);
+
+    // Migración idempotente de revisiones desde SharedPreferences a Drift
+    await reviewRepository.migrateFromSharedPreferences(currentUserId!, currentUserEmail!);
+    reviews = await reviewRepository.getReviews(currentUserId!);
+
+    notifyListeners();
+
+    // En segundo plano, si hay conexión disponible, sincronizar sin bloquear la interfaz
+    _backgroundSync();
+  }
+
+  Future<void> _backgroundSync() async {
+    if (currentUserId == null || !isAuthenticated) return;
+    try {
+      await syncNow();
+      await refreshAll(silent: true);
+    } catch (_) {
+      // Si falla por red, la sesión y los datos locales se mantienen intactos
     }
   }
 
-  // =========================================================
-  // LOGIN
-  // =========================================================
+  Future<void> _loadFromLocalDatabase(String userId) async {
+    transactions = await financeRepository.getTransactions(userId);
+    commitments = await financeRepository.getCommitments(userId);
+    goals = await financeRepository.getGoals(userId);
+    reviews = await reviewRepository.getReviews(userId);
+    dashboard = await financeRepository.calculateDashboard(userId);
+    conflicts = await syncService.getUnresolvedConflicts(userId);
+    final pendingCount = await financeRepository.getPendingOperationsCount(userId);
 
-  Future<void> login(
-    String email,
-    String password,
-  ) =>
-      _run(
-        () async {
-          final data =
-              Map<String, dynamic>.from(
-            await api.post(
-              '/api/auth/login',
-              {
-                'email': email,
-                'password': password,
-              },
-            ),
-          );
-
-          api.token =
-              data['token'].toString();
-
-          currentUserEmail =
-              email.trim().toLowerCase();
-
-          final prefs =
-              await SharedPreferences
-                  .getInstance();
-
-          await prefs.setString(
-            'token',
-            api.token!,
-          );
-
-          await prefs.setString(
-            'current_user_email',
-            currentUserEmail!,
-          );
-
-          await _loadReviewHistory(
-            prefs,
-            currentUserEmail!,
-          );
-
-          await refreshAll(
-            silent: true,
-          );
-        },
-      );
+    syncReport = syncReport.copyWith(
+      pendingCount: pendingCount,
+      conflictCount: conflicts.length,
+    );
+  }
 
   // =========================================================
-  // REGISTRO
+  // LOGIN & REGISTRO
   // =========================================================
 
-  Future<void> register(
-    String name,
-    String email,
-    String password,
-  ) =>
-      _run(
-        () async {
-          await api.post(
-            '/api/auth/register',
-            {
-              'name': name,
-              'email': email,
-              'password': password,
-            },
-          );
-        },
-      );
+  Future<void> login(String email, String password) => _run(() async {
+        final data = Map<String, dynamic>.from(
+          await api.post('/api/auth/login', {
+            'email': email,
+            'password': password,
+          }),
+        );
 
-  // =========================================================
-  // LOGOUT
-  // =========================================================
+        final token = data['token'].toString();
+        final userMap = Map<String, dynamic>.from(data['user'] as Map? ?? {});
+        final userId = userMap['id']?.toString() ?? _uuid.v4();
+        final userEmail = (userMap['email'] ?? email).toString().trim().toLowerCase();
+        final serverOpeningBalance = (userMap['opening_balance'] as num?)?.toDouble() ?? 0.0;
 
-  Future<void> logout() async {
+        api.token = token;
+        currentUserId = userId;
+        currentUserEmail = userEmail;
+        openingBalance = serverOpeningBalance;
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        await prefs.setString('current_user_email', userEmail);
+        await prefs.setString('current_user_id', userId);
+        await prefs.setDouble('opening_balance', serverOpeningBalance);
+
+        // Guardar usuario en la base de datos local
+        await financeRepository.saveUser(
+          id: userId,
+          name: userMap['name']?.toString() ?? 'Usuario',
+          email: userEmail,
+          token: token,
+          openingBalance: serverOpeningBalance,
+          isCurrent: true,
+        );
+
+        // Migrar revisiones de SharedPreferences si existen
+        await reviewRepository.migrateFromSharedPreferences(userId, userEmail);
+
+        // Descargar datos iniciales
+        await syncNow();
+        await refreshAll(silent: true);
+      });
+
+  Future<void> register(String name, String email, String password) => _run(() async {
+        await api.post('/api/auth/register', {
+          'name': name,
+          'email': email,
+          'password': password,
+          'opening_balance': 0.0,
+        });
+      });
+
+  Future<void> logout({bool force = false}) async {
+    if (currentUserId != null) {
+      final pendingCount = await financeRepository.getPendingOperationsCount(currentUserId!);
+      if (pendingCount > 0 && !force) {
+        throw Exception(
+          'Tenés $pendingCount cambios pendientes de sincronizar. Sincronizá antes de salir o confirmá para cerrar sesión sin borrar tus datos locales.',
+        );
+      }
+    }
+
     try {
-      await api.post(
-        '/api/auth/logout',
-      );
+      await api.post('/api/auth/logout');
     } catch (_) {}
 
     api.token = null;
-
-    dashboard = null;
-
-    transactions = [];
-
-    commitments = [];
-
-    goals = [];
-
-    reviews = [];
-
     currentUserEmail = null;
+    currentUserId = null;
+    dashboard = null;
+    transactions = [];
+    commitments = [];
+    goals = [];
+    reviews = [];
+    conflicts = [];
 
-    final prefs =
-        await SharedPreferences.getInstance();
-
-    await prefs.remove(
-      'token',
-    );
-
-    await prefs.remove(
-      'current_user_email',
-    );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('current_user_email');
+    await prefs.remove('current_user_id');
+    await prefs.remove('opening_balance');
 
     notifyListeners();
   }
 
   // =========================================================
-  // REFRESCAR INFORMACIÓN
+  // REFRESCAR INFORMACIÓN (LOCAL-FIRST)
   // =========================================================
 
-  Future<void> refreshAll({
-    bool silent = false,
-  }) async {
+  Future<void> refreshAll({bool silent = false}) async {
+    if (currentUserId == null) return;
+
     if (!silent) {
       loading = true;
       notifyListeners();
     }
 
     try {
-      final result =
-          await Future.wait(
-        [
-          api.get(
-            '/api/dashboard',
-          ),
-          api.get(
-            '/api/transactions',
-          ),
-          api.get(
-            '/api/commitments',
-          ),
-          api.get(
-            '/api/goals',
-          ),
-        ],
-      );
+      // 1. Siempre cargar primero del almacenamiento local
+      await _loadFromLocalDatabase(currentUserId!);
 
-      dashboard =
-          DashboardSummary.fromJson(
-        Map<String, dynamic>.from(
-          result[0],
-        ),
-      );
-
-      transactions =
-          (result[1] as List)
-              .map(
-                (item) =>
-                    MoneyTransaction.fromJson(
-                  Map<String, dynamic>.from(
-                    item,
-                  ),
-                ),
-              )
-              .toList();
-
-      commitments =
-          (result[2] as List)
-              .map(
-                (item) =>
-                    Commitment.fromJson(
-                  Map<String, dynamic>.from(
-                    item,
-                  ),
-                ),
-              )
-              .toList();
-
-      goals =
-          (result[3] as List)
-              .map(
-                (item) =>
-                    SavingsGoal.fromJson(
-                  Map<String, dynamic>.from(
-                    item,
-                  ),
-                ),
-              )
-              .toList();
+      // 2. Si hay conexión, consultar el dashboard remoto para alinear opening_balance
+      if (isAuthenticated) {
+        try {
+          final remoteDashboard = await api.get('/api/dashboard');
+          if (remoteDashboard is Map) {
+            final remoteOpening = (remoteDashboard['opening_balance'] as num?)?.toDouble();
+            if (remoteOpening != null && remoteOpening != openingBalance) {
+              openingBalance = remoteOpening;
+              await financeRepository.updateOpeningBalance(currentUserId!, openingBalance);
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setDouble('opening_balance', openingBalance);
+            }
+          }
+        } catch (e) {
+          // Si falla la red, no vaciar datos ni lanzar error destructivo
+        }
+      }
 
       error = null;
     } finally {
       loading = false;
-
       notifyListeners();
     }
   }
 
   // =========================================================
-  // TRANSACCIONES
+  // TRANSACCIONES OFFLINE-FIRST
   // =========================================================
 
-  Future<void> saveTransaction(
-    MoneyTransaction transaction, {
-    bool create = false,
-  }) =>
-      _run(
-        () async {
-          // ---------------------------------------------------
-          // El monto siempre debe ser mayor que cero.
-          // ---------------------------------------------------
+  Future<void> saveTransaction(MoneyTransaction transaction, {bool create = false}) => _run(() async {
+        if (currentUserId == null) throw Exception('No hay sesión activa.');
+        if (transaction.amount <= 0) throw Exception('El monto debe ser mayor que ₡0.');
 
-          if (transaction.amount <= 0) {
-            throw Exception(
-              'El monto debe ser mayor que ₡0.',
-            );
-          }
-
-          // ---------------------------------------------------
-          // CALCULAR SALDO PROYECTADO
-          //
-          // Si estamos editando, primero devolvemos al saldo
-          // el efecto de la transacción vieja.
-          // ---------------------------------------------------
-
-          double balanceBeforeNewTransaction =
-              currentBalance;
-
-          if (!create) {
-            MoneyTransaction? oldTransaction;
-
-            for (final item in transactions) {
-              if (item.id == transaction.id) {
-                oldTransaction = item;
-                break;
-              }
-            }
-
-            if (oldTransaction != null) {
-              final oldType =
-                  oldTransaction.type
-                      .toLowerCase();
-
-              if (oldType == 'expense') {
-                balanceBeforeNewTransaction +=
-                    oldTransaction.amount;
-              } else if (oldType == 'income') {
-                balanceBeforeNewTransaction -=
-                    oldTransaction.amount;
-              }
+        // Saldo proyectado incluyendo openingBalance
+        double balanceBefore = currentBalance;
+        if (!create) {
+          final old = transactions.firstWhere((t) => t.id == transaction.id, orElse: () => transaction);
+          if (old.id == transaction.id) {
+            if (old.type.toLowerCase() == 'expense') {
+              balanceBefore += old.amount;
+            } else if (old.type.toLowerCase() == 'income') {
+              balanceBefore -= old.amount;
             }
           }
-
-          // ---------------------------------------------------
-          // APLICAR NUEVA TRANSACCIÓN
-          // ---------------------------------------------------
-
-          final newType =
-              transaction.type.toLowerCase();
-
-          double projectedBalance =
-              balanceBeforeNewTransaction;
-
-          if (newType == 'expense') {
-            projectedBalance -=
-                transaction.amount;
-          } else if (newType == 'income') {
-            projectedBalance +=
-                transaction.amount;
-          }
-
-          // ---------------------------------------------------
-          // NO PERMITIR SALDO NEGATIVO
-          // ---------------------------------------------------
-
-          if (projectedBalance < 0) {
-            final available =
-                balanceBeforeNewTransaction < 0
-                    ? 0.0
-                    : balanceBeforeNewTransaction;
-
-            throw Exception(
-              'No podés registrar este gasto. '
-              'Tu saldo disponible es de '
-              '₡${_formatAmount(available)}.',
-            );
-          }
-
-          // ---------------------------------------------------
-          // GUARDAR
-          // ---------------------------------------------------
-
-          if (create) {
-            await api.post(
-              '/api/transactions',
-              transaction.toJson(),
-            );
-          } else {
-            await api.put(
-              '/api/transactions/${transaction.id}',
-              transaction.toJson(),
-            );
-          }
-
-          await refreshAll(
-            silent: true,
-          );
-        },
-      );
-
-  // =========================================================
-  // ELIMINAR TRANSACCIÓN
-  // =========================================================
-
-  Future<void> deleteTransaction(
-    String id,
-  ) =>
-      _run(
-        () async {
-          MoneyTransaction? transaction;
-
-          for (final item in transactions) {
-            if (item.id == id) {
-              transaction = item;
-              break;
-            }
-          }
-
-          // ---------------------------------------------------
-          // Si elimina un ingreso, comprobamos que los gastos
-          // existentes no dejen el saldo en negativo.
-          // ---------------------------------------------------
-
-          if (transaction != null &&
-              transaction.type.toLowerCase() ==
-                  'income') {
-            final projectedBalance =
-                currentBalance -
-                    transaction.amount;
-
-            if (projectedBalance < 0) {
-              throw Exception(
-                'No podés eliminar este ingreso porque '
-                'el saldo quedaría en negativo.',
-              );
-            }
-          }
-
-          await api.delete(
-            '/api/transactions/$id',
-          );
-
-          await refreshAll(
-            silent: true,
-          );
-        },
-      );
-
-  // =========================================================
-  // COMPROMISOS
-  // =========================================================
-
-  Future<void> saveCommitment(
-    Commitment commitment, {
-    bool create = false,
-  }) =>
-      _run(
-        () async {
-          if (create) {
-            await api.post(
-              '/api/commitments',
-              commitment.toJson(),
-            );
-          } else {
-            await api.put(
-              '/api/commitments/${commitment.id}',
-              commitment.toJson(),
-            );
-          }
-
-          await refreshAll(
-            silent: true,
-          );
-        },
-      );
-
-  Future<void> deleteCommitment(
-    String id,
-  ) =>
-      _run(
-        () async {
-          await api.delete(
-            '/api/commitments/$id',
-          );
-
-          await refreshAll(
-            silent: true,
-          );
-        },
-      );
-
-  // =========================================================
-  // METAS
-  // =========================================================
-
-  Future<void> saveGoal(
-    SavingsGoal goal, {
-    bool create = false,
-  }) =>
-      _run(
-        () async {
-          if (create) {
-            await api.post(
-              '/api/goals',
-              goal.toJson(),
-            );
-          } else {
-            await api.put(
-              '/api/goals/${goal.id}',
-              goal.toJson(),
-            );
-          }
-
-          await refreshAll(
-            silent: true,
-          );
-        },
-      );
-
-  Future<void> deleteGoal(
-    String id,
-  ) =>
-      _run(
-        () async {
-          await api.delete(
-            '/api/goals/$id',
-          );
-
-          await refreshAll(
-            silent: true,
-          );
-        },
-      );
-
-  // =========================================================
-  // DECISIÓN DEL BACKEND
-  // =========================================================
-
-  Future<void> saveDecision(
-    String action,
-    String note,
-  ) =>
-      _run(
-        () async {
-          await api.post(
-            '/api/decisions',
-            {
-              'action': action,
-              'note': note,
-            },
-          );
-        },
-      );
-
-  // =========================================================
-  // GUARDAR REPORTE
-  // =========================================================
-
-  Future<void> saveReviewResult(
-    ReviewResult result,
-  ) async {
-    reviews.removeWhere(
-      (item) {
-        return item.createdAt ==
-            result.createdAt;
-      },
-    );
-
-    reviews.insert(
-      0,
-      result,
-    );
-
-    reviews.sort(
-      (a, b) =>
-          b.createdAt.compareTo(
-        a.createdAt,
-      ),
-    );
-
-    notifyListeners();
-
-    final email =
-        currentUserEmail;
-
-    if (email == null) {
-      return;
-    }
-
-    final prefs =
-        await SharedPreferences.getInstance();
-
-    await _persistReviewHistory(
-      prefs,
-      email,
-    );
-  }
-
-  // =========================================================
-  // ELIMINAR REPORTE
-  // =========================================================
-
-  Future<void> deleteReviewResult(
-    ReviewResult result,
-  ) async {
-    reviews.removeWhere(
-      (item) {
-        return item.createdAt ==
-            result.createdAt;
-      },
-    );
-
-    notifyListeners();
-
-    final email =
-        currentUserEmail;
-
-    if (email == null) {
-      return;
-    }
-
-    final prefs =
-        await SharedPreferences.getInstance();
-
-    await _persistReviewHistory(
-      prefs,
-      email,
-    );
-  }
-
-  // =========================================================
-  // CARGAR HISTORIAL
-  // =========================================================
-
-  Future<void> _loadReviewHistory(
-    SharedPreferences prefs,
-    String email,
-  ) async {
-    reviews = [];
-
-    final key =
-        _reviewStorageKey(
-      email,
-    );
-
-    final raw =
-        prefs.getString(
-      key,
-    );
-
-    if (raw != null &&
-        raw.trim().isNotEmpty) {
-      try {
-        final decoded =
-            jsonDecode(raw);
-
-        if (decoded is List) {
-          reviews =
-              decoded
-                  .whereType<Map>()
-                  .map(
-                    (item) =>
-                        ReviewResult.fromJson(
-                      Map<String, dynamic>.from(
-                        item,
-                      ),
-                    ),
-                  )
-                  .toList();
         }
-      } catch (_) {
-        reviews = [];
-      }
-    }
 
-    // =======================================================
-    // MIGRAR REPORTE VIEJO
-    // =======================================================
+        final newType = transaction.type.toLowerCase();
+        double projected = balanceBefore;
+        if (newType == 'expense') {
+          projected -= transaction.amount;
+        } else if (newType == 'income') {
+          projected += transaction.amount;
+        }
 
-    if (reviews.isEmpty) {
-      final oldReview =
-          prefs.getString(
-        'latest_review',
-      );
-
-      if (oldReview != null &&
-          oldReview.trim().isNotEmpty) {
-        try {
-          final decoded =
-              jsonDecode(
-            oldReview,
+        if (projected < 0) {
+          final available = balanceBefore < 0 ? 0.0 : balanceBefore;
+          throw Exception(
+            'No podés registrar este gasto. Tu saldo disponible es de ₡${_formatAmount(available)}.',
           );
+        }
 
-          final review =
-              ReviewResult.fromJson(
-            Map<String, dynamic>.from(
-              decoded,
-            ),
-          );
+        // Asignar ID estable generado desde el dispositivo si es nueva
+        final txId = (create || transaction.id.isEmpty) ? _uuid.v4() : transaction.id;
+        final stableTx = MoneyTransaction(
+          id: txId,
+          type: transaction.type,
+          category: transaction.category,
+          amount: transaction.amount,
+          description: transaction.description,
+          date: transaction.date,
+          recognized: transaction.recognized,
+        );
 
-          reviews = [
-            review,
-          ];
+        // Guardar inmediatamente en SQLite local + cola de operaciones
+        await financeRepository.saveTransaction(
+          userId: currentUserId!,
+          transaction: stableTx,
+          isNew: create || transaction.id.isEmpty,
+        );
 
-          await _persistReviewHistory(
-            prefs,
-            email,
-          );
+        // Actualizar vista local reactiva
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
 
-          await prefs.remove(
-            'latest_review',
-          );
-        } catch (_) {}
-      }
-    }
+        // Sincronizar en segundo plano si hay red
+        _backgroundSync();
+      });
 
-    reviews.sort(
-      (a, b) =>
-          b.createdAt.compareTo(
-        a.createdAt,
-      ),
-    );
+  Future<void> deleteTransaction(String id) => _run(() async {
+        if (currentUserId == null) return;
+        final tx = transactions.firstWhere((t) => t.id == id, orElse: () => MoneyTransaction(id: id, type: '', category: '', amount: 0, description: '', date: DateTime.now(), recognized: true));
+
+        if (tx.type.toLowerCase() == 'income') {
+          final projected = currentBalance - tx.amount;
+          if (projected < 0) {
+            throw Exception('No podés eliminar este ingreso porque el saldo quedaría en negativo.');
+          }
+        }
+
+        await financeRepository.deleteTransaction(userId: currentUserId!, id: id);
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
+
+        _backgroundSync();
+      });
+
+  // =========================================================
+  // COMPROMISOS OFFLINE-FIRST
+  // =========================================================
+
+  Future<void> saveCommitment(Commitment commitment, {bool create = false}) => _run(() async {
+        if (currentUserId == null) return;
+        final comId = (create || commitment.id.isEmpty) ? _uuid.v4() : commitment.id;
+        final stable = Commitment(
+          id: comId,
+          title: commitment.title,
+          amount: commitment.amount,
+          dueDate: commitment.dueDate,
+          status: commitment.status,
+        );
+
+        await financeRepository.saveCommitment(
+          userId: currentUserId!,
+          commitment: stable,
+          isNew: create || commitment.id.isEmpty,
+        );
+
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
+        _backgroundSync();
+      });
+
+  Future<void> deleteCommitment(String id) => _run(() async {
+        if (currentUserId == null) return;
+        await financeRepository.deleteCommitment(userId: currentUserId!, id: id);
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
+        _backgroundSync();
+      });
+
+  // =========================================================
+  // METAS OFFLINE-FIRST
+  // =========================================================
+
+  Future<void> saveGoal(SavingsGoal goal, {bool create = false}) => _run(() async {
+        if (currentUserId == null) return;
+        final gId = (create || goal.id.isEmpty) ? _uuid.v4() : goal.id;
+        final stable = SavingsGoal(
+          id: gId,
+          title: goal.title,
+          targetAmount: goal.targetAmount,
+          savedAmount: goal.savedAmount,
+        );
+
+        await financeRepository.saveGoal(
+          userId: currentUserId!,
+          goal: stable,
+          isNew: create || goal.id.isEmpty,
+        );
+
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
+        _backgroundSync();
+      });
+
+  Future<void> deleteGoal(String id) => _run(() async {
+        if (currentUserId == null) return;
+        await financeRepository.deleteGoal(userId: currentUserId!, id: id);
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
+        _backgroundSync();
+      });
+
+  // =========================================================
+  // DECISIONES Y REVISIONES OFFLINE-FIRST
+  // =========================================================
+
+  Future<void> saveDecision(String action, String note) => _run(() async {
+        if (currentUserId == null) return;
+        await financeRepository.saveDecision(
+          userId: currentUserId!,
+          action: action,
+          note: note,
+        );
+        _backgroundSync();
+      });
+
+  Future<void> saveReviewResult(ReviewResult result) async {
+    if (currentUserId == null) return;
+    await reviewRepository.saveReview(currentUserId!, result);
+    reviews = await reviewRepository.getReviews(currentUserId!);
+    notifyListeners();
+    _backgroundSync();
+  }
+
+  Future<void> deleteReviewResult(ReviewResult result) async {
+    if (currentUserId == null) return;
+    await reviewRepository.deleteReview(currentUserId!, result.createdAt);
+    reviews = await reviewRepository.getReviews(currentUserId!);
+    notifyListeners();
+    _backgroundSync();
   }
 
   // =========================================================
-  // GUARDAR HISTORIAL LOCAL
+  // MOTOR DE SINCRONIZACIÓN MANUAL & CONFLICTOS
   // =========================================================
 
-  Future<void> _persistReviewHistory(
-    SharedPreferences prefs,
-    String email,
-  ) async {
-    final encoded =
-        jsonEncode(
-      reviews
-          .map(
-            (review) =>
-                review.toJson(),
-          )
-          .toList(),
-    );
-
-    await prefs.setString(
-      _reviewStorageKey(
-        email,
-      ),
-      encoded,
-    );
+  Future<void> syncNow() async {
+    if (currentUserId == null || !isAuthenticated) return;
+    syncReport = await syncService.syncNow(currentUserId!);
+    await _loadFromLocalDatabase(currentUserId!);
+    notifyListeners();
   }
 
-  // =========================================================
-  // FORMATEAR MONTO PARA MENSAJES
-  // =========================================================
+  Future<void> resolveConflict(String conflictId, ConflictResolutionStrategy strategy, [Map<String, dynamic>? merged]) async {
+    if (currentUserId == null) return;
+    await syncService.resolveConflict(
+      userId: currentUserId!,
+      conflictId: conflictId,
+      strategy: strategy,
+      mergedPayload: merged,
+    );
+    await _loadFromLocalDatabase(currentUserId!);
+    notifyListeners();
+  }
 
-  String _formatAmount(
-    double amount,
-  ) {
-    final rounded =
-        amount.round();
+  Future<List<LocalChangeHistoryData>> getChangeHistory() async {
+    if (currentUserId == null) return [];
+    return financeRepository.getChangeHistory(currentUserId!);
+  }
 
-    final raw =
-        rounded.toString();
-
-    final buffer =
-        StringBuffer();
-
-    for (var i = 0;
-        i < raw.length;
-        i++) {
-      final positionFromEnd =
-          raw.length - i;
-
-      buffer.write(
-        raw[i],
-      );
-
-      if (positionFromEnd > 1 &&
-          (positionFromEnd - 1) % 3 == 0) {
-        buffer.write('.');
-      }
+  String _formatAmount(double amount) {
+    final rounded = amount.round().toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < rounded.length; i++) {
+      final pos = rounded.length - i;
+      buffer.write(rounded[i]);
+      if (pos > 1 && (pos - 1) % 3 == 0) buffer.write('.');
     }
-
     return buffer.toString();
   }
 
-  // =========================================================
-  // CONTROL GENERAL
-  // =========================================================
-
-  Future<void> _run(
-    Future<void> Function()
-        function,
-  ) async {
+  Future<void> _run(Future<void> Function() fn) async {
     loading = true;
-
     error = null;
-
     notifyListeners();
-
     try {
-      await function();
+      await fn();
     } catch (e) {
       error = e.toString();
-
       rethrow;
     } finally {
       loading = false;
-
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _syncSub?.cancel();
+    syncService.dispose();
+    db.close();
+    super.dispose();
   }
 }

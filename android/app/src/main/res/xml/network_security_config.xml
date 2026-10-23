@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Configuración para desarrollo local: permite HTTP claro únicamente hacia localhost y 10.0.2.2 (emulador) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+    <!-- Tráfico por defecto requiere HTTPS para producción -->
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

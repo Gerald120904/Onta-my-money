@@ -8,6 +8,7 @@ import 'more_screen.dart';
 import 'reports_screen.dart' as reports;
 import 'review_screen.dart' as review;
 import 'transactions_screen.dart';
+import '../widgets/sync_status_banner.dart';
 
 class HomeShell extends StatefulWidget {
   final AppState state;
@@ -210,8 +211,12 @@ class _HomeShellState
                 maxWidth:
                     maxWidth,
               ),
-              child:
-                  pages[index],
+              child: Column(
+                children: [
+                  SyncStatusBanner(state: widget.state),
+                  Expanded(child: pages[index]),
+                ],
+              ),
             ),
           ),
         );
