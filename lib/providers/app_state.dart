@@ -39,10 +39,12 @@ class AppState extends ChangeNotifier {
   List<EntityConflict> conflicts = [];
   StreamSubscription? _syncSub;
 
-  AppState({AppDatabase? customDb})
-      : db = customDb ?? AppDatabase(),
-        financeRepository = FinanceRepository(customDb ?? AppDatabase()),
-        reviewRepository = ReviewRepository(customDb ?? AppDatabase()) {
+  AppState({AppDatabase? customDb}) : this._(customDb ?? AppDatabase());
+
+  AppState._(AppDatabase database)
+      : db = database,
+        financeRepository = FinanceRepository(database),
+        reviewRepository = ReviewRepository(database) {
     syncService = ClientSyncService(
       api: api,
       db: db,
