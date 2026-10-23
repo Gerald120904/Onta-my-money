@@ -25,19 +25,21 @@ class TransactionForm extends StatefulWidget {
   }) {
     return showDialog<MoneyTransaction>(
       context: context,
-
-      // =======================================================
-      // ACCESIBILIDAD
-      //
-      // Permite cerrar el modal haciendo clic fuera.
-      // =======================================================
       barrierDismissible: true,
-
-      builder: (_) {
-        return TransactionForm(
-          type: type,
-          transaction: transaction,
-          availableBalance: availableBalance,
+      builder: (dialogContext) {
+        return CallbackShortcuts(
+          bindings: <ShortcutActivator, VoidCallback>{
+            const SingleActivator(
+              LogicalKeyboardKey.escape,
+            ): () {
+              Navigator.of(dialogContext).maybePop();
+            },
+          },
+          child: TransactionForm(
+            type: type,
+            transaction: transaction,
+            availableBalance: availableBalance,
+          ),
         );
       },
     );
@@ -59,8 +61,7 @@ class _TransactionFormState extends State<TransactionForm> {
 
   bool _recognized = true;
 
-  bool get isIncome =>
-      widget.type.toLowerCase() == 'income';
+  bool get isIncome => widget.type == 'income';
 
   List<String> get categories {
     if (isIncome) {
@@ -123,18 +124,6 @@ class _TransactionFormState extends State<TransactionForm> {
     super.dispose();
   }
 
-  // =========================================================
-  // CERRAR MODAL
-  // =========================================================
-
-  void _close() {
-    Navigator.of(context).maybePop();
-  }
-
-  // =========================================================
-  // MONTO
-  // =========================================================
-
   double? _parseAmount(String value) {
     final normalized = value
         .replaceAll('₡', '')
@@ -144,16 +133,41 @@ class _TransactionFormState extends State<TransactionForm> {
     return double.tryParse(normalized);
   }
 
+  double? get _enteredAmount {
+    return _parseAmount(
+      _amountController.text,
+    );
+  }
+
+  bool get _expenseExceedsBalance {
+    if (isIncome) return false;
+
+    final amount = _enteredAmount;
+
+    if (amount == null || amount <= 0) {
+      return false;
+    }
+
+    return amount > _maximumAllowedExpense;
+  }
+
+  double get _amountOverBalance {
+    if (!_expenseExceedsBalance) {
+      return 0;
+    }
+
+    return (_enteredAmount ?? 0) -
+        _maximumAllowedExpense;
+  }
+
   double get _maximumAllowedExpense {
     var available = widget.availableBalance;
 
-    // Si se edita un gasto existente, ese monto ya fue
-    // descontado del saldo actual.
-    // Se devuelve para calcular el máximo real permitido.
+    // Si se edita un gasto existente, ese monto ya fue descontado
+    // del saldo actual. Se devuelve para calcular el máximo real.
     if (!isIncome &&
         widget.transaction != null &&
-        widget.transaction!.type.toLowerCase() ==
-            'expense') {
+        widget.transaction!.type.toLowerCase() == 'expense') {
       available += widget.transaction!.amount;
     }
 
@@ -164,10 +178,6 @@ class _TransactionFormState extends State<TransactionForm> {
     return available;
   }
 
-  // =========================================================
-  // MODAL SALDO INSUFICIENTE
-  // =========================================================
-
   Future<void> _showInsufficientBalanceDialog(
     double attemptedAmount,
   ) async {
@@ -175,199 +185,133 @@ class _TransactionFormState extends State<TransactionForm> {
 
     await showDialog<void>(
       context: context,
-
-      // También puede cerrarse haciendo clic fuera.
       barrierDismissible: true,
-
       builder: (dialogContext) {
         return CallbackShortcuts(
-          bindings: {
+          bindings: <ShortcutActivator, VoidCallback>{
             const SingleActivator(
               LogicalKeyboardKey.escape,
             ): () {
-              Navigator.of(
-                dialogContext,
-              ).maybePop();
+              Navigator.of(dialogContext).maybePop();
             },
           },
           child: AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(22),
-            ),
-            titlePadding:
-                const EdgeInsets.fromLTRB(
-              22,
-              22,
-              22,
-              8,
-            ),
-            contentPadding:
-                const EdgeInsets.fromLTRB(
-              22,
-              4,
-              22,
-              8,
-            ),
-            actionsPadding:
-                const EdgeInsets.fromLTRB(
-              22,
-              8,
-              22,
-              20,
-            ),
-
-            // =================================================
-            // TÍTULO
-            // =================================================
-
-            title: Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color:
-                        const Color(0xFFFFECEC),
-                    borderRadius:
-                        BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons
-                        .account_balance_wallet_outlined,
-                    color:
-                        Colors.red.shade700,
-                  ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(
+            22,
+            22,
+            22,
+            8,
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(
+            22,
+            4,
+            22,
+            8,
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(
+            22,
+            8,
+            22,
+            20,
+          ),
+          title: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFECEC),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-
-                const SizedBox(width: 12),
-
-                const Expanded(
-                  child: Text(
-                    'Saldo insuficiente',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight:
-                          FontWeight.w900,
-                      color: AppTheme.text,
-                    ),
-                  ),
+                child: Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: Colors.red.shade700,
                 ),
-
-                IconButton(
-                  tooltip: 'Cerrar',
-                  onPressed: () {
-                    Navigator.of(
-                      dialogContext,
-                    ).pop();
-                  },
-                  icon: const Icon(
-                    Icons.close_rounded,
-                  ),
-                ),
-              ],
-            ),
-
-            // =================================================
-            // CONTENIDO
-            // =================================================
-
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Lo sentimos, tu saldo disponible es de '
-                  '${money(available)}. '
-                  'No podés registrar un gasto mayor a ese monto.',
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    height: 1.5,
-                    color: AppTheme.text,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Container(
-                  padding:
-                      const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color:
-                        const Color(0xFFF8FAFD),
-                    borderRadius:
-                        BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppTheme.border,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      _AmountDialogRow(
-                        label:
-                            'Saldo disponible',
-                        value:
-                            money(available),
-                        valueColor:
-                            AppTheme.successDark,
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      _AmountDialogRow(
-                        label:
-                            'Monto intentado',
-                        value: money(
-                          attemptedAmount,
-                        ),
-                        valueColor:
-                            Colors.red.shade700,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                const Text(
-                  'Reducí el monto del gasto para continuar.',
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Saldo insuficiente',
                   style: TextStyle(
-                    fontSize: 10.5,
-                    color: AppTheme.muted,
-                  ),
-                ),
-              ],
-            ),
-
-            // =================================================
-            // ACCIONES
-            // =================================================
-
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    Navigator.of(
-                      dialogContext,
-                    ).pop();
-                  },
-                  child: const Text(
-                    'Entendido',
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.text,
                   ),
                 ),
               ),
             ],
           ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Lo sentimos, tu saldo disponible es de '
+                '${money(available)}. No podés registrar un gasto '
+                'mayor a ese monto.',
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  height: 1.5,
+                  color: AppTheme.text,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFD),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppTheme.border,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _AmountDialogRow(
+                      label: 'Saldo disponible',
+                      value: money(available),
+                      valueColor: AppTheme.successDark,
+                    ),
+                    const SizedBox(height: 10),
+                    _AmountDialogRow(
+                      label: 'Monto intentado',
+                      value: money(attemptedAmount),
+                      valueColor: Colors.red.shade700,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Reducí el monto del gasto para continuar.',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  color: AppTheme.muted,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text(
+                  'Entendido',
+                ),
+              ),
+            ),
+          ],
+        ),
         );
       },
     );
   }
-
-  // =========================================================
-  // SELECCIONAR FECHA
-  // =========================================================
 
   Future<void> _selectDate() async {
     final selected = await showDatePicker(
@@ -387,13 +331,8 @@ class _TransactionFormState extends State<TransactionForm> {
     });
   }
 
-  // =========================================================
-  // GUARDAR
-  // =========================================================
-
   Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ??
-        false)) {
+    if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
@@ -403,12 +342,10 @@ class _TransactionFormState extends State<TransactionForm> {
 
     if (amount == null) return;
 
-    if (!isIncome &&
-        amount > _maximumAllowedExpense) {
+    if (!isIncome && amount > _maximumAllowedExpense) {
       await _showInsufficientBalanceDialog(
         amount,
       );
-
       return;
     }
 
@@ -429,539 +366,439 @@ class _TransactionFormState extends State<TransactionForm> {
     );
   }
 
-  // =========================================================
-  // BUILD
-  // =========================================================
-
   @override
   Widget build(BuildContext context) {
-    final editing =
-        widget.transaction != null;
+    final editing = widget.transaction != null;
 
     final accent = isIncome
         ? AppTheme.success
         : AppTheme.primary;
 
-    // =========================================================
-    // ESCAPE
-    //
-    // Garantiza que Esc cierre el formulario aunque el foco
-    // esté dentro de un TextFormField u otro control.
-    // =========================================================
-
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(
-          LogicalKeyboardKey.escape,
-        ): _close,
-      },
-      child: Dialog(
-        insetPadding:
-            const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 24,
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 24,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 520,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(24),
-        ),
-        clipBehavior: Clip.antiAlias,
-
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 520,
-          ),
-
-          child: SingleChildScrollView(
-            padding:
-                const EdgeInsets.all(22),
-
-            child: Form(
-              key: _formKey,
-
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.stretch,
-                mainAxisSize:
-                    MainAxisSize.min,
-                children: [
-                  // =============================================
-                  // HEADER
-                  // =============================================
-
-                  Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration:
-                            BoxDecoration(
-                          color: isIncome
-                              ? const Color(
-                                  0xFFE9FFF1,
-                                )
-                              : const Color(
-                                  0xFFEAF3FF,
-                                ),
-                          borderRadius:
-                              BorderRadius
-                                  .circular(13),
-                        ),
-                        child: Icon(
-                          isIncome
-                              ? Icons
-                                  .account_balance_wallet_outlined
-                              : Icons
-                                  .receipt_long_outlined,
-                          color: accent,
-                        ),
-                      ),
-
-                      const SizedBox(
-                        width: 12,
-                      ),
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-                          children: [
-                            Text(
-                              editing
-                                  ? isIncome
-                                      ? 'Editar ingreso'
-                                      : 'Editar gasto'
-                                  : isIncome
-                                      ? 'Agregar ingreso'
-                                      : 'Agregar gasto',
-                              style:
-                                  const TextStyle(
-                                fontSize: 20,
-                                fontWeight:
-                                    FontWeight
-                                        .w900,
-                              ),
-                            ),
-
-                            const SizedBox(
-                              height: 3,
-                            ),
-
-                            Text(
-                              isIncome
-                                  ? 'Registrá dinero que recibiste.'
-                                  : 'Registrá dinero que gastaste.',
-                              style:
-                                  const TextStyle(
-                                fontSize: 11,
-                                color:
-                                    AppTheme
-                                        .muted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // =========================================
-                      // CERRAR
-                      // =========================================
-
-                      IconButton(
-                        tooltip:
-                            'Cerrar formulario',
-                        onPressed: _close,
-                        icon: const Icon(
-                          Icons.close_rounded,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // =============================================
-                  // MONTO
-                  // =============================================
-
-                  const _Label(
-                    text: 'Monto',
-                    requiredField: true,
-                  ),
-
-                  const SizedBox(height: 7),
-
-                  TextFormField(
-                    controller:
-                        _amountController,
-                    keyboardType:
-                        const TextInputType
-                            .numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter
-                          .allow(
-                        RegExp(r'[0-9.,]'),
-                      ),
-                    ],
-                    decoration:
-                        const InputDecoration(
-                      prefixText: '₡ ',
-                      hintText: 'Ej. 85000',
-                      prefixIcon: Icon(
-                        Icons
-                            .payments_outlined,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null ||
-                          value
-                              .trim()
-                              .isEmpty) {
-                        return 'Ingresá un monto';
-                      }
-
-                      final amount =
-                          _parseAmount(value);
-
-                      if (amount == null) {
-                        return 'Monto inválido';
-                      }
-
-                      if (amount <= 0) {
-                        return 'El monto debe ser mayor a ₡0';
-                      }
-
-                      return null;
-                    },
-                  ),
-
-                  // =============================================
-                  // SALDO DISPONIBLE
-                  // =============================================
-
-                  if (!isIncome) ...[
-                    const SizedBox(
-                      height: 10,
-                    ),
-
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(22),
+          child: Form(
+            key: _formKey,
+            autovalidateMode:
+                AutovalidateMode.onUserInteraction,
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
                     Container(
-                      padding:
-                          const EdgeInsets
-                              .symmetric(
-                        horizontal: 13,
-                        vertical: 11,
-                      ),
-                      decoration:
-                          BoxDecoration(
-                        color: const Color(
-                          0xFFF0FFF6,
-                        ),
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isIncome
+                            ? const Color(0xFFE9FFF1)
+                            : const Color(0xFFEAF3FF),
                         borderRadius:
-                            BorderRadius
-                                .circular(13),
-                        border: Border.all(
-                          color:
-                              const Color(
-                            0xFFBCEBCD,
-                          ),
-                        ),
+                            BorderRadius.circular(13),
                       ),
-                      child: Row(
+                      child: Icon(
+                        isIncome
+                            ? Icons
+                                .account_balance_wallet_outlined
+                            : Icons
+                                .receipt_long_outlined,
+                        color: accent,
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons
-                                .account_balance_wallet_outlined,
-                            size: 19,
-                            color:
-                                AppTheme
-                                    .success,
-                          ),
-
-                          const SizedBox(
-                            width: 9,
-                          ),
-
-                          const Expanded(
-                            child: Text(
-                              'Máximo disponible para este gasto',
-                              style:
-                                  TextStyle(
-                                fontSize:
-                                    10.5,
-                                color:
-                                    AppTheme
-                                        .muted,
-                              ),
+                          Text(
+                            editing
+                                ? isIncome
+                                    ? 'Editar ingreso'
+                                    : 'Editar gasto'
+                                : isIncome
+                                    ? 'Agregar ingreso'
+                                    : 'Agregar gasto',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight:
+                                  FontWeight.w900,
                             ),
                           ),
+
+                          const SizedBox(height: 3),
 
                           Text(
-                            money(
-                              _maximumAllowedExpense,
-                            ),
-                            style:
-                                const TextStyle(
-                              fontSize: 12.5,
-                              fontWeight:
-                                  FontWeight
-                                      .w900,
-                              color: AppTheme
-                                  .successDark,
+                            isIncome
+                                ? 'Registrá dinero que recibiste.'
+                                : 'Registrá dinero que gastaste.',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.muted,
                             ),
                           ),
                         ],
                       ),
                     ),
+
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.close_rounded,
+                      ),
+                    ),
                   ],
+                ),
 
-                  const SizedBox(height: 18),
+                const SizedBox(height: 24),
 
-                  // =============================================
-                  // CATEGORÍA
-                  // =============================================
+                const _Label(
+                  text: 'Monto',
+                  requiredField: true,
+                ),
 
-                  const _Label(
-                    text: 'Categoría',
-                    requiredField: true,
+                const SizedBox(height: 7),
+
+                TextFormField(
+                  controller: _amountController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'[0-9.,]'),
+                    ),
+                  ],
+                  decoration: const InputDecoration(
+                    prefixText: '₡ ',
+                    hintText: 'Ej. 85000',
+                    prefixIcon: Icon(
+                      Icons.payments_outlined,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty) {
+                      return 'Ingresá un monto';
+                    }
 
-                  const SizedBox(height: 7),
+                    final amount = _parseAmount(value);
 
-                  DropdownButtonFormField<
-                      String>(
-                    value: _category,
-                    isExpanded: true,
+                    if (amount == null) {
+                      return 'Monto inválido';
+                    }
+
+                    if (amount <= 0) {
+                      return 'El monto debe ser mayor a ₡0';
+                    }
+
+                    if (!isIncome &&
+                        amount >
+                            _maximumAllowedExpense) {
+                      return 'El máximo disponible es ${money(_maximumAllowedExpense)}';
+                    }
+
+                    return null;
+                  },
+                  onChanged: (_) {
+                    setState(() {});
+                  },
+                ),
+
+                if (!isIncome) ...[
+                  const SizedBox(height: 10),
+
+                  Semantics(
+                    liveRegion: true,
+                    label: _expenseExceedsBalance
+                        ? 'El monto ingresado supera el saldo disponible por ${money(_amountOverBalance)}.'
+                        : 'Máximo disponible para este gasto: ${money(_maximumAllowedExpense)}.',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                        vertical: 11,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _expenseExceedsBalance
+                            ? const Color(0xFFFFF1F1)
+                            : const Color(0xFFF0FFF6),
+                        borderRadius:
+                            BorderRadius.circular(13),
+                        border: Border.all(
+                          color: _expenseExceedsBalance
+                              ? Colors.red.shade400
+                              : const Color(0xFFBCEBCD),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            _expenseExceedsBalance
+                                ? Icons.warning_amber_rounded
+                                : Icons
+                                    .account_balance_wallet_outlined,
+                            size: 19,
+                            color: _expenseExceedsBalance
+                                ? Colors.red.shade700
+                                : AppTheme.success,
+                          ),
+                          const SizedBox(width: 9),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _expenseExceedsBalance
+                                      ? 'Este monto supera tu saldo disponible'
+                                      : 'Máximo disponible para este gasto',
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight:
+                                        FontWeight.w700,
+                                    color: _expenseExceedsBalance
+                                        ? Colors.red.shade800
+                                        : AppTheme.muted,
+                                  ),
+                                ),
+                                if (_expenseExceedsBalance) ...[
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'Reducí el gasto en ${money(_amountOverBalance)} o más para poder guardarlo.',
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      height: 1.3,
+                                      color:
+                                          Colors.red.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            money(_maximumAllowedExpense),
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight:
+                                  FontWeight.w900,
+                              color: _expenseExceedsBalance
+                                  ? Colors.red.shade700
+                                  : AppTheme.successDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 18),
+
+                const _Label(
+                  text: 'Categoría',
+                  requiredField: true,
+                ),
+
+                const SizedBox(height: 7),
+
+                DropdownButtonFormField<String>(
+                  value: _category,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(
+                      Icons.category_outlined,
+                    ),
+                  ),
+                  items: categories.map(
+                    (category) {
+                      return DropdownMenuItem(
+                        value: category,
+                        child: Text(
+                          category,
+                        ),
+                      );
+                    },
+                  ).toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+
+                    setState(() {
+                      _category = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 18),
+
+                const _Label(
+                  text: 'Descripción',
+                ),
+
+                const SizedBox(height: 7),
+
+                TextFormField(
+                  controller:
+                      _descriptionController,
+                  maxLines: 3,
+                  maxLength: 120,
+                  decoration: InputDecoration(
+                    hintText: isIncome
+                        ? 'Ej. Pago semanal, beca...'
+                        : 'Ej. Almuerzo, gasolina...',
+                    prefixIcon: const Icon(
+                      Icons.notes_rounded,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                const _Label(
+                  text: 'Fecha',
+                  requiredField: true,
+                ),
+
+                const SizedBox(height: 7),
+
+                InkWell(
+                  onTap: _selectDate,
+                  borderRadius:
+                      BorderRadius.circular(14),
+                  child: InputDecorator(
                     decoration:
                         const InputDecoration(
                       prefixIcon: Icon(
                         Icons
-                            .category_outlined,
+                            .calendar_month_outlined,
+                      ),
+                      suffixIcon: Icon(
+                        Icons
+                            .chevron_right_rounded,
                       ),
                     ),
-                    items: categories.map(
-                      (category) {
-                        return DropdownMenuItem(
-                          value: category,
-                          child: Text(
-                            category,
-                          ),
-                        );
-                      },
-                    ).toList(),
-                    onChanged: (value) {
-                      if (value == null) {
-                        return;
-                      }
-
-                      setState(() {
-                        _category = value;
-                      });
-                    },
+                    child: Text(
+                      '${_date.day.toString().padLeft(2, '0')}/'
+                      '${_date.month.toString().padLeft(2, '0')}/'
+                      '${_date.year}',
+                      style: const TextStyle(
+                        fontWeight:
+                            FontWeight.w700,
+                      ),
+                    ),
                   ),
+                ),
 
+                if (!isIncome) ...[
                   const SizedBox(height: 18),
 
-                  // =============================================
-                  // DESCRIPCIÓN
-                  // =============================================
-
-                  const _Label(
-                    text: 'Descripción',
-                  ),
-
-                  const SizedBox(height: 7),
-
-                  TextFormField(
-                    controller:
-                        _descriptionController,
-                    maxLines: 3,
-                    maxLength: 120,
-                    decoration:
-                        InputDecoration(
-                      hintText: isIncome
-                          ? 'Ej. Pago semanal, beca...'
-                          : 'Ej. Almuerzo, gasolina...',
-                      prefixIcon:
-                          const Icon(
-                        Icons.notes_rounded,
-                      ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 5,
                     ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // =============================================
-                  // FECHA
-                  // =============================================
-
-                  const _Label(
-                    text: 'Fecha',
-                    requiredField: true,
-                  ),
-
-                  const SizedBox(height: 7),
-
-                  Semantics(
-                    button: true,
-                    label:
-                        'Seleccionar fecha. '
-                        '${_date.day.toString().padLeft(2, '0')}/'
-                        '${_date.month.toString().padLeft(2, '0')}/'
-                        '${_date.year}',
-                    child: InkWell(
-                      onTap: _selectDate,
+                    decoration: BoxDecoration(
+                      color:
+                          const Color(0xFFF8FBFF),
                       borderRadius:
-                          BorderRadius
-                              .circular(14),
-                      focusColor:
-                          AppTheme.primary
-                              .withOpacity(.18),
-                      child: InputDecorator(
-                        decoration:
-                            const InputDecoration(
-                          prefixIcon: Icon(
-                            Icons
-                                .calendar_month_outlined,
-                          ),
-                          suffixIcon: Icon(
-                            Icons
-                                .chevron_right_rounded,
-                          ),
-                        ),
-                        child: Text(
-                          '${_date.day.toString().padLeft(2, '0')}/'
-                          '${_date.month.toString().padLeft(2, '0')}/'
-                          '${_date.year}',
-                          style:
-                              const TextStyle(
-                            fontWeight:
-                                FontWeight
-                                    .w700,
-                          ),
+                          BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppTheme.border,
+                      ),
+                    ),
+                    child:
+                        SwitchListTile.adaptive(
+                      contentPadding:
+                          EdgeInsets.zero,
+                      value: _recognized,
+                      title: const Text(
+                        'Reconozco este movimiento',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight:
+                              FontWeight.w800,
                         ),
                       ),
+                      subtitle: Text(
+                        _recognized
+                            ? 'Movimiento reconocido'
+                            : 'Movimiento no reconocido',
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          color: AppTheme.muted,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _recognized = value;
+                        });
+                      },
                     ),
                   ),
+                ],
 
-                  // =============================================
-                  // RECONOCIDO
-                  // =============================================
+                const SizedBox(height: 24),
 
-                  if (!isIncome) ...[
-                    const SizedBox(
-                      height: 18,
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Cancelar',
+                        ),
+                      ),
                     ),
 
-                    Container(
-                      padding:
-                          const EdgeInsets
-                              .symmetric(
-                        horizontal: 14,
-                        vertical: 5,
-                      ),
-                      decoration:
-                          BoxDecoration(
-                        color: const Color(
-                          0xFFF8FBFF,
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: FilledButton.icon(
+                        style:
+                            FilledButton.styleFrom(
+                          backgroundColor: accent,
                         ),
-                        borderRadius:
-                            BorderRadius
-                                .circular(14),
-                        border: Border.all(
-                          color:
-                              AppTheme.border,
+                        onPressed: _save,
+                        icon: const Icon(
+                          Icons.save_outlined,
                         ),
-                      ),
-                      child: SwitchListTile
-                          .adaptive(
-                        contentPadding:
-                            EdgeInsets.zero,
-                        value: _recognized,
-                        title: const Text(
-                          'Reconozco este movimiento',
-                          style:
-                              TextStyle(
-                            fontSize: 13,
-                            fontWeight:
-                                FontWeight
-                                    .w800,
-                          ),
+                        label: Text(
+                          editing
+                              ? 'Guardar'
+                              : isIncome
+                                  ? 'Agregar ingreso'
+                                  : 'Agregar gasto',
                         ),
-                        subtitle: Text(
-                          _recognized
-                              ? 'Movimiento reconocido'
-                              : 'Movimiento no reconocido',
-                          style:
-                              const TextStyle(
-                            fontSize: 10,
-                            color:
-                                AppTheme.muted,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            _recognized =
-                                value;
-                          });
-                        },
                       ),
                     ),
                   ],
-
-                  const SizedBox(height: 24),
-
-                  // =============================================
-                  // BOTONES
-                  // =============================================
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child:
-                            OutlinedButton(
-                          onPressed: _close,
-                          child:
-                              const Text(
-                            'Cancelar',
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(
-                        width: 12,
-                      ),
-
-                      Expanded(
-                        child:
-                            FilledButton.icon(
-                          style:
-                              FilledButton
-                                  .styleFrom(
-                            backgroundColor:
-                                accent,
-                          ),
-                          onPressed: _save,
-                          icon:
-                              const Icon(
-                            Icons
-                                .save_outlined,
-                          ),
-                          label: Text(
-                            editing
-                                ? 'Guardar'
-                                : isIncome
-                                    ? 'Agregar ingreso'
-                                    : 'Agregar gasto',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -970,12 +807,7 @@ class _TransactionFormState extends State<TransactionForm> {
   }
 }
 
-// =============================================================
-// FILA DE MONTO DEL MODAL
-// =============================================================
-
-class _AmountDialogRow
-    extends StatelessWidget {
+class _AmountDialogRow extends StatelessWidget {
   final String label;
   final String value;
   final Color valueColor;
@@ -999,13 +831,11 @@ class _AmountDialogRow
             ),
           ),
         ),
-
         Text(
           value,
           style: TextStyle(
             fontSize: 12,
-            fontWeight:
-                FontWeight.w900,
+            fontWeight: FontWeight.w900,
             color: valueColor,
           ),
         ),
@@ -1013,10 +843,6 @@ class _AmountDialogRow
     );
   }
 }
-
-// =============================================================
-// ETIQUETA DE CAMPO
-// =============================================================
 
 class _Label extends StatelessWidget {
   final String text;
@@ -1035,8 +861,7 @@ class _Label extends StatelessWidget {
           text,
           style: const TextStyle(
             fontSize: 12.5,
-            fontWeight:
-                FontWeight.w800,
+            fontWeight: FontWeight.w800,
           ),
         ),
 
@@ -1045,8 +870,7 @@ class _Label extends StatelessWidget {
             ' *',
             style: TextStyle(
               color: Colors.red,
-              fontWeight:
-                  FontWeight.w900,
+              fontWeight: FontWeight.w900,
             ),
           ),
       ],

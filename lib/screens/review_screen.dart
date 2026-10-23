@@ -37,6 +37,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   String decision = 'Mantener mi plan';
 
+  String? _decisionError;
+
   // =========================================================
   // REDUCIR GASTO
   // =========================================================
@@ -475,6 +477,35 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   // =========================================================
+  // ACCIÓN RÁPIDA: CONFIRMAR RECONOCIDOS
+  // =========================================================
+
+  void _confirmRecognizedMovements() {
+    setState(() {
+      selectedIds.clear();
+
+      for (final transaction in _periodTransactions) {
+        final isIncome =
+            transaction.type.toLowerCase() == 'income';
+
+        if (isIncome || transaction.recognized) {
+          selectedIds.add(
+            transaction.id,
+          );
+        }
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${selectedIds.length} movimientos reconocidos confirmados.',
+        ),
+      ),
+    );
+  }
+
+  // =========================================================
   // NAVEGACIÓN
   // =========================================================
 
@@ -574,6 +605,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
   void _saveReview() {
     if (!_validateDecision()) {
       return;
+    }
+
+    if (_decisionError != null) {
+      setState(() {
+        _decisionError = null;
+      });
     }
 
     final result = ReviewResult(
@@ -714,13 +751,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
   void _showDecisionError(
     String message,
   ) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-        ),
-      ),
-    );
+    if (!mounted) return;
+
+    setState(() {
+      _decisionError = message;
+    });
+  }
+
+  void _clearDecisionError() {
+    if (_decisionError == null) return;
+
+    setState(() {
+      _decisionError = null;
+    });
   }
 
   Map<String, dynamic>
@@ -1021,6 +1064,24 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
         const SizedBox(height: 18),
 
+        if (movements.isNotEmpty) ...[
+          OutlinedButton.icon(
+            onPressed: _confirmRecognizedMovements,
+            icon: const Icon(
+              Icons.done_all_rounded,
+            ),
+            label: Text(
+              'Confirmar reconocidos (${movements.where((transaction) {
+                final isIncome =
+                    transaction.type.toLowerCase() == 'income';
+                return isIncome || transaction.recognized;
+              }).length})',
+            ),
+          ),
+
+          const SizedBox(height: 14),
+        ],
+
         // ===================================================
         // SI NO HAY MOVIMIENTOS:
         // Solo aparece UN botón dentro de la tarjeta.
@@ -1169,7 +1230,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         const SizedBox(height: 14),
 
         _MoneyInfoCard(
-          title: 'Dinero actual',
+          title: 'Saldo actual',
           subtitle:
               'Saldo después de tus movimientos confirmados',
           value: _currentMoney,
@@ -1335,6 +1396,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               decision =
                   'Mantener mi plan';
+              _decisionError = null;
             });
           },
         ),
@@ -1353,6 +1415,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               decision =
                   'Reducir gasto';
+              _decisionError = null;
 
               reduceCategory ??=
                   _expensesByCategory.isNotEmpty
@@ -1380,6 +1443,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               decision =
                   'Posponer una compra';
+              _decisionError = null;
             });
           },
         ),
@@ -1398,6 +1462,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               decision =
                   'Ajustar mi meta';
+              _decisionError = null;
             });
           },
         ),
@@ -1418,6 +1483,87 @@ class _ReviewScreenState extends State<ReviewScreen> {
           text:
               _decisionSummaryText(),
         ),
+
+        if (_decisionError != null) ...[
+          const SizedBox(height: 16),
+
+          Semantics(
+            container: true,
+            liveRegion: true,
+            label:
+                'Error al guardar la decisión. $_decisionError',
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF1F1),
+                borderRadius:
+                    BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.red.shade700,
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: Colors.red.shade700,
+                    size: 22,
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'No se puede guardar la decisión',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight:
+                                FontWeight.w900,
+                            color:
+                                Colors.red.shade900,
+                          ),
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        Text(
+                          _decisionError!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            height: 1.4,
+                            fontWeight:
+                                FontWeight.w600,
+                            color:
+                                Colors.red.shade900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 6),
+
+                  IconButton(
+                    tooltip: 'Cerrar mensaje',
+                    onPressed: _clearDecisionError,
+                    icon: const Icon(
+                      Icons.close_rounded,
+                    ),
+                    color: Colors.red.shade800,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
 
         const SizedBox(height: 24),
 
@@ -1474,6 +1620,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               maintainPeriodType =
                   value;
+              _decisionError = null;
             });
           },
         ),
@@ -1540,6 +1687,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               setState(() {
                 maintainTargetDate =
                     date;
+                _decisionError = null;
               });
             },
           ),
@@ -1586,6 +1734,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               reduceCategory =
                   value;
+              _decisionError = null;
             });
           },
         ),
@@ -1612,7 +1761,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
           ),
           onChanged: (_) {
-            setState(() {});
+            setState(() {
+              _decisionError = null;
+            });
           },
         ),
 
@@ -1638,6 +1789,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               reducePeriodType =
                   value;
+              _decisionError = null;
             });
           },
         ),
@@ -1703,6 +1855,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               setState(() {
                 reduceTargetDate =
                     date;
+                _decisionError = null;
               });
             },
           ),
@@ -1732,7 +1885,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
           ),
           onChanged: (_) {
-            setState(() {});
+            setState(() {
+              _decisionError = null;
+            });
           },
         ),
 
@@ -1758,7 +1913,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
           ),
           onChanged: (_) {
-            setState(() {});
+            setState(() {
+              _decisionError = null;
+            });
           },
         ),
 
@@ -1783,6 +1940,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               purchaseTargetDate =
                   date;
+              _decisionError = null;
             });
           },
         ),
@@ -1813,7 +1971,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
           ),
           onChanged: (_) {
-            setState(() {});
+            setState(() {
+              _decisionError = null;
+            });
           },
         ),
 
@@ -1839,7 +1999,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
           ),
           onChanged: (_) {
-            setState(() {});
+            setState(() {
+              _decisionError = null;
+            });
           },
         ),
 
@@ -1863,6 +2025,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             setState(() {
               goalPeriodType =
                   value;
+              _decisionError = null;
             });
           },
         ),
@@ -1927,6 +2090,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               setState(() {
                 goalTargetDate =
                     date;
+                _decisionError = null;
               });
             },
           ),

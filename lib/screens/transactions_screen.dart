@@ -24,6 +24,31 @@ class TransactionsScreen extends StatefulWidget {
 class _TransactionsScreenState extends State<TransactionsScreen> {
   String typeFilter = 'Todos';
   String categoryFilter = 'Todos';
+  String searchQuery = '';
+
+  final TextEditingController _searchController =
+      TextEditingController();
+
+  bool get _hasActiveFilters =>
+      searchQuery.trim().isNotEmpty ||
+      typeFilter != 'Todos' ||
+      categoryFilter != 'Todos';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearFilters() {
+    _searchController.clear();
+
+    setState(() {
+      searchQuery = '';
+      typeFilter = 'Todos';
+      categoryFilter = 'Todos';
+    });
+  }
 
   // =========================================================
   // AGREGAR / EDITAR MOVIMIENTO
@@ -215,6 +240,30 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 categoryFilter.toLowerCase(),
           )
           .toList();
+    }
+
+    // Búsqueda rápida por categoría, descripción, tipo o monto
+    final query = searchQuery.trim().toLowerCase();
+
+    if (query.isNotEmpty) {
+      result = result.where(
+        (transaction) {
+          final isIncome =
+              transaction.type.toLowerCase() == 'income';
+
+          final typeLabel =
+              isIncome ? 'ingreso' : 'gasto';
+
+          final searchableText = [
+            transaction.category,
+            transaction.description,
+            typeLabel,
+            transaction.amount.toStringAsFixed(0),
+          ].join(' ').toLowerCase();
+
+          return searchableText.contains(query);
+        },
+      ).toList();
     }
 
     return result;
@@ -449,6 +498,73 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           const SizedBox(height: 24),
 
           // ===================================================
+          // BÚSQUEDA RÁPIDA
+          // ===================================================
+
+          const Text(
+            'Buscar y filtrar',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.text,
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          TextField(
+            controller: _searchController,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              labelText: 'Buscar movimiento',
+              hintText: 'Ej. Comida, salario o supermercado',
+              prefixIcon: const Icon(
+                Icons.search_rounded,
+              ),
+              suffixIcon: searchQuery.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: 'Limpiar búsqueda',
+                      onPressed: () {
+                        _searchController.clear();
+
+                        setState(() {
+                          searchQuery = '';
+                        });
+                      },
+                      icon: const Icon(
+                        Icons.close_rounded,
+                      ),
+                    ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                searchQuery = value;
+              });
+            },
+          ),
+
+          if (_hasActiveFilters) ...[
+            const SizedBox(height: 8),
+
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _clearFilters,
+                icon: const Icon(
+                  Icons.filter_alt_off_outlined,
+                  size: 18,
+                ),
+                label: const Text(
+                  'Limpiar filtros',
+                ),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 14),
+
+          // ===================================================
           // FILTRO POR TIPO
           // ===================================================
 
@@ -608,6 +724,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           if (transactions.isEmpty)
             _EmptyTransactions(
               filter: typeFilter,
+              hasActiveFilters: _hasActiveFilters,
+              onClearFilters: _clearFilters,
               onAddExpense: () {
                 _openTransactionForm(
                   type: 'expense',
@@ -1617,12 +1735,16 @@ class _CategoryChipState
 class _EmptyTransactions
     extends StatelessWidget {
   final String filter;
+  final bool hasActiveFilters;
 
+  final VoidCallback onClearFilters;
   final VoidCallback onAddExpense;
   final VoidCallback onAddIncome;
 
   const _EmptyTransactions({
     required this.filter,
+    required this.hasActiveFilters,
+    required this.onClearFilters,
     required this.onAddExpense,
     required this.onAddIncome,
   });
@@ -1632,7 +1754,11 @@ class _EmptyTransactions
     String title;
     String description;
 
-    if (filter == 'Gastos') {
+    if (hasActiveFilters) {
+      title = 'No se encontraron movimientos';
+      description =
+          'No hay resultados que coincidan con la búsqueda o los filtros seleccionados.';
+    } else if (filter == 'Gastos') {
       title = 'No hay gastos';
       description =
           'Los gastos que registrés aparecerán aquí.';
@@ -1710,7 +1836,17 @@ class _EmptyTransactions
 
           const SizedBox(height: 18),
 
-          if (filter == 'Ingresos')
+          if (hasActiveFilters)
+            OutlinedButton.icon(
+              onPressed: onClearFilters,
+              icon: const Icon(
+                Icons.filter_alt_off_outlined,
+              ),
+              label: const Text(
+                'Limpiar búsqueda y filtros',
+              ),
+            )
+          else if (filter == 'Ingresos')
             FilledButton.icon(
               style:
                   FilledButton.styleFrom(

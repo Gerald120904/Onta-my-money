@@ -129,7 +129,21 @@ class DashboardScreen extends StatelessWidget {
             showProfile: true,
           ),
 
-          const SizedBox(height: 17),
+          const SizedBox(height: 12),
+
+          // ===================================================
+          // ESTADO DEL SISTEMA
+          // ===================================================
+
+          if (state.loading) ...[
+            Semantics(
+              liveRegion: true,
+              container: true,
+              label: 'Actualizando información financiera.',
+              child: const _LoadingStatusCard(),
+            ),
+            const SizedBox(height: 17),
+          ],
 
           // ===================================================
           // RESUMEN DEL MES
@@ -377,7 +391,8 @@ class DashboardScreen extends StatelessWidget {
           // ===================================================
 
           FilledButton.icon(
-            onPressed: onReview,
+            onPressed:
+                state.loading ? null : onReview,
             icon: const Icon(
               Icons.add_circle_outline_rounded,
               size: 20,
@@ -393,24 +408,60 @@ class DashboardScreen extends StatelessWidget {
           // ÚLTIMOS MOVIMIENTOS
           // ===================================================
 
-          if (_monthTransactions.isNotEmpty) ...[
+          if (_monthTransactions.isEmpty)
+            Semantics(
+              container: true,
+              label:
+                  'No hay movimientos registrados este mes.',
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppTheme.border,
+                  ),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 32,
+                      color: AppTheme.primary,
+                    ),
+                    SizedBox(height: 9),
+                    Text(
+                      'No hay movimientos este mes',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.text,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Cuando registrés un ingreso o un gasto, aparecerá aquí.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        height: 1.35,
+                        color: AppTheme.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else ...[
             const Text(
               'Últimos movimientos',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.text,
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            const Text(
-              'Cada movimiento indica por texto si corresponde a un ingreso o un gasto.',
-              style: TextStyle(
-                fontSize: 10.5,
-                height: 1.3,
-                color: AppTheme.muted,
               ),
             ),
 
@@ -709,6 +760,54 @@ class DashboardScreen extends StatelessWidget {
     );
 
     return list.take(3).toList();
+  }
+}
+
+// =============================================================
+// ESTADO DE CARGA
+// =============================================================
+
+class _LoadingStatusCard extends StatelessWidget {
+  const _LoadingStatusCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E8),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE8C86B),
+        ),
+      ),
+      child: const Row(
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+            ),
+          ),
+          SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              'Actualizando información...',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.text,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
