@@ -93,17 +93,41 @@ class ReviewRepository {
     });
   }
 
-  Future<void> deleteReview(String userId, DateTime createdAt) async {
+  Future<void> deleteReview(String userId, DateTime createdAt, {String? deviceId}) async {
     final now = DateTime.now();
-    await (db.update(db.localReviews)
-          ..where((r) => r.userId.equals(userId) & r.createdAt.equals(createdAt)))
-        .write(
-      LocalReviewsCompanion(
-        isDeleted: const Value(true),
-        syncStatus: const Value('pending'),
-        updatedAt: Value(now),
-      ),
-    );
+    final opId = _uuid.v4();
+
+    await db.transaction(() async {
+      final existing = await (db.select(db.localReviews)
+            ..where((r) => r.userId.equals(userId) & r.createdAt.equals(createdAt)))
+          .getSingleOrNull();
+
+      if (existing == null) return;
+
+      await (db.update(db.localReviews)..where((r) => r.id.equals(existing.id))).write(
+        LocalReviewsCompanion(
+          isDeleted: const Value(true),
+          syncStatus: const Value('pending'),
+          updatedAt: Value(now),
+        ),
+      );
+
+      await db.into(db.localPendingOperations).insert(
+            LocalPendingOperationsCompanion(
+              operationId: Value(opId),
+              userId: Value(userId),
+              deviceId: Value(deviceId),
+              entityType: const Value('review'),
+              entityId: Value(existing.id),
+              action: const Value('delete'),
+              payloadJson: const Value('{}'),
+              baseVersion: Value(existing.version),
+              status: const Value('pending'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+    });
   }
 
   /// Migración idempotente del historial de revisiones almacenado en SharedPreferences

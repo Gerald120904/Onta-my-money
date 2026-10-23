@@ -503,6 +503,54 @@ class FinanceRepository {
     });
   }
 
+  Future<List<LocalDecision>> getDecisions(String userId) async {
+    final query = db.select(db.localDecisions)
+      ..where((d) => d.userId.equals(userId) & d.isDeleted.equals(false))
+      ..orderBy([(d) => OrderingTerm(expression: d.createdAt, mode: OrderingMode.desc)]);
+    return query.get();
+  }
+
+  Future<void> deleteDecision({
+    required String userId,
+    required String id,
+    String? deviceId,
+  }) async {
+    final now = DateTime.now();
+    final opId = _uuid.v4();
+
+    await db.transaction(() async {
+      final existing = await (db.select(db.localDecisions)
+            ..where((d) => d.id.equals(id) & d.userId.equals(userId)))
+          .getSingleOrNull();
+
+      final currentVersion = existing?.version ?? 1;
+
+      await (db.update(db.localDecisions)..where((d) => d.id.equals(id) & d.userId.equals(userId))).write(
+        LocalDecisionsCompanion(
+          isDeleted: const Value(true),
+          syncStatus: const Value('pending'),
+          updatedAt: Value(now),
+        ),
+      );
+
+      await db.into(db.localPendingOperations).insert(
+            LocalPendingOperationsCompanion(
+              operationId: Value(opId),
+              userId: Value(userId),
+              deviceId: Value(deviceId),
+              entityType: const Value('decision'),
+              entityId: Value(id),
+              action: const Value('delete'),
+              payloadJson: const Value('{}'),
+              baseVersion: Value(currentVersion),
+              status: const Value('pending'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+    });
+  }
+
   // ==========================================
   // CÁLCULO DE DASHBOARD LOCAL
   // ==========================================

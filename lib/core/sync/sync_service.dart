@@ -240,6 +240,16 @@ class ClientSyncService {
               LocalGoalsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
             );
             break;
+          case 'decision':
+            await (db.update(db.localDecisions)..where((d) => d.id.equals(entityId) & d.userId.equals(userId))).write(
+              LocalDecisionsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            );
+            break;
+          case 'review':
+            await (db.update(db.localReviews)..where((r) => r.id.equals(entityId) & r.userId.equals(userId))).write(
+              LocalReviewsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            );
+            break;
         }
         return;
       }
