@@ -7,19 +7,24 @@ const PRECACHE_URLS = [
   './',
   'index.html',
   'manifest.json',
+  'version.json',
   'flutter_bootstrap.js',
-  'favicon.png',
-  'icons/Icon-192.png',
-  'icons/Icon-512.png',
+  'flutter.js',
+  'main.dart.js',
+  'sqlite3.wasm',
+  'drift_worker.js',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS).catch((err) => {
-        // En caso de que algún recurso opcional falle, continuar
-        console.warn('Precache parcial completado', err);
-      });
+      return Promise.all(
+        PRECACHE_URLS.map((url) => {
+          return fetch(url).then((res) => {
+            if (res.ok) return cache.put(url, res);
+          }).catch((err) => console.warn('Precache skip', url, err));
+        })
+      );
     }).then(() => self.skipWaiting())
   );
 });
