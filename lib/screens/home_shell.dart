@@ -8,6 +8,7 @@ import 'more_screen.dart';
 import 'reports_screen.dart' as reports;
 import 'review_screen.dart' as review;
 import 'transactions_screen.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/sync_status_banner.dart';
 
 class HomeShell extends StatefulWidget {
@@ -264,23 +265,14 @@ class _HomeShellState
                       EdgeInsets
                           .symmetric(
                     vertical:
-                        22,
+                        16,
                   ),
                   child:
-                      CircleAvatar(
-                    radius:
-                        25,
-                    backgroundColor:
-                        AppTheme
-                            .primaryDark,
-                    child:
-                        Icon(
-                      Icons
-                          .account_balance_wallet_rounded,
-                      color:
-                          Colors
-                              .white,
-                    ),
+                      AppLogo.small(
+                    size:
+                        48,
+                    showBadgeBackground:
+                        true,
                   ),
                 ),
                 destinations:

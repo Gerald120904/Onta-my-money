@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/prototype_ui.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
@@ -129,13 +130,22 @@ class MoreScreen extends StatelessWidget {
                         20,
                       ),
                     ),
-                    title: const Text(
-                      '¿Dónde se fue mi plata?',
+                    title: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppLogo.dialog(size: 90),
+                        SizedBox(height: 14),
+                        Text(
+                          '¿Dónde se fue mi plata?',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                     content: const Text(
                       'Aplicación para ayudar a comprender tus ingresos, '
                       'gastos, saldo actual, dinero comprometido, ahorro '
                       'reservado y disponible real.',
+                      textAlign: TextAlign.center,
                     ),
                     actions: [
                       FilledButton(

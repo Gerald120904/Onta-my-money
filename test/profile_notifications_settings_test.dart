@@ -85,7 +85,6 @@ void main() {
 
   late AppDatabase db;
   late FinanceRepository financeRepo;
-  late ReviewRepository reviewRepo;
   late AppState appState;
 
   const testUserId = 'user_abc_789';
@@ -103,7 +102,6 @@ void main() {
 
     db = AppDatabase.inMemory(NativeDatabase.memory());
     financeRepo = FinanceRepository(db);
-    reviewRepo = ReviewRepository(db);
 
     await financeRepo.saveUser(
       id: testUserId,

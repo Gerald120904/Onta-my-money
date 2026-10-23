@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_theme.dart';
 import '../core/utils/formatters.dart';
+import 'app_logo.dart';
 
 class PrototypeHeader extends StatelessWidget {
   final String title;
@@ -60,48 +61,9 @@ class PrototypeHeader extends StatelessWidget {
       height: 62,
       child: Row(
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF071846),
-                  Color(0xFF001037),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primary.withOpacity(.16),
-                  blurRadius: 18,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: Colors.white,
-                  size: 29,
-                ),
-                Positioned(
-                  top: 8,
-                  child: Container(
-                    width: 17,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF57A5FF),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          const AppLogo(
+            size: 44,
+            showBadgeBackground: true,
           ),
           const SizedBox(width: 13),
           Expanded(

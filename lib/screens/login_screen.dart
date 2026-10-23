@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../providers/app_state.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/app_ui.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -233,22 +234,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         CrossAxisAlignment.stretch,
                     children: [
                       // =================================================
-                      // LOGO
+                      // LOGO OFICIAL
                       // =================================================
 
-                      Center(
-                        child: Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF061747),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.account_balance_wallet_outlined,
-                            size: 38,
-                            color: Colors.white,
-                          ),
+                      const Center(
+                        child: AppLogo.login(
+                          size: 110,
                         ),
                       ),
 
