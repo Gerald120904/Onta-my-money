@@ -44,3 +44,20 @@ app.*.map.json
 
 *.deps
 *.map
+
+# Bases de datos SQLite, respaldos y temporales
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.backup
+*.bak
+
+# Variables de entorno y credenciales
+.env
+.env.*
+*.key
+*.pem
+*.cert
+*.p12

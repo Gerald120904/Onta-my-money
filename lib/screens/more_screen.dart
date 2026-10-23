@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
 import '../widgets/prototype_ui.dart';
+import 'notifications_screen.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
 import 'sync_screen.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -51,9 +54,10 @@ class MoreScreen extends StatelessWidget {
                 title: 'Mi perfil',
                 subtitle: 'Información de tu cuenta',
                 onTap: () {
-                  _showComingSoon(
-                    context,
-                    'Mi perfil',
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ProfileScreen(state: state),
+                    ),
                   );
                 },
               ),
@@ -66,9 +70,10 @@ class MoreScreen extends StatelessWidget {
                 title: 'Notificaciones',
                 subtitle: 'Administrar recordatorios',
                 onTap: () {
-                  _showComingSoon(
-                    context,
-                    'Notificaciones',
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => NotificationsScreen(state: state),
+                    ),
                   );
                 },
               ),
@@ -81,9 +86,10 @@ class MoreScreen extends StatelessWidget {
                 title: 'Configuración',
                 subtitle: 'Preferencias de la aplicación',
                 onTap: () {
-                  _showComingSoon(
-                    context,
-                    'Configuración',
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => SettingsScreen(state: state),
+                    ),
                   );
                 },
               ),
@@ -152,19 +158,6 @@ class MoreScreen extends StatelessWidget {
       ],
     );
   }
-
-  void _showComingSoon(
-    BuildContext context,
-    String title,
-  ) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$title estará disponible próximamente.',
-        ),
-      ),
-    );
-  }
 }
 
 class _OptionTile extends StatefulWidget {
@@ -189,6 +182,12 @@ class _OptionTileState extends State<_OptionTile> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? AppTheme.textDark : AppTheme.text;
+    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
+    final iconBg = isDark ? const Color(0xFF1E2D4A) : const Color(0xFFEAF3FF);
+    final iconColor = isDark ? AppTheme.primaryDarkTheme : AppTheme.primary;
+
     return Semantics(
       button: true,
       label: '${widget.title}. ${widget.subtitle}',
@@ -218,7 +217,7 @@ class _OptionTileState extends State<_OptionTile> {
               border: Border.all(
                 width: _focused ? 3 : 1,
                 color: _focused
-                    ? AppTheme.primaryDark
+                    ? (isDark ? AppTheme.focusDark : AppTheme.primaryDark)
                     : Colors.transparent,
               ),
               boxShadow: _focused
@@ -237,12 +236,12 @@ class _OptionTileState extends State<_OptionTile> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEAF3FF),
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     widget.icon,
-                    color: AppTheme.primary,
+                    color: iconColor,
                   ),
                 ),
                 const SizedBox(width: 13),
@@ -252,26 +251,26 @@ class _OptionTileState extends State<_OptionTile> {
                     children: [
                       Text(
                         widget.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
-                          color: AppTheme.text,
+                          color: titleColor,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         widget.subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.muted,
+                          color: mutedColor,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: AppTheme.primary,
+                  color: iconColor,
                 ),
               ],
             ),

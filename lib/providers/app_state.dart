@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -12,6 +12,8 @@ import '../data/repositories/finance_repository.dart';
 import '../data/repositories/review_repository.dart';
 import '../models/models.dart';
 import '../models/review_result.dart';
+import '../services/notifications/app_notification.dart';
+import '../services/notifications/notification_service.dart';
 
 class AppState extends ChangeNotifier {
   final ApiClient api = ApiClient();
@@ -19,6 +21,7 @@ class AppState extends ChangeNotifier {
   final FinanceRepository financeRepository;
   final ReviewRepository reviewRepository;
   late final ClientSyncService syncService;
+  late final NotificationService notificationService;
 
   static const _uuid = Uuid();
 
@@ -30,10 +33,18 @@ class AppState extends ChangeNotifier {
   List<Commitment> commitments = [];
   List<SavingsGoal> goals = [];
   List<ReviewResult> reviews = [];
+  List<AppNotification> notifications = [];
+  int unreadNotificationsCount = 0;
 
   String? currentUserId;
   String? currentUserEmail;
+  String? currentUserName;
+  String? currentUserCreatedAt;
   double openingBalance = 0.0;
+
+  ThemeMode themeMode = ThemeMode.system;
+  int initialTabIndex = 0;
+  bool autoSyncEnabled = true;
 
   SyncReport syncReport = const SyncReport();
   List<EntityConflict> conflicts = [];
@@ -45,6 +56,7 @@ class AppState extends ChangeNotifier {
       : db = database,
         financeRepository = FinanceRepository(database),
         reviewRepository = ReviewRepository(database) {
+    notificationService = NotificationService(database);
     syncService = ClientSyncService(
       api: api,
       db: db,
@@ -108,9 +120,23 @@ class AppState extends ChangeNotifier {
   Future<void> restoreSession() async {
     final prefs = await SharedPreferences.getInstance();
 
+    final themeStr = prefs.getString('app_theme_mode');
+    if (themeStr == 'dark') {
+      themeMode = ThemeMode.dark;
+    } else if (themeStr == 'light') {
+      themeMode = ThemeMode.light;
+    } else {
+      themeMode = ThemeMode.system;
+    }
+    initialTabIndex = prefs.getInt('initial_tab_index') ?? 0;
+    autoSyncEnabled = prefs.getBool('auto_sync_enabled') ?? true;
+    syncService.autoSyncEnabled = autoSyncEnabled;
+
     api.token = prefs.getString('token');
     currentUserEmail = prefs.getString('current_user_email');
     currentUserId = prefs.getString('current_user_id');
+    currentUserName = prefs.getString('current_user_name');
+    currentUserCreatedAt = prefs.getString('current_user_created_at');
     openingBalance = prefs.getDouble('opening_balance') ?? 0.0;
 
     // Verificar también el usuario actual en la base de datos local
@@ -118,6 +144,7 @@ class AppState extends ChangeNotifier {
     if (localUser != null) {
       currentUserId ??= localUser.id;
       currentUserEmail ??= localUser.email;
+      currentUserName ??= localUser.name;
       api.token ??= localUser.token;
       openingBalance = localUser.openingBalance;
     }
@@ -127,6 +154,8 @@ class AppState extends ChangeNotifier {
       transactions = [];
       commitments = [];
       goals = [];
+      notifications = [];
+      unreadNotificationsCount = 0;
       dashboard = null;
       notifyListeners();
       return;
@@ -141,12 +170,13 @@ class AppState extends ChangeNotifier {
 
     notifyListeners();
 
-    // En segundo plano, si hay conexión disponible, sincronizar sin bloquear la interfaz
+    // En segundo plano, si hay conexión disponible y autoSync activo, sincronizar sin bloquear la interfaz
     _backgroundSync();
   }
 
   Future<void> _backgroundSync() async {
     if (currentUserId == null || !isAuthenticated) return;
+    if (!autoSyncEnabled) return; // Respeta la preferencia de auto-sincronización
     try {
       await syncNow();
       await refreshAll(silent: true);
@@ -163,6 +193,14 @@ class AppState extends ChangeNotifier {
     dashboard = await financeRepository.calculateDashboard(userId);
     conflicts = await syncService.getUnresolvedConflicts(userId);
     final pendingCount = await financeRepository.getPendingOperationsCount(userId);
+
+    // Recalcular recordatorios para compromisos y cargar avisos
+    await notificationService.recalculateCommitmentReminders(
+      userId: userId,
+      commitments: commitments,
+    );
+    notifications = await notificationService.getNotifications(userId);
+    unreadNotificationsCount = await notificationService.getUnreadCount(userId);
 
     syncReport = syncReport.copyWith(
       pendingCount: pendingCount,
@@ -186,23 +224,29 @@ class AppState extends ChangeNotifier {
         final userMap = Map<String, dynamic>.from(data['user'] as Map? ?? {});
         final userId = userMap['id']?.toString() ?? _uuid.v4();
         final userEmail = (userMap['email'] ?? email).toString().trim().toLowerCase();
+        final userName = userMap['name']?.toString() ?? 'Usuario';
+        final userCreatedAt = userMap['created_at']?.toString() ?? DateTime.now().toIso8601String();
         final serverOpeningBalance = (userMap['opening_balance'] as num?)?.toDouble() ?? 0.0;
 
         api.token = token;
         currentUserId = userId;
         currentUserEmail = userEmail;
+        currentUserName = userName;
+        currentUserCreatedAt = userCreatedAt;
         openingBalance = serverOpeningBalance;
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('current_user_email', userEmail);
         await prefs.setString('current_user_id', userId);
+        await prefs.setString('current_user_name', userName);
+        await prefs.setString('current_user_created_at', userCreatedAt);
         await prefs.setDouble('opening_balance', serverOpeningBalance);
 
         // Guardar usuario en la base de datos local
         await financeRepository.saveUser(
           id: userId,
-          name: userMap['name']?.toString() ?? 'Usuario',
+          name: userName,
           email: userEmail,
           token: token,
           openingBalance: serverOpeningBalance,
@@ -243,17 +287,23 @@ class AppState extends ChangeNotifier {
     api.token = null;
     currentUserEmail = null;
     currentUserId = null;
+    currentUserName = null;
+    currentUserCreatedAt = null;
     dashboard = null;
     transactions = [];
     commitments = [];
     goals = [];
     reviews = [];
+    notifications = [];
+    unreadNotificationsCount = 0;
     conflicts = [];
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('current_user_email');
     await prefs.remove('current_user_id');
+    await prefs.remove('current_user_name');
+    await prefs.remove('current_user_created_at');
     await prefs.remove('opening_balance');
 
     notifyListeners();
@@ -275,9 +325,26 @@ class AppState extends ChangeNotifier {
       // 1. Siempre cargar primero del almacenamiento local
       await _loadFromLocalDatabase(currentUserId!);
 
-      // 2. Si hay conexión, consultar el dashboard remoto para alinear opening_balance
+      // 2. Si hay conexión, consultar perfil y dashboard remoto para sincronizar
       if (isAuthenticated) {
         try {
+          final remoteMe = await api.get('/api/me');
+          if (remoteMe is Map) {
+            final remoteName = remoteMe['name']?.toString();
+            final remoteCreatedAt = remoteMe['created_at']?.toString();
+            if (remoteName != null && remoteName.isNotEmpty) {
+              currentUserName = remoteName;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('current_user_name', remoteName);
+              await financeRepository.updateUserName(currentUserId!, remoteName);
+            }
+            if (remoteCreatedAt != null && remoteCreatedAt.isNotEmpty) {
+              currentUserCreatedAt = remoteCreatedAt;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('current_user_created_at', remoteCreatedAt);
+            }
+          }
+
           final remoteDashboard = await api.get('/api/dashboard');
           if (remoteDashboard is Map) {
             final remoteOpening = (remoteDashboard['opening_balance'] as num?)?.toDouble();
@@ -498,6 +565,152 @@ class AppState extends ChangeNotifier {
       mergedPayload: merged,
     );
     await _loadFromLocalDatabase(currentUserId!);
+    notifyListeners();
+  }
+
+  // =========================================================
+  // PREFERENCIAS Y APARIENCIA
+  // =========================================================
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    themeMode = mode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('app_theme_mode', mode.name);
+    notifyListeners();
+  }
+
+  Future<void> setInitialTabIndex(int index) async {
+    initialTabIndex = index;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('initial_tab_index', index);
+    notifyListeners();
+  }
+
+  Future<void> setAutoSyncEnabled(bool enabled) async {
+    autoSyncEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('auto_sync_enabled', enabled);
+    syncService.autoSyncEnabled = enabled;
+    notifyListeners();
+  }
+
+  // =========================================================
+  // GESTIÓN DE PERFIL (OFFLINE-FIRST)
+  // =========================================================
+
+  Future<void> updateUserName(String newName) async {
+    final name = newName.trim();
+    if (name.isEmpty) throw Exception('El nombre no puede estar vacío');
+    if (currentUserId == null) throw Exception('No hay sesión activa');
+
+    currentUserName = name;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('current_user_name', name);
+
+    // Actualizar base de datos local inmediatamente
+    await financeRepository.updateUserName(currentUserId!, name);
+
+    // Encolar operación de sincronización (Offline-First)
+    await financeRepository.enqueueOperation(
+      userId: currentUserId!,
+      entityType: 'user',
+      entityId: currentUserId!,
+      action: 'update',
+      payload: {'name': name},
+    );
+
+    notifyListeners();
+
+    // Si hay conexión, sincronizar inmediatamente
+    if (isAuthenticated) {
+      try {
+        await api.patch('/api/me', {'name': name});
+        await syncNow();
+      } catch (_) {
+        // En corte de red se mantiene en cola y se sincronizará automáticamente al reconectar
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+    bool revokeOtherSessions = true,
+  }) async {
+    if (!isAuthenticated) {
+      throw Exception('Esta función requiere conexión con el servidor. Verificá tu conexión e intentá de nuevo.');
+    }
+    final res = await api.post('/api/me/change-password', {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+      'confirm_password': confirmPassword,
+      'revoke_other_sessions': revokeOtherSessions,
+    });
+    return Map<String, dynamic>.from(res as Map);
+  }
+
+  // =========================================================
+  // NOTIFICACIONES Y RECORDATORIOS
+  // =========================================================
+
+  Future<void> loadNotifications() async {
+    if (currentUserId == null) {
+      notifications = [];
+      unreadNotificationsCount = 0;
+      notifyListeners();
+      return;
+    }
+    await notificationService.recalculateCommitmentReminders(
+      userId: currentUserId!,
+      commitments: commitments,
+    );
+    notifications = await notificationService.getNotifications(currentUserId!);
+    unreadNotificationsCount = await notificationService.getUnreadCount(currentUserId!);
+    notifyListeners();
+  }
+
+  Future<void> markNotificationAsRead(String id) async {
+    await notificationService.markAsRead(id);
+    await loadNotifications();
+  }
+
+  Future<void> markAllNotificationsAsRead() async {
+    if (currentUserId == null) return;
+    await notificationService.markAllAsRead(currentUserId!);
+    await loadNotifications();
+  }
+
+  Future<void> dismissNotification(String id) async {
+    await notificationService.dismissNotification(id);
+    await loadNotifications();
+  }
+
+  Future<void> deleteNotification(String id) async {
+    await notificationService.deleteNotification(id);
+    await loadNotifications();
+  }
+
+  Future<void> clearAllNotifications() async {
+    if (currentUserId == null) return;
+    await notificationService.clearAll(currentUserId!);
+    await loadNotifications();
+  }
+
+  // =========================================================
+  // PRIVACIDAD Y LIMPIEZA SEGURA DE CACHÉ
+  // =========================================================
+
+  Future<void> clearRegenerableCache() async {
+    if (currentUserId != null) {
+      final pendingCount = await financeRepository.getPendingOperationsCount(currentUserId!);
+      if (pendingCount > 0) {
+        throw Exception('Tenés $pendingCount cambios pendientes de sincronizar. Sincronizá antes de limpiar la caché.');
+      }
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('temp_search_cache');
+    await prefs.remove('temp_filter_cache');
     notifyListeners();
   }
 

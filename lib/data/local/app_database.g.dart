@@ -4963,6 +4963,617 @@ class LocalChangeHistoryCompanion
   }
 }
 
+class $LocalNotificationsTable extends LocalNotifications
+    with TableInfo<$LocalNotificationsTable, LocalNotification> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalNotificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+      'body', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _relatedEntityTypeMeta =
+      const VerificationMeta('relatedEntityType');
+  @override
+  late final GeneratedColumn<String> relatedEntityType =
+      GeneratedColumn<String>('related_entity_type', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _relatedEntityIdMeta =
+      const VerificationMeta('relatedEntityId');
+  @override
+  late final GeneratedColumn<String> relatedEntityId = GeneratedColumn<String>(
+      'related_entity_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+      'amount', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _scheduledDateMeta =
+      const VerificationMeta('scheduledDate');
+  @override
+  late final GeneratedColumn<DateTime> scheduledDate =
+      GeneratedColumn<DateTime>('scheduled_date', aliasedName, false,
+          type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
+  @override
+  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
+      'is_read', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_read" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isDismissedMeta =
+      const VerificationMeta('isDismissed');
+  @override
+  late final GeneratedColumn<bool> isDismissed = GeneratedColumn<bool>(
+      'is_dismissed', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_dismissed" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userId,
+        type,
+        title,
+        body,
+        relatedEntityType,
+        relatedEntityId,
+        amount,
+        scheduledDate,
+        isRead,
+        isDismissed,
+        createdAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_notifications';
+  @override
+  VerificationContext validateIntegrity(Insertable<LocalNotification> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+          _bodyMeta, body.isAcceptableOrUnknown(data['body']!, _bodyMeta));
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('related_entity_type')) {
+      context.handle(
+          _relatedEntityTypeMeta,
+          relatedEntityType.isAcceptableOrUnknown(
+              data['related_entity_type']!, _relatedEntityTypeMeta));
+    }
+    if (data.containsKey('related_entity_id')) {
+      context.handle(
+          _relatedEntityIdMeta,
+          relatedEntityId.isAcceptableOrUnknown(
+              data['related_entity_id']!, _relatedEntityIdMeta));
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    }
+    if (data.containsKey('scheduled_date')) {
+      context.handle(
+          _scheduledDateMeta,
+          scheduledDate.isAcceptableOrUnknown(
+              data['scheduled_date']!, _scheduledDateMeta));
+    } else if (isInserting) {
+      context.missing(_scheduledDateMeta);
+    }
+    if (data.containsKey('is_read')) {
+      context.handle(_isReadMeta,
+          isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta));
+    }
+    if (data.containsKey('is_dismissed')) {
+      context.handle(
+          _isDismissedMeta,
+          isDismissed.isAcceptableOrUnknown(
+              data['is_dismissed']!, _isDismissedMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LocalNotification map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalNotification(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      body: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}body'])!,
+      relatedEntityType: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}related_entity_type']),
+      relatedEntityId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}related_entity_id']),
+      amount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}amount']),
+      scheduledDate: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}scheduled_date'])!,
+      isRead: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_read'])!,
+      isDismissed: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_dismissed'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $LocalNotificationsTable createAlias(String alias) {
+    return $LocalNotificationsTable(attachedDatabase, alias);
+  }
+}
+
+class LocalNotification extends DataClass
+    implements Insertable<LocalNotification> {
+  final String id;
+  final String userId;
+  final String type;
+  final String title;
+  final String body;
+  final String? relatedEntityType;
+  final String? relatedEntityId;
+  final double? amount;
+  final DateTime scheduledDate;
+  final bool isRead;
+  final bool isDismissed;
+  final DateTime createdAt;
+  const LocalNotification(
+      {required this.id,
+      required this.userId,
+      required this.type,
+      required this.title,
+      required this.body,
+      this.relatedEntityType,
+      this.relatedEntityId,
+      this.amount,
+      required this.scheduledDate,
+      required this.isRead,
+      required this.isDismissed,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['type'] = Variable<String>(type);
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || relatedEntityType != null) {
+      map['related_entity_type'] = Variable<String>(relatedEntityType);
+    }
+    if (!nullToAbsent || relatedEntityId != null) {
+      map['related_entity_id'] = Variable<String>(relatedEntityId);
+    }
+    if (!nullToAbsent || amount != null) {
+      map['amount'] = Variable<double>(amount);
+    }
+    map['scheduled_date'] = Variable<DateTime>(scheduledDate);
+    map['is_read'] = Variable<bool>(isRead);
+    map['is_dismissed'] = Variable<bool>(isDismissed);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  LocalNotificationsCompanion toCompanion(bool nullToAbsent) {
+    return LocalNotificationsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      type: Value(type),
+      title: Value(title),
+      body: Value(body),
+      relatedEntityType: relatedEntityType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(relatedEntityType),
+      relatedEntityId: relatedEntityId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(relatedEntityId),
+      amount:
+          amount == null && nullToAbsent ? const Value.absent() : Value(amount),
+      scheduledDate: Value(scheduledDate),
+      isRead: Value(isRead),
+      isDismissed: Value(isDismissed),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory LocalNotification.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalNotification(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      type: serializer.fromJson<String>(json['type']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      relatedEntityType:
+          serializer.fromJson<String?>(json['relatedEntityType']),
+      relatedEntityId: serializer.fromJson<String?>(json['relatedEntityId']),
+      amount: serializer.fromJson<double?>(json['amount']),
+      scheduledDate: serializer.fromJson<DateTime>(json['scheduledDate']),
+      isRead: serializer.fromJson<bool>(json['isRead']),
+      isDismissed: serializer.fromJson<bool>(json['isDismissed']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'type': serializer.toJson<String>(type),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'relatedEntityType': serializer.toJson<String?>(relatedEntityType),
+      'relatedEntityId': serializer.toJson<String?>(relatedEntityId),
+      'amount': serializer.toJson<double?>(amount),
+      'scheduledDate': serializer.toJson<DateTime>(scheduledDate),
+      'isRead': serializer.toJson<bool>(isRead),
+      'isDismissed': serializer.toJson<bool>(isDismissed),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  LocalNotification copyWith(
+          {String? id,
+          String? userId,
+          String? type,
+          String? title,
+          String? body,
+          Value<String?> relatedEntityType = const Value.absent(),
+          Value<String?> relatedEntityId = const Value.absent(),
+          Value<double?> amount = const Value.absent(),
+          DateTime? scheduledDate,
+          bool? isRead,
+          bool? isDismissed,
+          DateTime? createdAt}) =>
+      LocalNotification(
+        id: id ?? this.id,
+        userId: userId ?? this.userId,
+        type: type ?? this.type,
+        title: title ?? this.title,
+        body: body ?? this.body,
+        relatedEntityType: relatedEntityType.present
+            ? relatedEntityType.value
+            : this.relatedEntityType,
+        relatedEntityId: relatedEntityId.present
+            ? relatedEntityId.value
+            : this.relatedEntityId,
+        amount: amount.present ? amount.value : this.amount,
+        scheduledDate: scheduledDate ?? this.scheduledDate,
+        isRead: isRead ?? this.isRead,
+        isDismissed: isDismissed ?? this.isDismissed,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  LocalNotification copyWithCompanion(LocalNotificationsCompanion data) {
+    return LocalNotification(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      type: data.type.present ? data.type.value : this.type,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      relatedEntityType: data.relatedEntityType.present
+          ? data.relatedEntityType.value
+          : this.relatedEntityType,
+      relatedEntityId: data.relatedEntityId.present
+          ? data.relatedEntityId.value
+          : this.relatedEntityId,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      scheduledDate: data.scheduledDate.present
+          ? data.scheduledDate.value
+          : this.scheduledDate,
+      isRead: data.isRead.present ? data.isRead.value : this.isRead,
+      isDismissed:
+          data.isDismissed.present ? data.isDismissed.value : this.isDismissed,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalNotification(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('relatedEntityType: $relatedEntityType, ')
+          ..write('relatedEntityId: $relatedEntityId, ')
+          ..write('amount: $amount, ')
+          ..write('scheduledDate: $scheduledDate, ')
+          ..write('isRead: $isRead, ')
+          ..write('isDismissed: $isDismissed, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      userId,
+      type,
+      title,
+      body,
+      relatedEntityType,
+      relatedEntityId,
+      amount,
+      scheduledDate,
+      isRead,
+      isDismissed,
+      createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalNotification &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.type == this.type &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.relatedEntityType == this.relatedEntityType &&
+          other.relatedEntityId == this.relatedEntityId &&
+          other.amount == this.amount &&
+          other.scheduledDate == this.scheduledDate &&
+          other.isRead == this.isRead &&
+          other.isDismissed == this.isDismissed &&
+          other.createdAt == this.createdAt);
+}
+
+class LocalNotificationsCompanion extends UpdateCompanion<LocalNotification> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> type;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String?> relatedEntityType;
+  final Value<String?> relatedEntityId;
+  final Value<double?> amount;
+  final Value<DateTime> scheduledDate;
+  final Value<bool> isRead;
+  final Value<bool> isDismissed;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const LocalNotificationsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.relatedEntityType = const Value.absent(),
+    this.relatedEntityId = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.scheduledDate = const Value.absent(),
+    this.isRead = const Value.absent(),
+    this.isDismissed = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalNotificationsCompanion.insert({
+    required String id,
+    required String userId,
+    required String type,
+    required String title,
+    required String body,
+    this.relatedEntityType = const Value.absent(),
+    this.relatedEntityId = const Value.absent(),
+    this.amount = const Value.absent(),
+    required DateTime scheduledDate,
+    this.isRead = const Value.absent(),
+    this.isDismissed = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        userId = Value(userId),
+        type = Value(type),
+        title = Value(title),
+        body = Value(body),
+        scheduledDate = Value(scheduledDate),
+        createdAt = Value(createdAt);
+  static Insertable<LocalNotification> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? type,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? relatedEntityType,
+    Expression<String>? relatedEntityId,
+    Expression<double>? amount,
+    Expression<DateTime>? scheduledDate,
+    Expression<bool>? isRead,
+    Expression<bool>? isDismissed,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (type != null) 'type': type,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (relatedEntityType != null) 'related_entity_type': relatedEntityType,
+      if (relatedEntityId != null) 'related_entity_id': relatedEntityId,
+      if (amount != null) 'amount': amount,
+      if (scheduledDate != null) 'scheduled_date': scheduledDate,
+      if (isRead != null) 'is_read': isRead,
+      if (isDismissed != null) 'is_dismissed': isDismissed,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalNotificationsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? userId,
+      Value<String>? type,
+      Value<String>? title,
+      Value<String>? body,
+      Value<String?>? relatedEntityType,
+      Value<String?>? relatedEntityId,
+      Value<double?>? amount,
+      Value<DateTime>? scheduledDate,
+      Value<bool>? isRead,
+      Value<bool>? isDismissed,
+      Value<DateTime>? createdAt,
+      Value<int>? rowid}) {
+    return LocalNotificationsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      relatedEntityType: relatedEntityType ?? this.relatedEntityType,
+      relatedEntityId: relatedEntityId ?? this.relatedEntityId,
+      amount: amount ?? this.amount,
+      scheduledDate: scheduledDate ?? this.scheduledDate,
+      isRead: isRead ?? this.isRead,
+      isDismissed: isDismissed ?? this.isDismissed,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (relatedEntityType.present) {
+      map['related_entity_type'] = Variable<String>(relatedEntityType.value);
+    }
+    if (relatedEntityId.present) {
+      map['related_entity_id'] = Variable<String>(relatedEntityId.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (scheduledDate.present) {
+      map['scheduled_date'] = Variable<DateTime>(scheduledDate.value);
+    }
+    if (isRead.present) {
+      map['is_read'] = Variable<bool>(isRead.value);
+    }
+    if (isDismissed.present) {
+      map['is_dismissed'] = Variable<bool>(isDismissed.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalNotificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('relatedEntityType: $relatedEntityType, ')
+          ..write('relatedEntityId: $relatedEntityId, ')
+          ..write('amount: $amount, ')
+          ..write('scheduledDate: $scheduledDate, ')
+          ..write('isRead: $isRead, ')
+          ..write('isDismissed: $isDismissed, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4979,6 +5590,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LocalConflictsTable localConflicts = $LocalConflictsTable(this);
   late final $LocalChangeHistoryTable localChangeHistory =
       $LocalChangeHistoryTable(this);
+  late final $LocalNotificationsTable localNotifications =
+      $LocalNotificationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4992,7 +5605,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         localReviews,
         localPendingOperations,
         localConflicts,
-        localChangeHistory
+        localChangeHistory,
+        localNotifications
       ];
 }
 
@@ -7356,6 +7970,291 @@ typedef $$LocalChangeHistoryTableProcessedTableManager = ProcessedTableManager<
     ),
     LocalChangeHistoryData,
     PrefetchHooks Function()>;
+typedef $$LocalNotificationsTableCreateCompanionBuilder
+    = LocalNotificationsCompanion Function({
+  required String id,
+  required String userId,
+  required String type,
+  required String title,
+  required String body,
+  Value<String?> relatedEntityType,
+  Value<String?> relatedEntityId,
+  Value<double?> amount,
+  required DateTime scheduledDate,
+  Value<bool> isRead,
+  Value<bool> isDismissed,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$LocalNotificationsTableUpdateCompanionBuilder
+    = LocalNotificationsCompanion Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> type,
+  Value<String> title,
+  Value<String> body,
+  Value<String?> relatedEntityType,
+  Value<String?> relatedEntityId,
+  Value<double?> amount,
+  Value<DateTime> scheduledDate,
+  Value<bool> isRead,
+  Value<bool> isDismissed,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$LocalNotificationsTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalNotificationsTable> {
+  $$LocalNotificationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get relatedEntityType => $composableBuilder(
+      column: $table.relatedEntityType,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get relatedEntityId => $composableBuilder(
+      column: $table.relatedEntityId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get scheduledDate => $composableBuilder(
+      column: $table.scheduledDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isRead => $composableBuilder(
+      column: $table.isRead, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDismissed => $composableBuilder(
+      column: $table.isDismissed, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$LocalNotificationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalNotificationsTable> {
+  $$LocalNotificationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get relatedEntityType => $composableBuilder(
+      column: $table.relatedEntityType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get relatedEntityId => $composableBuilder(
+      column: $table.relatedEntityId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get scheduledDate => $composableBuilder(
+      column: $table.scheduledDate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isRead => $composableBuilder(
+      column: $table.isRead, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDismissed => $composableBuilder(
+      column: $table.isDismissed, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$LocalNotificationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalNotificationsTable> {
+  $$LocalNotificationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get relatedEntityType => $composableBuilder(
+      column: $table.relatedEntityType, builder: (column) => column);
+
+  GeneratedColumn<String> get relatedEntityId => $composableBuilder(
+      column: $table.relatedEntityId, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get scheduledDate => $composableBuilder(
+      column: $table.scheduledDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRead =>
+      $composableBuilder(column: $table.isRead, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDismissed => $composableBuilder(
+      column: $table.isDismissed, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$LocalNotificationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $LocalNotificationsTable,
+    LocalNotification,
+    $$LocalNotificationsTableFilterComposer,
+    $$LocalNotificationsTableOrderingComposer,
+    $$LocalNotificationsTableAnnotationComposer,
+    $$LocalNotificationsTableCreateCompanionBuilder,
+    $$LocalNotificationsTableUpdateCompanionBuilder,
+    (
+      LocalNotification,
+      BaseReferences<_$AppDatabase, $LocalNotificationsTable, LocalNotification>
+    ),
+    LocalNotification,
+    PrefetchHooks Function()> {
+  $$LocalNotificationsTableTableManager(
+      _$AppDatabase db, $LocalNotificationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalNotificationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalNotificationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalNotificationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String> body = const Value.absent(),
+            Value<String?> relatedEntityType = const Value.absent(),
+            Value<String?> relatedEntityId = const Value.absent(),
+            Value<double?> amount = const Value.absent(),
+            Value<DateTime> scheduledDate = const Value.absent(),
+            Value<bool> isRead = const Value.absent(),
+            Value<bool> isDismissed = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LocalNotificationsCompanion(
+            id: id,
+            userId: userId,
+            type: type,
+            title: title,
+            body: body,
+            relatedEntityType: relatedEntityType,
+            relatedEntityId: relatedEntityId,
+            amount: amount,
+            scheduledDate: scheduledDate,
+            isRead: isRead,
+            isDismissed: isDismissed,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String userId,
+            required String type,
+            required String title,
+            required String body,
+            Value<String?> relatedEntityType = const Value.absent(),
+            Value<String?> relatedEntityId = const Value.absent(),
+            Value<double?> amount = const Value.absent(),
+            required DateTime scheduledDate,
+            Value<bool> isRead = const Value.absent(),
+            Value<bool> isDismissed = const Value.absent(),
+            required DateTime createdAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LocalNotificationsCompanion.insert(
+            id: id,
+            userId: userId,
+            type: type,
+            title: title,
+            body: body,
+            relatedEntityType: relatedEntityType,
+            relatedEntityId: relatedEntityId,
+            amount: amount,
+            scheduledDate: scheduledDate,
+            isRead: isRead,
+            isDismissed: isDismissed,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$LocalNotificationsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $LocalNotificationsTable,
+    LocalNotification,
+    $$LocalNotificationsTableFilterComposer,
+    $$LocalNotificationsTableOrderingComposer,
+    $$LocalNotificationsTableAnnotationComposer,
+    $$LocalNotificationsTableCreateCompanionBuilder,
+    $$LocalNotificationsTableUpdateCompanionBuilder,
+    (
+      LocalNotification,
+      BaseReferences<_$AppDatabase, $LocalNotificationsTable, LocalNotification>
+    ),
+    LocalNotification,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7379,4 +8278,6 @@ class $AppDatabaseManager {
       $$LocalConflictsTableTableManager(_db, _db.localConflicts);
   $$LocalChangeHistoryTableTableManager get localChangeHistory =>
       $$LocalChangeHistoryTableTableManager(_db, _db.localChangeHistory);
+  $$LocalNotificationsTableTableManager get localNotifications =>
+      $$LocalNotificationsTableTableManager(_db, _db.localNotifications);
 }

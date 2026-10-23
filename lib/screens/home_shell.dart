@@ -27,6 +27,12 @@ class _HomeShellState
     extends State<HomeShell> {
   int index = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    index = widget.state.initialTabIndex;
+  }
+
   // =========================================================
   // ABRIR NUEVO REPORTE
   // =========================================================

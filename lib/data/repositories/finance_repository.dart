@@ -59,6 +59,12 @@ class FinanceRepository {
     );
   }
 
+  Future<void> updateUserName(String userId, String name) async {
+    await (db.update(db.localUsers)..where((u) => u.id.equals(userId))).write(
+      LocalUsersCompanion(name: Value(name)),
+    );
+  }
+
   Future<void> updateSyncCursor(String userId, int cursor, DateTime syncTime) async {
     await (db.update(db.localUsers)..where((u) => u.id.equals(userId))).write(
       LocalUsersCompanion(
@@ -621,6 +627,35 @@ class FinanceRepository {
 
   Future<void> removeOperation(String operationId) async {
     await (db.delete(db.localPendingOperations)..where((op) => op.operationId.equals(operationId))).go();
+  }
+
+  Future<void> enqueueOperation({
+    required String userId,
+    required String entityType,
+    required String entityId,
+    required String action,
+    required Map<String, dynamic> payload,
+    int baseVersion = 1,
+    String? deviceId,
+  }) async {
+    final now = DateTime.now();
+    final opId = _uuid.v4();
+
+    await db.into(db.localPendingOperations).insert(
+          LocalPendingOperationsCompanion(
+            operationId: Value(opId),
+            userId: Value(userId),
+            deviceId: Value(deviceId),
+            entityType: Value(entityType),
+            entityId: Value(entityId),
+            action: Value(action),
+            payloadJson: Value(jsonEncode(payload)),
+            baseVersion: Value(baseVersion),
+            status: const Value('pending'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
   }
 
   Future<void> markOperationFailed(String operationId, String error) async {

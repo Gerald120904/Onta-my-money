@@ -150,3 +150,21 @@ class LocalChangeHistory extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+class LocalNotifications extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get type => text()(); // 'reminder_7d', 'reminder_3d', 'reminder_1d', 'reminder_due', 'overdue', 'weekly_review'
+  TextColumn get title => text()();
+  TextColumn get body => text()();
+  TextColumn get relatedEntityType => text().nullable()(); // 'commitment', 'review'
+  TextColumn get relatedEntityId => text().nullable()();
+  RealColumn get amount => real().nullable()();
+  DateTimeColumn get scheduledDate => dateTime()();
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDismissed => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

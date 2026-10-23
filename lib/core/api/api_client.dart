@@ -106,6 +106,26 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> patch(
+    String path, [
+    Map<String, dynamic>? body,
+  ]) async {
+    try {
+      final response = await http
+          .patch(
+            Uri.parse('$baseUrl$path'),
+            headers: headers,
+            body: jsonEncode(body ?? {}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      return _decode(response);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw _wrapNetworkError(e);
+    }
+  }
+
   Future<dynamic> delete(String path) async {
     try {
       final response = await http

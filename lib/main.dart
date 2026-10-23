@@ -23,6 +23,8 @@ class PlataApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: '¿Dónde se fue mi plata?',
         theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: state.themeMode,
         home: state.isAuthenticated ? HomeShell(state: state) : LoginScreen(state: state),
       ),
     );

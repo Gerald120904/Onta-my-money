@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 
 import '../api/api_client.dart';
 import '../../data/local/app_database.dart';
@@ -14,6 +13,7 @@ class ClientSyncService {
   final AppDatabase db;
   final FinanceRepository repository;
 
+  bool autoSyncEnabled = true;
   bool _isSyncing = false;
   SyncReport _report = const SyncReport();
 
@@ -354,6 +354,12 @@ class ClientSyncService {
                   updatedAt: Value(now),
                 ),
               );
+          break;
+
+        case 'user':
+          if (payload.containsKey('name')) {
+            await repository.updateUserName(userId, payload['name'].toString());
+          }
           break;
       }
     });

@@ -19,6 +19,9 @@ class PrototypeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
+
     if (onBack != null) {
       return SizedBox(
         height: 52,
@@ -27,12 +30,12 @@ class PrototypeHeader extends StatelessWidget {
             InkWell(
               borderRadius: BorderRadius.circular(50),
               onTap: onBack,
-              child: const SizedBox(
+              child: SizedBox(
                 width: 42,
                 height: 42,
                 child: Icon(
                   Icons.arrow_back_rounded,
-                  color: AppTheme.text,
+                  color: textColor,
                   size: 27,
                 ),
               ),
@@ -41,10 +44,10 @@ class PrototypeHeader extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
-                  color: AppTheme.text,
+                  color: textColor,
                 ),
               ),
             ),
@@ -145,14 +148,18 @@ class PrototypePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultBg = isDark ? const Color(0xFF14213D) : Colors.white;
+    final defaultBorder = isDark ? const Color(0xFF263859) : AppTheme.border;
+
     return Container(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: background ?? Colors.white,
+        color: background ?? defaultBg,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(
-          color: borderColor ?? AppTheme.border,
+          color: borderColor ?? defaultBorder,
           width: 1.15,
         ),
       ),
