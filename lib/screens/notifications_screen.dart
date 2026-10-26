@@ -50,7 +50,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } else if (diff > 1 && diff < 7) {
       return 'Hace $diff días';
     } else {
-      return DateFormat('d MMM yyyy, h:mm a', 'es_CR').format(date);
+      try {
+        return DateFormat('d MMM yyyy, h:mm a', 'es_CR').format(date);
+      } catch (_) {
+        return '${date.day}/${date.month}/${date.year}';
+      }
+    }
+  }
+
+  String _formatDueDate(DateTime dt) {
+    try {
+      return DateFormat('d MMMM yyyy', 'es_CR').format(dt);
+    } catch (_) {
+      return '${dt.day}/${dt.month}/${dt.year}';
     }
   }
 
@@ -169,7 +181,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Fecha de vencimiento: ${DateFormat('d MMMM yyyy', 'es_CR').format(commitment.dueDate)}',
+                'Fecha de vencimiento: ${_formatDueDate(commitment.dueDate)}',
               ),
               const SizedBox(height: 8),
               Text(

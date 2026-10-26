@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'providers/app_state.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_shell.dart';
@@ -6,6 +8,13 @@ import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await initializeDateFormatting('es_CR', null);
+    await initializeDateFormatting('es', null);
+    Intl.defaultLocale = 'es_CR';
+  } catch (e) {
+    debugPrint('Error inicializando locale data: $e');
+  }
   final state = AppState();
   await state.restoreSession();
   runApp(PlataApp(state: state));

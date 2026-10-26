@@ -145,7 +145,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _formatDateTime(DateTime? dt) {
     if (dt == null) return 'No confirmada aún';
-    return DateFormat('d MMM yyyy, h:mm a', 'es_CR').format(dt);
+    try {
+      return DateFormat('d MMM yyyy, h:mm a', 'es_CR').format(dt);
+    } catch (_) {
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return '${dt.day}/${dt.month}/${dt.year}, $hour:$minute';
+    }
   }
 
   @override
