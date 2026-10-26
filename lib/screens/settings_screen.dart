@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
 import '../services/notifications/notification_preferences.dart';
+import '../widgets/account_selector.dart';
 import '../widgets/prototype_ui.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -236,6 +237,138 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             selected: state.themeMode == ThemeMode.dark,
                             onTap: () => state.setThemeMode(ThemeMode.dark),
                             isDark: isDark,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // ==========================================
+                // SECCIÓN: CUENTA Y MONEDA INMUTABLE
+                // ==========================================
+                _SectionTitle(title: 'Cuenta y moneda', icon: Icons.account_balance_rounded, textColor: textColor),
+                const SizedBox(height: 10),
+                PrototypePanel(
+                  background: cardBg,
+                  borderColor: borderColor,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  state.activeAccount?.name ?? 'Cuenta Principal',
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: textColor),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Cuenta activa seleccionada',
+                                  style: TextStyle(fontSize: 11, color: mutedColor),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.lock_rounded,
+                                  size: 13,
+                                  color: isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${state.activeCurrency} (Solo lectura)',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 16,
+                              color: isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Por qué no podés cambiar la moneda: Cada cuenta financiera fija su moneda permanentemente para proteger la integridad contable, evitar distorsiones por tipo de cambio y no mezclar importes de distintas divisas.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  height: 1.35,
+                                  color: mutedColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: isDark ? const Color(0xFF0B132B) : Colors.white,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                  ),
+                                  builder: (ctx) => AccountSwitcherSheet(state: state),
+                                );
+                              },
+                              icon: const Icon(Icons.sync_alt_rounded, size: 18),
+                              label: const Text('Cambiar cuenta'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => CreateAccountDialog(state: state),
+                                );
+                              },
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('Crear otra cuenta'),
+                            ),
                           ),
                         ],
                       ),

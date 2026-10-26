@@ -63,6 +63,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       type: type,
       transaction: transaction,
       availableBalance: widget.state.currentBalance,
+      currency: widget.state.activeCurrency,
     );
 
     if (result == null) return;
@@ -793,30 +794,35 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPositive = balance >= 0;
+    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
+    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
+    final borderColor = isDark ? const Color(0xFF263859) : AppTheme.border;
+    final panelBg = isDark ? const Color(0xFF14213D) : Colors.white;
+    final balanceBg = isDark ? const Color(0xFF0F1A30) : const Color(0xFFF8FAFD);
 
     return PrototypePanel(
+      background: panelBg,
+      borderColor: borderColor,
       padding: const EdgeInsets.all(15),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(
-                Icons
-                    .account_balance_wallet_outlined,
-                color: AppTheme.primary,
+                Icons.account_balance_wallet_outlined,
+                color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
                 size: 21,
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 'Resumen de movimientos',
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight:
-                      FontWeight.w900,
-                  color: AppTheme.text,
+                  fontWeight: FontWeight.w900,
+                  color: textColor, // WCAG AA compliant contrast in light and dark
                 ),
               ),
             ],
@@ -828,18 +834,12 @@ class _SummarySection extends StatelessWidget {
             children: [
               Expanded(
                 child: _SummaryValue(
-                  icon: Icons
-                      .add_circle_outline_rounded,
+                  icon: Icons.add_circle_outline_rounded,
                   title: 'Ingresos',
-                  description:
-                      'Dinero recibido',
+                  description: 'Dinero recibido',
                   amount: income,
-                  color:
-                      AppTheme.success,
-                  background:
-                      const Color(
-                    0xFFE9FFF2,
-                  ),
+                  color: isDark ? const Color(0xFF4ADE80) : AppTheme.success,
+                  background: isDark ? const Color(0xFF0F3A2A) : const Color(0xFFE9FFF2),
                 ),
               ),
 
@@ -847,18 +847,12 @@ class _SummarySection extends StatelessWidget {
 
               Expanded(
                 child: _SummaryValue(
-                  icon: Icons
-                      .remove_circle_outline_rounded,
+                  icon: Icons.remove_circle_outline_rounded,
                   title: 'Gastos',
-                  description:
-                      'Dinero utilizado',
+                  description: 'Dinero utilizado',
                   amount: expenses,
-                  color:
-                      AppTheme.primary,
-                  background:
-                      const Color(
-                    0xFFEAF3FF,
-                  ),
+                  color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                  background: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF),
                 ),
               ),
             ],
@@ -869,70 +863,56 @@ class _SummarySection extends StatelessWidget {
           Semantics(
             container: true,
             label:
-                'Balance de movimientos. '
-                '${money(balance)}. '
-                '${isPositive ? 'Balance disponible positivo' : 'Balance negativo'}.',
+                'Balance de movimientos. ${money(balance)}. ${isPositive ? 'Balance disponible positivo' : 'Balance negativo'}.',
             child: ExcludeSemantics(
               child: Container(
                 width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color:
-                      const Color(0xFFF8FAFD),
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  color: balanceBg,
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppTheme.border,
+                    color: borderColor,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       isPositive
-                          ? Icons
-                              .check_circle_outline_rounded
-                          : Icons
-                              .warning_amber_rounded,
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.warning_amber_rounded,
                       size: 20,
                       color: isPositive
-                          ? AppTheme.success
-                          : Colors.red.shade700,
+                          ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
+                          : (isDark ? const Color(0xFFF87171) : Colors.red.shade700),
                     ),
 
                     const SizedBox(width: 8),
 
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment
-                                .start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Balance de movimientos',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight:
-                                  FontWeight
-                                      .w800,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
                             ),
                           ),
-                          const SizedBox(
-                            height: 2,
-                          ),
+                          const SizedBox(height: 2),
                           Text(
                             isPositive
                                 ? 'Saldo disponible después de ingresos y gastos'
                                 : 'Los gastos superan los ingresos registrados',
-                            style:
-                                const TextStyle(
+                            style: TextStyle(
                               fontSize: 9.5,
                               height: 1.25,
-                              color:
-                                  AppTheme.muted,
+                              color: mutedColor,
                             ),
                           ),
                         ],
@@ -945,12 +925,10 @@ class _SummarySection extends StatelessWidget {
                       money(balance),
                       style: TextStyle(
                         fontSize: 18,
-                        fontWeight:
-                            FontWeight.w900,
+                        fontWeight: FontWeight.w900,
                         color: isPositive
-                            ? AppTheme.success
-                            : Colors.red
-                                .shade700,
+                            ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
+                            : (isDark ? const Color(0xFFF87171) : Colors.red.shade700),
                       ),
                     ),
                   ],
@@ -983,24 +961,26 @@ class _SummaryValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
+    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
+    final borderColor = isDark ? const Color(0xFF263859) : AppTheme.border;
+
     return Semantics(
       container: true,
-      label:
-          '$title. ${money(amount)}. $description.',
+      label: '$title. ${money(amount)}. $description.',
       child: ExcludeSemantics(
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: background,
-            borderRadius:
-                BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: AppTheme.border,
+              color: borderColor,
             ),
           ),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
@@ -1013,14 +993,10 @@ class _SummaryValue extends StatelessWidget {
                   Expanded(
                     child: Text(
                       title,
-                      style:
-                          const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        fontWeight:
-                            FontWeight
-                                .w900,
-                        color:
-                            AppTheme.text,
+                        fontWeight: FontWeight.w900,
+                        color: textColor,
                       ),
                     ),
                   ),
@@ -1031,9 +1007,9 @@ class _SummaryValue extends StatelessWidget {
 
               Text(
                 description,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 9.5,
-                  color: AppTheme.muted,
+                  color: mutedColor,
                 ),
               ),
 
@@ -1041,14 +1017,12 @@ class _SummaryValue extends StatelessWidget {
 
               FittedBox(
                 fit: BoxFit.scaleDown,
-                alignment:
-                    Alignment.centerLeft,
+                alignment: Alignment.centerLeft,
                 child: Text(
                   money(amount),
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                     color: color,
                   ),
                 ),
@@ -1080,84 +1054,66 @@ class _TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome =
-        transaction.type.toLowerCase() ==
-        'income';
-
-    final typeLabel =
-        isIncome ? 'INGRESO' : 'GASTO';
-
-    final amountAction =
-        isIncome ? 'Recibido' : 'Gastado';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isIncome = transaction.type.toLowerCase() == 'income';
+    final typeLabel = isIncome ? 'INGRESO' : 'GASTO';
+    final amountAction = isIncome ? 'Recibido' : 'Gastado';
 
     final accent = isIncome
-        ? AppTheme.success
-        : Colors.red.shade700;
+        ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
+        : (isDark ? const Color(0xFFF87171) : Colors.red.shade700);
 
     final iconBackground = isIncome
-        ? const Color(0xFFE9FFF2)
-        : const Color(0xFFFFF1F1);
+        ? (isDark ? const Color(0xFF0F3A2A) : const Color(0xFFE9FFF2))
+        : (isDark ? const Color(0xFF3F1218) : const Color(0xFFFFF1F1));
 
-    final description =
-        transaction.description.trim();
+    final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
+    final cardBorder = isDark ? const Color(0xFF263859) : AppTheme.border;
+    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
+    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
 
-    final recognizedLabel =
-        !isIncome && !transaction.recognized
-            ? 'Movimiento no reconocido'
-            : '';
+    final description = transaction.description.trim();
+    final recognizedLabel = !isIncome && !transaction.recognized
+        ? 'Movimiento no reconocido'
+        : '';
 
     return Semantics(
       container: true,
       button: true,
       label:
-          '$typeLabel. '
-          '${transaction.category}. '
-          '${money(transaction.amount)}. '
-          '$amountAction. '
-          '${shortDate(transaction.date)}.'
+          '$typeLabel. ${transaction.category}. ${money(transaction.amount)}. $amountAction. ${shortDate(transaction.date)}.'
           '${description.isNotEmpty ? ' $description.' : ''}'
-          '${recognizedLabel.isNotEmpty ? ' $recognizedLabel.' : ''} '
-          'Tocá para editar el movimiento.',
+          '${recognizedLabel.isNotEmpty ? ' $recognizedLabel.' : ''} Tocá para editar el movimiento.',
       child: Material(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(14),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
-          borderRadius:
-              BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(14),
           onTap: onEdit,
-          focusColor:
-              AppTheme.primary.withOpacity(.10),
+          focusColor: AppTheme.primary.withOpacity(.10),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: 13,
               vertical: 12,
             ),
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppTheme.border,
+                color: cardBorder,
               ),
             ),
             child: Row(
               children: [
                 // ICONO DE CATEGORÍA
-
                 ExcludeSemantics(
                   child: Container(
                     width: 43,
                     height: 43,
                     decoration: BoxDecoration(
                       color: iconBackground,
-                      borderRadius:
-                          BorderRadius.circular(
-                        11,
-                      ),
+                      borderRadius: BorderRadius.circular(11),
                       border: Border.all(
-                        color:
-                            accent.withOpacity(.25),
+                        color: accent.withOpacity(.25),
                       ),
                     ),
                     child: Icon(
@@ -1171,55 +1127,39 @@ class _TransactionCard extends StatelessWidget {
                 const SizedBox(width: 12),
 
                 // INFORMACIÓN
-
                 Expanded(
                   child: ExcludeSemantics(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // ETIQUETA DEL TIPO DE MOVIMIENTO
                         Container(
-                          padding:
-                              const EdgeInsets
-                                  .symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 7,
                             vertical: 3,
                           ),
-                          decoration:
-                              BoxDecoration(
+                          decoration: BoxDecoration(
                             color: iconBackground,
-                            borderRadius:
-                                BorderRadius
-                                    .circular(20),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: accent,
                             ),
                           ),
                           child: Row(
-                            mainAxisSize:
-                                MainAxisSize.min,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                isIncome
-                                    ? Icons
-                                        .add_rounded
-                                    : Icons
-                                        .remove_rounded,
+                                isIncome ? Icons.add_rounded : Icons.remove_rounded,
                                 size: 11,
                                 color: accent,
                               ),
-                              const SizedBox(
-                                width: 3,
-                              ),
+                              const SizedBox(width: 3),
                               Text(
                                 typeLabel,
                                 style: TextStyle(
                                   fontSize: 8.5,
                                   letterSpacing: .35,
-                                  fontWeight:
-                                      FontWeight
-                                          .w900,
+                                  fontWeight: FontWeight.w900,
                                   color: accent,
                                 ),
                               ),
@@ -1232,15 +1172,11 @@ class _TransactionCard extends StatelessWidget {
                         Text(
                           transaction.category,
                           maxLines: 1,
-                          overflow:
-                              TextOverflow.ellipsis,
-                          style:
-                              const TextStyle(
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
                             fontSize: 14,
-                            fontWeight:
-                                FontWeight.w900,
-                            color:
-                                AppTheme.text,
+                            fontWeight: FontWeight.w900,
+                            color: textColor,
                           ),
                         ),
 
@@ -1248,82 +1184,46 @@ class _TransactionCard extends StatelessWidget {
 
                         Text(
                           description.isEmpty
-                              ? shortDate(
-                                  transaction.date,
-                                )
+                              ? shortDate(transaction.date)
                               : '$description • ${shortDate(transaction.date)}',
                           maxLines: 1,
-                          overflow:
-                              TextOverflow.ellipsis,
-                          style:
-                              const TextStyle(
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
                             fontSize: 10.5,
-                            color:
-                                AppTheme.muted,
+                            color: mutedColor,
                           ),
                         ),
 
-                        if (!isIncome &&
-                            !transaction
-                                .recognized)
+                        if (!isIncome && !transaction.recognized)
                           Padding(
-                            padding:
-                                const EdgeInsets
-                                    .only(
-                              top: 6,
-                            ),
+                            padding: const EdgeInsets.only(top: 6),
                             child: Container(
-                              padding:
-                                  const EdgeInsets
-                                      .symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 7,
                                 vertical: 4,
                               ),
-                              decoration:
-                                  BoxDecoration(
-                                color:
-                                    const Color(
-                                  0xFFFFF7E8,
-                                ),
-                                borderRadius:
-                                    BorderRadius
-                                        .circular(
-                                  8,
-                                ),
-                                border:
-                                    Border.all(
-                                  color: Colors
-                                      .orange
-                                      .shade700,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF422006) : const Color(0xFFFFF7E8),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark ? const Color(0xFFB45309) : Colors.orange.shade700,
                                 ),
                               ),
                               child: Row(
-                                mainAxisSize:
-                                    MainAxisSize
-                                        .min,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    Icons
-                                        .help_outline_rounded,
+                                    Icons.help_outline_rounded,
                                     size: 13,
-                                    color: Colors
-                                        .orange
-                                        .shade800,
+                                    color: isDark ? const Color(0xFFFBBF24) : Colors.orange.shade800,
                                   ),
-                                  const SizedBox(
-                                    width: 4,
-                                  ),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'MOVIMIENTO NO RECONOCIDO',
-                                    style:
-                                        TextStyle(
+                                    style: TextStyle(
                                       fontSize: 8.5,
-                                      color: Colors
-                                          .orange
-                                          .shade900,
-                                      fontWeight:
-                                          FontWeight
-                                              .w900,
+                                      color: isDark ? const Color(0xFFFDE68A) : Colors.orange.shade900,
+                                      fontWeight: FontWeight.w900,
                                     ),
                                   ),
                                 ],
@@ -1338,11 +1238,9 @@ class _TransactionCard extends StatelessWidget {
                 const SizedBox(width: 8),
 
                 // MONTO Y SIGNIFICADO
-
                 ExcludeSemantics(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         isIncome
@@ -1350,23 +1248,19 @@ class _TransactionCard extends StatelessWidget {
                             : '-${money(transaction.amount)}',
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight:
-                              FontWeight.w900,
+                          fontWeight: FontWeight.w900,
                           color: isIncome
-                              ? AppTheme.success
-                              : AppTheme.text,
+                              ? accent
+                              : textColor,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         amountAction,
-                        style:
-                            const TextStyle(
+                        style: TextStyle(
                           fontSize: 9,
-                          color:
-                              AppTheme.muted,
-                          fontWeight:
-                              FontWeight.w700,
+                          color: mutedColor,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],

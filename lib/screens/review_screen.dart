@@ -409,6 +409,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       context,
       type: type,
       availableBalance: widget.state.currentBalance,
+      currency: widget.state.activeCurrency,
     );
 
     if (result == null) return;

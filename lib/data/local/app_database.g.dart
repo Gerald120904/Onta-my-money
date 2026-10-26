@@ -440,6 +440,724 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
   }
 }
 
+class $LocalAccountsTable extends LocalAccounts
+    with TableInfo<$LocalAccountsTable, LocalAccount> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalAccountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _currencyMeta =
+      const VerificationMeta('currency');
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+      'currency', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _initialBalanceMeta =
+      const VerificationMeta('initialBalance');
+  @override
+  late final GeneratedColumn<double> initialBalance = GeneratedColumn<double>(
+      'initial_balance', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.0));
+  static const VerificationMeta _openingBalanceMeta =
+      const VerificationMeta('openingBalance');
+  @override
+  late final GeneratedColumn<double> openingBalance = GeneratedColumn<double>(
+      'opening_balance', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.0));
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+      'color', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+      'icon', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _isArchivedMeta =
+      const VerificationMeta('isArchived');
+  @override
+  late final GeneratedColumn<bool> isArchived = GeneratedColumn<bool>(
+      'is_archived', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_archived" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _versionMeta =
+      const VerificationMeta('version');
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+      'version', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+      'sync_status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('synced'));
+  static const VerificationMeta _isDeletedMeta =
+      const VerificationMeta('isDeleted');
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+      'is_deleted', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_deleted" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userId,
+        name,
+        currency,
+        initialBalance,
+        openingBalance,
+        color,
+        icon,
+        isDefault,
+        isArchived,
+        version,
+        syncStatus,
+        isDeleted,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_accounts';
+  @override
+  VerificationContext validateIntegrity(Insertable<LocalAccount> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(_currencyMeta,
+          currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta));
+    } else if (isInserting) {
+      context.missing(_currencyMeta);
+    }
+    if (data.containsKey('initial_balance')) {
+      context.handle(
+          _initialBalanceMeta,
+          initialBalance.isAcceptableOrUnknown(
+              data['initial_balance']!, _initialBalanceMeta));
+    }
+    if (data.containsKey('opening_balance')) {
+      context.handle(
+          _openingBalanceMeta,
+          openingBalance.isAcceptableOrUnknown(
+              data['opening_balance']!, _openingBalanceMeta));
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+          _iconMeta, icon.isAcceptableOrUnknown(data['icon']!, _iconMeta));
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
+    }
+    if (data.containsKey('is_archived')) {
+      context.handle(
+          _isArchivedMeta,
+          isArchived.isAcceptableOrUnknown(
+              data['is_archived']!, _isArchivedMeta));
+    }
+    if (data.containsKey('version')) {
+      context.handle(_versionMeta,
+          version.isAcceptableOrUnknown(data['version']!, _versionMeta));
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['sync_status']!, _syncStatusMeta));
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(_isDeletedMeta,
+          isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LocalAccount map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalAccount(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      currency: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}currency'])!,
+      initialBalance: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}initial_balance'])!,
+      openingBalance: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}opening_balance'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color']),
+      icon: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}icon']),
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      isArchived: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_archived'])!,
+      version: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}version'])!,
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
+      isDeleted: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_deleted'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
+    );
+  }
+
+  @override
+  $LocalAccountsTable createAlias(String alias) {
+    return $LocalAccountsTable(attachedDatabase, alias);
+  }
+}
+
+class LocalAccount extends DataClass implements Insertable<LocalAccount> {
+  final String id;
+  final String userId;
+  final String name;
+  final String currency;
+  final double initialBalance;
+  final double openingBalance;
+  final String? color;
+  final String? icon;
+  final bool isDefault;
+  final bool isArchived;
+  final int version;
+  final String syncStatus;
+  final bool isDeleted;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  const LocalAccount(
+      {required this.id,
+      required this.userId,
+      required this.name,
+      required this.currency,
+      required this.initialBalance,
+      required this.openingBalance,
+      this.color,
+      this.icon,
+      required this.isDefault,
+      required this.isArchived,
+      required this.version,
+      required this.syncStatus,
+      required this.isDeleted,
+      required this.createdAt,
+      this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['name'] = Variable<String>(name);
+    map['currency'] = Variable<String>(currency);
+    map['initial_balance'] = Variable<double>(initialBalance);
+    map['opening_balance'] = Variable<double>(openingBalance);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
+    }
+    map['is_default'] = Variable<bool>(isDefault);
+    map['is_archived'] = Variable<bool>(isArchived);
+    map['version'] = Variable<int>(version);
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
+  LocalAccountsCompanion toCompanion(bool nullToAbsent) {
+    return LocalAccountsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      name: Value(name),
+      currency: Value(currency),
+      initialBalance: Value(initialBalance),
+      openingBalance: Value(openingBalance),
+      color:
+          color == null && nullToAbsent ? const Value.absent() : Value(color),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      isDefault: Value(isDefault),
+      isArchived: Value(isArchived),
+      version: Value(version),
+      syncStatus: Value(syncStatus),
+      isDeleted: Value(isDeleted),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory LocalAccount.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalAccount(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      name: serializer.fromJson<String>(json['name']),
+      currency: serializer.fromJson<String>(json['currency']),
+      initialBalance: serializer.fromJson<double>(json['initialBalance']),
+      openingBalance: serializer.fromJson<double>(json['openingBalance']),
+      color: serializer.fromJson<String?>(json['color']),
+      icon: serializer.fromJson<String?>(json['icon']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      isArchived: serializer.fromJson<bool>(json['isArchived']),
+      version: serializer.fromJson<int>(json['version']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'name': serializer.toJson<String>(name),
+      'currency': serializer.toJson<String>(currency),
+      'initialBalance': serializer.toJson<double>(initialBalance),
+      'openingBalance': serializer.toJson<double>(openingBalance),
+      'color': serializer.toJson<String?>(color),
+      'icon': serializer.toJson<String?>(icon),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'isArchived': serializer.toJson<bool>(isArchived),
+      'version': serializer.toJson<int>(version),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+    };
+  }
+
+  LocalAccount copyWith(
+          {String? id,
+          String? userId,
+          String? name,
+          String? currency,
+          double? initialBalance,
+          double? openingBalance,
+          Value<String?> color = const Value.absent(),
+          Value<String?> icon = const Value.absent(),
+          bool? isDefault,
+          bool? isArchived,
+          int? version,
+          String? syncStatus,
+          bool? isDeleted,
+          DateTime? createdAt,
+          Value<DateTime?> updatedAt = const Value.absent()}) =>
+      LocalAccount(
+        id: id ?? this.id,
+        userId: userId ?? this.userId,
+        name: name ?? this.name,
+        currency: currency ?? this.currency,
+        initialBalance: initialBalance ?? this.initialBalance,
+        openingBalance: openingBalance ?? this.openingBalance,
+        color: color.present ? color.value : this.color,
+        icon: icon.present ? icon.value : this.icon,
+        isDefault: isDefault ?? this.isDefault,
+        isArchived: isArchived ?? this.isArchived,
+        version: version ?? this.version,
+        syncStatus: syncStatus ?? this.syncStatus,
+        isDeleted: isDeleted ?? this.isDeleted,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+      );
+  LocalAccount copyWithCompanion(LocalAccountsCompanion data) {
+    return LocalAccount(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      name: data.name.present ? data.name.value : this.name,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      initialBalance: data.initialBalance.present
+          ? data.initialBalance.value
+          : this.initialBalance,
+      openingBalance: data.openingBalance.present
+          ? data.openingBalance.value
+          : this.openingBalance,
+      color: data.color.present ? data.color.value : this.color,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      isArchived:
+          data.isArchived.present ? data.isArchived.value : this.isArchived,
+      version: data.version.present ? data.version.value : this.version,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalAccount(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('initialBalance: $initialBalance, ')
+          ..write('openingBalance: $openingBalance, ')
+          ..write('color: $color, ')
+          ..write('icon: $icon, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('version: $version, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      userId,
+      name,
+      currency,
+      initialBalance,
+      openingBalance,
+      color,
+      icon,
+      isDefault,
+      isArchived,
+      version,
+      syncStatus,
+      isDeleted,
+      createdAt,
+      updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalAccount &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.name == this.name &&
+          other.currency == this.currency &&
+          other.initialBalance == this.initialBalance &&
+          other.openingBalance == this.openingBalance &&
+          other.color == this.color &&
+          other.icon == this.icon &&
+          other.isDefault == this.isDefault &&
+          other.isArchived == this.isArchived &&
+          other.version == this.version &&
+          other.syncStatus == this.syncStatus &&
+          other.isDeleted == this.isDeleted &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class LocalAccountsCompanion extends UpdateCompanion<LocalAccount> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> name;
+  final Value<String> currency;
+  final Value<double> initialBalance;
+  final Value<double> openingBalance;
+  final Value<String?> color;
+  final Value<String?> icon;
+  final Value<bool> isDefault;
+  final Value<bool> isArchived;
+  final Value<int> version;
+  final Value<String> syncStatus;
+  final Value<bool> isDeleted;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> updatedAt;
+  final Value<int> rowid;
+  const LocalAccountsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.initialBalance = const Value.absent(),
+    this.openingBalance = const Value.absent(),
+    this.color = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.version = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalAccountsCompanion.insert({
+    required String id,
+    required String userId,
+    required String name,
+    required String currency,
+    this.initialBalance = const Value.absent(),
+    this.openingBalance = const Value.absent(),
+    this.color = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.version = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    required DateTime createdAt,
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        userId = Value(userId),
+        name = Value(name),
+        currency = Value(currency),
+        createdAt = Value(createdAt);
+  static Insertable<LocalAccount> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? name,
+    Expression<String>? currency,
+    Expression<double>? initialBalance,
+    Expression<double>? openingBalance,
+    Expression<String>? color,
+    Expression<String>? icon,
+    Expression<bool>? isDefault,
+    Expression<bool>? isArchived,
+    Expression<int>? version,
+    Expression<String>? syncStatus,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (name != null) 'name': name,
+      if (currency != null) 'currency': currency,
+      if (initialBalance != null) 'initial_balance': initialBalance,
+      if (openingBalance != null) 'opening_balance': openingBalance,
+      if (color != null) 'color': color,
+      if (icon != null) 'icon': icon,
+      if (isDefault != null) 'is_default': isDefault,
+      if (isArchived != null) 'is_archived': isArchived,
+      if (version != null) 'version': version,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalAccountsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? userId,
+      Value<String>? name,
+      Value<String>? currency,
+      Value<double>? initialBalance,
+      Value<double>? openingBalance,
+      Value<String?>? color,
+      Value<String?>? icon,
+      Value<bool>? isDefault,
+      Value<bool>? isArchived,
+      Value<int>? version,
+      Value<String>? syncStatus,
+      Value<bool>? isDeleted,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? updatedAt,
+      Value<int>? rowid}) {
+    return LocalAccountsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      currency: currency ?? this.currency,
+      initialBalance: initialBalance ?? this.initialBalance,
+      openingBalance: openingBalance ?? this.openingBalance,
+      color: color ?? this.color,
+      icon: icon ?? this.icon,
+      isDefault: isDefault ?? this.isDefault,
+      isArchived: isArchived ?? this.isArchived,
+      version: version ?? this.version,
+      syncStatus: syncStatus ?? this.syncStatus,
+      isDeleted: isDeleted ?? this.isDeleted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (initialBalance.present) {
+      map['initial_balance'] = Variable<double>(initialBalance.value);
+    }
+    if (openingBalance.present) {
+      map['opening_balance'] = Variable<double>(openingBalance.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (isArchived.present) {
+      map['is_archived'] = Variable<bool>(isArchived.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalAccountsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('initialBalance: $initialBalance, ')
+          ..write('openingBalance: $openingBalance, ')
+          ..write('color: $color, ')
+          ..write('icon: $icon, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('version: $version, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $LocalTransactionsTable extends LocalTransactions
     with TableInfo<$LocalTransactionsTable, LocalTransaction> {
   @override
@@ -456,6 +1174,12 @@ class $LocalTransactionsTable extends LocalTransactions
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
       'user_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _accountIdMeta =
+      const VerificationMeta('accountId');
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+      'account_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
@@ -529,6 +1253,7 @@ class $LocalTransactionsTable extends LocalTransactions
   List<GeneratedColumn> get $columns => [
         id,
         userId,
+        accountId,
         type,
         category,
         amount,
@@ -560,6 +1285,10 @@ class $LocalTransactionsTable extends LocalTransactions
           userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(_accountIdMeta,
+          accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
     }
     if (data.containsKey('type')) {
       context.handle(
@@ -632,6 +1361,8 @@ class $LocalTransactionsTable extends LocalTransactions
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      accountId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}account_id']),
       type: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       category: attachedDatabase.typeMapping
@@ -665,6 +1396,7 @@ class LocalTransaction extends DataClass
     implements Insertable<LocalTransaction> {
   final String id;
   final String userId;
+  final String? accountId;
   final String type;
   final String category;
   final double amount;
@@ -678,6 +1410,7 @@ class LocalTransaction extends DataClass
   const LocalTransaction(
       {required this.id,
       required this.userId,
+      this.accountId,
       required this.type,
       required this.category,
       required this.amount,
@@ -693,6 +1426,9 @@ class LocalTransaction extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<String>(accountId);
+    }
     map['type'] = Variable<String>(type);
     map['category'] = Variable<String>(category);
     map['amount'] = Variable<double>(amount);
@@ -710,6 +1446,9 @@ class LocalTransaction extends DataClass
     return LocalTransactionsCompanion(
       id: Value(id),
       userId: Value(userId),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
       type: Value(type),
       category: Value(category),
       amount: Value(amount),
@@ -729,6 +1468,7 @@ class LocalTransaction extends DataClass
     return LocalTransaction(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
+      accountId: serializer.fromJson<String?>(json['accountId']),
       type: serializer.fromJson<String>(json['type']),
       category: serializer.fromJson<String>(json['category']),
       amount: serializer.fromJson<double>(json['amount']),
@@ -747,6 +1487,7 @@ class LocalTransaction extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
+      'accountId': serializer.toJson<String?>(accountId),
       'type': serializer.toJson<String>(type),
       'category': serializer.toJson<String>(category),
       'amount': serializer.toJson<double>(amount),
@@ -763,6 +1504,7 @@ class LocalTransaction extends DataClass
   LocalTransaction copyWith(
           {String? id,
           String? userId,
+          Value<String?> accountId = const Value.absent(),
           String? type,
           String? category,
           double? amount,
@@ -776,6 +1518,7 @@ class LocalTransaction extends DataClass
       LocalTransaction(
         id: id ?? this.id,
         userId: userId ?? this.userId,
+        accountId: accountId.present ? accountId.value : this.accountId,
         type: type ?? this.type,
         category: category ?? this.category,
         amount: amount ?? this.amount,
@@ -791,6 +1534,7 @@ class LocalTransaction extends DataClass
     return LocalTransaction(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
       type: data.type.present ? data.type.value : this.type,
       category: data.category.present ? data.category.value : this.category,
       amount: data.amount.present ? data.amount.value : this.amount,
@@ -812,6 +1556,7 @@ class LocalTransaction extends DataClass
     return (StringBuffer('LocalTransaction(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('type: $type, ')
           ..write('category: $category, ')
           ..write('amount: $amount, ')
@@ -827,7 +1572,7 @@ class LocalTransaction extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, userId, type, category, amount,
+  int get hashCode => Object.hash(id, userId, accountId, type, category, amount,
       description, date, recognized, version, syncStatus, isDeleted, updatedAt);
   @override
   bool operator ==(Object other) =>
@@ -835,6 +1580,7 @@ class LocalTransaction extends DataClass
       (other is LocalTransaction &&
           other.id == this.id &&
           other.userId == this.userId &&
+          other.accountId == this.accountId &&
           other.type == this.type &&
           other.category == this.category &&
           other.amount == this.amount &&
@@ -850,6 +1596,7 @@ class LocalTransaction extends DataClass
 class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
   final Value<String> id;
   final Value<String> userId;
+  final Value<String?> accountId;
   final Value<String> type;
   final Value<String> category;
   final Value<double> amount;
@@ -864,6 +1611,7 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
   const LocalTransactionsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
+    this.accountId = const Value.absent(),
     this.type = const Value.absent(),
     this.category = const Value.absent(),
     this.amount = const Value.absent(),
@@ -879,6 +1627,7 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
   LocalTransactionsCompanion.insert({
     required String id,
     required String userId,
+    this.accountId = const Value.absent(),
     required String type,
     required String category,
     required double amount,
@@ -901,6 +1650,7 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
   static Insertable<LocalTransaction> custom({
     Expression<String>? id,
     Expression<String>? userId,
+    Expression<String>? accountId,
     Expression<String>? type,
     Expression<String>? category,
     Expression<double>? amount,
@@ -916,6 +1666,7 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
+      if (accountId != null) 'account_id': accountId,
       if (type != null) 'type': type,
       if (category != null) 'category': category,
       if (amount != null) 'amount': amount,
@@ -933,6 +1684,7 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
   LocalTransactionsCompanion copyWith(
       {Value<String>? id,
       Value<String>? userId,
+      Value<String?>? accountId,
       Value<String>? type,
       Value<String>? category,
       Value<double>? amount,
@@ -947,6 +1699,7 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
     return LocalTransactionsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      accountId: accountId ?? this.accountId,
       type: type ?? this.type,
       category: category ?? this.category,
       amount: amount ?? this.amount,
@@ -969,6 +1722,9 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
@@ -1011,6 +1767,7 @@ class LocalTransactionsCompanion extends UpdateCompanion<LocalTransaction> {
     return (StringBuffer('LocalTransactionsCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('type: $type, ')
           ..write('category: $category, ')
           ..write('amount: $amount, ')
@@ -1043,6 +1800,12 @@ class $LocalCommitmentsTable extends LocalCommitments
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
       'user_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _accountIdMeta =
+      const VerificationMeta('accountId');
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+      'account_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -1102,6 +1865,7 @@ class $LocalCommitmentsTable extends LocalCommitments
   List<GeneratedColumn> get $columns => [
         id,
         userId,
+        accountId,
         title,
         amount,
         dueDate,
@@ -1131,6 +1895,10 @@ class $LocalCommitmentsTable extends LocalCommitments
           userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(_accountIdMeta,
+          accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -1187,6 +1955,8 @@ class $LocalCommitmentsTable extends LocalCommitments
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      accountId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}account_id']),
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       amount: attachedDatabase.typeMapping
@@ -1215,6 +1985,7 @@ class $LocalCommitmentsTable extends LocalCommitments
 class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
   final String id;
   final String userId;
+  final String? accountId;
   final String title;
   final double amount;
   final DateTime dueDate;
@@ -1226,6 +1997,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
   const LocalCommitment(
       {required this.id,
       required this.userId,
+      this.accountId,
       required this.title,
       required this.amount,
       required this.dueDate,
@@ -1239,6 +2011,9 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<String>(accountId);
+    }
     map['title'] = Variable<String>(title);
     map['amount'] = Variable<double>(amount);
     map['due_date'] = Variable<DateTime>(dueDate);
@@ -1254,6 +2029,9 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
     return LocalCommitmentsCompanion(
       id: Value(id),
       userId: Value(userId),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
       title: Value(title),
       amount: Value(amount),
       dueDate: Value(dueDate),
@@ -1271,6 +2049,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
     return LocalCommitment(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
+      accountId: serializer.fromJson<String?>(json['accountId']),
       title: serializer.fromJson<String>(json['title']),
       amount: serializer.fromJson<double>(json['amount']),
       dueDate: serializer.fromJson<DateTime>(json['dueDate']),
@@ -1287,6 +2066,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
+      'accountId': serializer.toJson<String?>(accountId),
       'title': serializer.toJson<String>(title),
       'amount': serializer.toJson<double>(amount),
       'dueDate': serializer.toJson<DateTime>(dueDate),
@@ -1301,6 +2081,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
   LocalCommitment copyWith(
           {String? id,
           String? userId,
+          Value<String?> accountId = const Value.absent(),
           String? title,
           double? amount,
           DateTime? dueDate,
@@ -1312,6 +2093,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
       LocalCommitment(
         id: id ?? this.id,
         userId: userId ?? this.userId,
+        accountId: accountId.present ? accountId.value : this.accountId,
         title: title ?? this.title,
         amount: amount ?? this.amount,
         dueDate: dueDate ?? this.dueDate,
@@ -1325,6 +2107,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
     return LocalCommitment(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
       title: data.title.present ? data.title.value : this.title,
       amount: data.amount.present ? data.amount.value : this.amount,
       dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
@@ -1342,6 +2125,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
     return (StringBuffer('LocalCommitment(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('title: $title, ')
           ..write('amount: $amount, ')
           ..write('dueDate: $dueDate, ')
@@ -1355,14 +2139,15 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
   }
 
   @override
-  int get hashCode => Object.hash(id, userId, title, amount, dueDate, status,
-      version, syncStatus, isDeleted, updatedAt);
+  int get hashCode => Object.hash(id, userId, accountId, title, amount, dueDate,
+      status, version, syncStatus, isDeleted, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is LocalCommitment &&
           other.id == this.id &&
           other.userId == this.userId &&
+          other.accountId == this.accountId &&
           other.title == this.title &&
           other.amount == this.amount &&
           other.dueDate == this.dueDate &&
@@ -1376,6 +2161,7 @@ class LocalCommitment extends DataClass implements Insertable<LocalCommitment> {
 class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
   final Value<String> id;
   final Value<String> userId;
+  final Value<String?> accountId;
   final Value<String> title;
   final Value<double> amount;
   final Value<DateTime> dueDate;
@@ -1388,6 +2174,7 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
   const LocalCommitmentsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
+    this.accountId = const Value.absent(),
     this.title = const Value.absent(),
     this.amount = const Value.absent(),
     this.dueDate = const Value.absent(),
@@ -1401,6 +2188,7 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
   LocalCommitmentsCompanion.insert({
     required String id,
     required String userId,
+    this.accountId = const Value.absent(),
     required String title,
     required double amount,
     required DateTime dueDate,
@@ -1419,6 +2207,7 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
   static Insertable<LocalCommitment> custom({
     Expression<String>? id,
     Expression<String>? userId,
+    Expression<String>? accountId,
     Expression<String>? title,
     Expression<double>? amount,
     Expression<DateTime>? dueDate,
@@ -1432,6 +2221,7 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
+      if (accountId != null) 'account_id': accountId,
       if (title != null) 'title': title,
       if (amount != null) 'amount': amount,
       if (dueDate != null) 'due_date': dueDate,
@@ -1447,6 +2237,7 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
   LocalCommitmentsCompanion copyWith(
       {Value<String>? id,
       Value<String>? userId,
+      Value<String?>? accountId,
       Value<String>? title,
       Value<double>? amount,
       Value<DateTime>? dueDate,
@@ -1459,6 +2250,7 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
     return LocalCommitmentsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      accountId: accountId ?? this.accountId,
       title: title ?? this.title,
       amount: amount ?? this.amount,
       dueDate: dueDate ?? this.dueDate,
@@ -1479,6 +2271,9 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
@@ -1515,6 +2310,7 @@ class LocalCommitmentsCompanion extends UpdateCompanion<LocalCommitment> {
     return (StringBuffer('LocalCommitmentsCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('title: $title, ')
           ..write('amount: $amount, ')
           ..write('dueDate: $dueDate, ')
@@ -1545,6 +2341,12 @@ class $LocalGoalsTable extends LocalGoals
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
       'user_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _accountIdMeta =
+      const VerificationMeta('accountId');
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+      'account_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -1598,6 +2400,7 @@ class $LocalGoalsTable extends LocalGoals
   List<GeneratedColumn> get $columns => [
         id,
         userId,
+        accountId,
         title,
         targetAmount,
         savedAmount,
@@ -1626,6 +2429,10 @@ class $LocalGoalsTable extends LocalGoals
           userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(_accountIdMeta,
+          accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -1682,6 +2489,8 @@ class $LocalGoalsTable extends LocalGoals
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      accountId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}account_id']),
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       targetAmount: attachedDatabase.typeMapping
@@ -1708,6 +2517,7 @@ class $LocalGoalsTable extends LocalGoals
 class LocalGoal extends DataClass implements Insertable<LocalGoal> {
   final String id;
   final String userId;
+  final String? accountId;
   final String title;
   final double targetAmount;
   final double savedAmount;
@@ -1718,6 +2528,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
   const LocalGoal(
       {required this.id,
       required this.userId,
+      this.accountId,
       required this.title,
       required this.targetAmount,
       required this.savedAmount,
@@ -1730,6 +2541,9 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<String>(accountId);
+    }
     map['title'] = Variable<String>(title);
     map['target_amount'] = Variable<double>(targetAmount);
     map['saved_amount'] = Variable<double>(savedAmount);
@@ -1744,6 +2558,9 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
     return LocalGoalsCompanion(
       id: Value(id),
       userId: Value(userId),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
       title: Value(title),
       targetAmount: Value(targetAmount),
       savedAmount: Value(savedAmount),
@@ -1760,6 +2577,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
     return LocalGoal(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
+      accountId: serializer.fromJson<String?>(json['accountId']),
       title: serializer.fromJson<String>(json['title']),
       targetAmount: serializer.fromJson<double>(json['targetAmount']),
       savedAmount: serializer.fromJson<double>(json['savedAmount']),
@@ -1775,6 +2593,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
+      'accountId': serializer.toJson<String?>(accountId),
       'title': serializer.toJson<String>(title),
       'targetAmount': serializer.toJson<double>(targetAmount),
       'savedAmount': serializer.toJson<double>(savedAmount),
@@ -1788,6 +2607,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
   LocalGoal copyWith(
           {String? id,
           String? userId,
+          Value<String?> accountId = const Value.absent(),
           String? title,
           double? targetAmount,
           double? savedAmount,
@@ -1798,6 +2618,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
       LocalGoal(
         id: id ?? this.id,
         userId: userId ?? this.userId,
+        accountId: accountId.present ? accountId.value : this.accountId,
         title: title ?? this.title,
         targetAmount: targetAmount ?? this.targetAmount,
         savedAmount: savedAmount ?? this.savedAmount,
@@ -1810,6 +2631,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
     return LocalGoal(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
       title: data.title.present ? data.title.value : this.title,
       targetAmount: data.targetAmount.present
           ? data.targetAmount.value
@@ -1829,6 +2651,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
     return (StringBuffer('LocalGoal(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('title: $title, ')
           ..write('targetAmount: $targetAmount, ')
           ..write('savedAmount: $savedAmount, ')
@@ -1841,14 +2664,15 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
   }
 
   @override
-  int get hashCode => Object.hash(id, userId, title, targetAmount, savedAmount,
-      version, syncStatus, isDeleted, updatedAt);
+  int get hashCode => Object.hash(id, userId, accountId, title, targetAmount,
+      savedAmount, version, syncStatus, isDeleted, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is LocalGoal &&
           other.id == this.id &&
           other.userId == this.userId &&
+          other.accountId == this.accountId &&
           other.title == this.title &&
           other.targetAmount == this.targetAmount &&
           other.savedAmount == this.savedAmount &&
@@ -1861,6 +2685,7 @@ class LocalGoal extends DataClass implements Insertable<LocalGoal> {
 class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
   final Value<String> id;
   final Value<String> userId;
+  final Value<String?> accountId;
   final Value<String> title;
   final Value<double> targetAmount;
   final Value<double> savedAmount;
@@ -1872,6 +2697,7 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
   const LocalGoalsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
+    this.accountId = const Value.absent(),
     this.title = const Value.absent(),
     this.targetAmount = const Value.absent(),
     this.savedAmount = const Value.absent(),
@@ -1884,6 +2710,7 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
   LocalGoalsCompanion.insert({
     required String id,
     required String userId,
+    this.accountId = const Value.absent(),
     required String title,
     required double targetAmount,
     required double savedAmount,
@@ -1901,6 +2728,7 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
   static Insertable<LocalGoal> custom({
     Expression<String>? id,
     Expression<String>? userId,
+    Expression<String>? accountId,
     Expression<String>? title,
     Expression<double>? targetAmount,
     Expression<double>? savedAmount,
@@ -1913,6 +2741,7 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
+      if (accountId != null) 'account_id': accountId,
       if (title != null) 'title': title,
       if (targetAmount != null) 'target_amount': targetAmount,
       if (savedAmount != null) 'saved_amount': savedAmount,
@@ -1927,6 +2756,7 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
   LocalGoalsCompanion copyWith(
       {Value<String>? id,
       Value<String>? userId,
+      Value<String?>? accountId,
       Value<String>? title,
       Value<double>? targetAmount,
       Value<double>? savedAmount,
@@ -1938,6 +2768,7 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
     return LocalGoalsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      accountId: accountId ?? this.accountId,
       title: title ?? this.title,
       targetAmount: targetAmount ?? this.targetAmount,
       savedAmount: savedAmount ?? this.savedAmount,
@@ -1957,6 +2788,9 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
@@ -1990,6 +2824,7 @@ class LocalGoalsCompanion extends UpdateCompanion<LocalGoal> {
     return (StringBuffer('LocalGoalsCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('title: $title, ')
           ..write('targetAmount: $targetAmount, ')
           ..write('savedAmount: $savedAmount, ')
@@ -2019,6 +2854,12 @@ class $LocalDecisionsTable extends LocalDecisions
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
       'user_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _accountIdMeta =
+      const VerificationMeta('accountId');
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+      'account_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _actionMeta = const VerificationMeta('action');
   @override
   late final GeneratedColumn<String> action = GeneratedColumn<String>(
@@ -2071,6 +2912,7 @@ class $LocalDecisionsTable extends LocalDecisions
   List<GeneratedColumn> get $columns => [
         id,
         userId,
+        accountId,
         action,
         note,
         createdAt,
@@ -2099,6 +2941,10 @@ class $LocalDecisionsTable extends LocalDecisions
           userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(_accountIdMeta,
+          accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
     }
     if (data.containsKey('action')) {
       context.handle(_actionMeta,
@@ -2151,6 +2997,8 @@ class $LocalDecisionsTable extends LocalDecisions
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      accountId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}account_id']),
       action: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}action'])!,
       note: attachedDatabase.typeMapping
@@ -2177,6 +3025,7 @@ class $LocalDecisionsTable extends LocalDecisions
 class LocalDecision extends DataClass implements Insertable<LocalDecision> {
   final String id;
   final String userId;
+  final String? accountId;
   final String action;
   final String note;
   final DateTime createdAt;
@@ -2187,6 +3036,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
   const LocalDecision(
       {required this.id,
       required this.userId,
+      this.accountId,
       required this.action,
       required this.note,
       required this.createdAt,
@@ -2199,6 +3049,9 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<String>(accountId);
+    }
     map['action'] = Variable<String>(action);
     map['note'] = Variable<String>(note);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -2213,6 +3066,9 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
     return LocalDecisionsCompanion(
       id: Value(id),
       userId: Value(userId),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
       action: Value(action),
       note: Value(note),
       createdAt: Value(createdAt),
@@ -2229,6 +3085,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
     return LocalDecision(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
+      accountId: serializer.fromJson<String?>(json['accountId']),
       action: serializer.fromJson<String>(json['action']),
       note: serializer.fromJson<String>(json['note']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2244,6 +3101,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
+      'accountId': serializer.toJson<String?>(accountId),
       'action': serializer.toJson<String>(action),
       'note': serializer.toJson<String>(note),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2257,6 +3115,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
   LocalDecision copyWith(
           {String? id,
           String? userId,
+          Value<String?> accountId = const Value.absent(),
           String? action,
           String? note,
           DateTime? createdAt,
@@ -2267,6 +3126,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
       LocalDecision(
         id: id ?? this.id,
         userId: userId ?? this.userId,
+        accountId: accountId.present ? accountId.value : this.accountId,
         action: action ?? this.action,
         note: note ?? this.note,
         createdAt: createdAt ?? this.createdAt,
@@ -2279,6 +3139,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
     return LocalDecision(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
       action: data.action.present ? data.action.value : this.action,
       note: data.note.present ? data.note.value : this.note,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -2295,6 +3156,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
     return (StringBuffer('LocalDecision(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('action: $action, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
@@ -2307,14 +3169,15 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
   }
 
   @override
-  int get hashCode => Object.hash(id, userId, action, note, createdAt, version,
-      syncStatus, isDeleted, updatedAt);
+  int get hashCode => Object.hash(id, userId, accountId, action, note,
+      createdAt, version, syncStatus, isDeleted, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is LocalDecision &&
           other.id == this.id &&
           other.userId == this.userId &&
+          other.accountId == this.accountId &&
           other.action == this.action &&
           other.note == this.note &&
           other.createdAt == this.createdAt &&
@@ -2327,6 +3190,7 @@ class LocalDecision extends DataClass implements Insertable<LocalDecision> {
 class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
   final Value<String> id;
   final Value<String> userId;
+  final Value<String?> accountId;
   final Value<String> action;
   final Value<String> note;
   final Value<DateTime> createdAt;
@@ -2338,6 +3202,7 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
   const LocalDecisionsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
+    this.accountId = const Value.absent(),
     this.action = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2350,6 +3215,7 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
   LocalDecisionsCompanion.insert({
     required String id,
     required String userId,
+    this.accountId = const Value.absent(),
     required String action,
     required String note,
     required DateTime createdAt,
@@ -2367,6 +3233,7 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
   static Insertable<LocalDecision> custom({
     Expression<String>? id,
     Expression<String>? userId,
+    Expression<String>? accountId,
     Expression<String>? action,
     Expression<String>? note,
     Expression<DateTime>? createdAt,
@@ -2379,6 +3246,7 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
+      if (accountId != null) 'account_id': accountId,
       if (action != null) 'action': action,
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
@@ -2393,6 +3261,7 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
   LocalDecisionsCompanion copyWith(
       {Value<String>? id,
       Value<String>? userId,
+      Value<String?>? accountId,
       Value<String>? action,
       Value<String>? note,
       Value<DateTime>? createdAt,
@@ -2404,6 +3273,7 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
     return LocalDecisionsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      accountId: accountId ?? this.accountId,
       action: action ?? this.action,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
@@ -2423,6 +3293,9 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
     }
     if (action.present) {
       map['action'] = Variable<String>(action.value);
@@ -2456,6 +3329,7 @@ class LocalDecisionsCompanion extends UpdateCompanion<LocalDecision> {
     return (StringBuffer('LocalDecisionsCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('action: $action, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
@@ -2485,6 +3359,12 @@ class $LocalReviewsTable extends LocalReviews
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
       'user_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _accountIdMeta =
+      const VerificationMeta('accountId');
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+      'account_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _startMeta = const VerificationMeta('start');
   @override
   late final GeneratedColumn<DateTime> start = GeneratedColumn<DateTime>(
@@ -2567,6 +3447,7 @@ class $LocalReviewsTable extends LocalReviews
   List<GeneratedColumn> get $columns => [
         id,
         userId,
+        accountId,
         start,
         end,
         periodTitle,
@@ -2600,6 +3481,10 @@ class $LocalReviewsTable extends LocalReviews
           userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(_accountIdMeta,
+          accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta));
     }
     if (data.containsKey('start')) {
       context.handle(
@@ -2690,6 +3575,8 @@ class $LocalReviewsTable extends LocalReviews
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      accountId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}account_id']),
       start: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}start'])!,
       end: attachedDatabase.typeMapping
@@ -2727,6 +3614,7 @@ class $LocalReviewsTable extends LocalReviews
 class LocalReview extends DataClass implements Insertable<LocalReview> {
   final String id;
   final String userId;
+  final String? accountId;
   final DateTime start;
   final DateTime end;
   final String periodTitle;
@@ -2742,6 +3630,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
   const LocalReview(
       {required this.id,
       required this.userId,
+      this.accountId,
       required this.start,
       required this.end,
       required this.periodTitle,
@@ -2759,6 +3648,9 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || accountId != null) {
+      map['account_id'] = Variable<String>(accountId);
+    }
     map['start'] = Variable<DateTime>(start);
     map['end'] = Variable<DateTime>(end);
     map['period_title'] = Variable<String>(periodTitle);
@@ -2778,6 +3670,9 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
     return LocalReviewsCompanion(
       id: Value(id),
       userId: Value(userId),
+      accountId: accountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accountId),
       start: Value(start),
       end: Value(end),
       periodTitle: Value(periodTitle),
@@ -2799,6 +3694,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
     return LocalReview(
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
+      accountId: serializer.fromJson<String?>(json['accountId']),
       start: serializer.fromJson<DateTime>(json['start']),
       end: serializer.fromJson<DateTime>(json['end']),
       periodTitle: serializer.fromJson<String>(json['periodTitle']),
@@ -2821,6 +3717,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
+      'accountId': serializer.toJson<String?>(accountId),
       'start': serializer.toJson<DateTime>(start),
       'end': serializer.toJson<DateTime>(end),
       'periodTitle': serializer.toJson<String>(periodTitle),
@@ -2839,6 +3736,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
   LocalReview copyWith(
           {String? id,
           String? userId,
+          Value<String?> accountId = const Value.absent(),
           DateTime? start,
           DateTime? end,
           String? periodTitle,
@@ -2854,6 +3752,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
       LocalReview(
         id: id ?? this.id,
         userId: userId ?? this.userId,
+        accountId: accountId.present ? accountId.value : this.accountId,
         start: start ?? this.start,
         end: end ?? this.end,
         periodTitle: periodTitle ?? this.periodTitle,
@@ -2871,6 +3770,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
     return LocalReview(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
       start: data.start.present ? data.start.value : this.start,
       end: data.end.present ? data.end.value : this.end,
       periodTitle:
@@ -2899,6 +3799,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
     return (StringBuffer('LocalReview(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('start: $start, ')
           ..write('end: $end, ')
           ..write('periodTitle: $periodTitle, ')
@@ -2919,6 +3820,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
   int get hashCode => Object.hash(
       id,
       userId,
+      accountId,
       start,
       end,
       periodTitle,
@@ -2937,6 +3839,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
       (other is LocalReview &&
           other.id == this.id &&
           other.userId == this.userId &&
+          other.accountId == this.accountId &&
           other.start == this.start &&
           other.end == this.end &&
           other.periodTitle == this.periodTitle &&
@@ -2954,6 +3857,7 @@ class LocalReview extends DataClass implements Insertable<LocalReview> {
 class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
   final Value<String> id;
   final Value<String> userId;
+  final Value<String?> accountId;
   final Value<DateTime> start;
   final Value<DateTime> end;
   final Value<String> periodTitle;
@@ -2970,6 +3874,7 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
   const LocalReviewsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
+    this.accountId = const Value.absent(),
     this.start = const Value.absent(),
     this.end = const Value.absent(),
     this.periodTitle = const Value.absent(),
@@ -2987,6 +3892,7 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
   LocalReviewsCompanion.insert({
     required String id,
     required String userId,
+    this.accountId = const Value.absent(),
     required DateTime start,
     required DateTime end,
     required String periodTitle,
@@ -3014,6 +3920,7 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
   static Insertable<LocalReview> custom({
     Expression<String>? id,
     Expression<String>? userId,
+    Expression<String>? accountId,
     Expression<DateTime>? start,
     Expression<DateTime>? end,
     Expression<String>? periodTitle,
@@ -3031,6 +3938,7 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
+      if (accountId != null) 'account_id': accountId,
       if (start != null) 'start': start,
       if (end != null) 'end': end,
       if (periodTitle != null) 'period_title': periodTitle,
@@ -3052,6 +3960,7 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
   LocalReviewsCompanion copyWith(
       {Value<String>? id,
       Value<String>? userId,
+      Value<String?>? accountId,
       Value<DateTime>? start,
       Value<DateTime>? end,
       Value<String>? periodTitle,
@@ -3068,6 +3977,7 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
     return LocalReviewsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      accountId: accountId ?? this.accountId,
       start: start ?? this.start,
       end: end ?? this.end,
       periodTitle: periodTitle ?? this.periodTitle,
@@ -3092,6 +4002,9 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
     }
     if (start.present) {
       map['start'] = Variable<DateTime>(start.value);
@@ -3141,6 +4054,7 @@ class LocalReviewsCompanion extends UpdateCompanion<LocalReview> {
     return (StringBuffer('LocalReviewsCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
+          ..write('accountId: $accountId, ')
           ..write('start: $start, ')
           ..write('end: $end, ')
           ..write('periodTitle: $periodTitle, ')
@@ -5578,6 +6492,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $LocalUsersTable localUsers = $LocalUsersTable(this);
+  late final $LocalAccountsTable localAccounts = $LocalAccountsTable(this);
   late final $LocalTransactionsTable localTransactions =
       $LocalTransactionsTable(this);
   late final $LocalCommitmentsTable localCommitments =
@@ -5598,6 +6513,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
         localUsers,
+        localAccounts,
         localTransactions,
         localCommitments,
         localGoals,
@@ -5824,10 +6740,338 @@ typedef $$LocalUsersTableProcessedTableManager = ProcessedTableManager<
     (LocalUser, BaseReferences<_$AppDatabase, $LocalUsersTable, LocalUser>),
     LocalUser,
     PrefetchHooks Function()>;
+typedef $$LocalAccountsTableCreateCompanionBuilder = LocalAccountsCompanion
+    Function({
+  required String id,
+  required String userId,
+  required String name,
+  required String currency,
+  Value<double> initialBalance,
+  Value<double> openingBalance,
+  Value<String?> color,
+  Value<String?> icon,
+  Value<bool> isDefault,
+  Value<bool> isArchived,
+  Value<int> version,
+  Value<String> syncStatus,
+  Value<bool> isDeleted,
+  required DateTime createdAt,
+  Value<DateTime?> updatedAt,
+  Value<int> rowid,
+});
+typedef $$LocalAccountsTableUpdateCompanionBuilder = LocalAccountsCompanion
+    Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> name,
+  Value<String> currency,
+  Value<double> initialBalance,
+  Value<double> openingBalance,
+  Value<String?> color,
+  Value<String?> icon,
+  Value<bool> isDefault,
+  Value<bool> isArchived,
+  Value<int> version,
+  Value<String> syncStatus,
+  Value<bool> isDeleted,
+  Value<DateTime> createdAt,
+  Value<DateTime?> updatedAt,
+  Value<int> rowid,
+});
+
+class $$LocalAccountsTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalAccountsTable> {
+  $$LocalAccountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get initialBalance => $composableBuilder(
+      column: $table.initialBalance,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get openingBalance => $composableBuilder(
+      column: $table.openingBalance,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isArchived => $composableBuilder(
+      column: $table.isArchived, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get version => $composableBuilder(
+      column: $table.version, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+      column: $table.isDeleted, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$LocalAccountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalAccountsTable> {
+  $$LocalAccountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get initialBalance => $composableBuilder(
+      column: $table.initialBalance,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get openingBalance => $composableBuilder(
+      column: $table.openingBalance,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isArchived => $composableBuilder(
+      column: $table.isArchived, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get version => $composableBuilder(
+      column: $table.version, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+      column: $table.isDeleted, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$LocalAccountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalAccountsTable> {
+  $$LocalAccountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<double> get initialBalance => $composableBuilder(
+      column: $table.initialBalance, builder: (column) => column);
+
+  GeneratedColumn<double> get openingBalance => $composableBuilder(
+      column: $table.openingBalance, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<bool> get isArchived => $composableBuilder(
+      column: $table.isArchived, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$LocalAccountsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $LocalAccountsTable,
+    LocalAccount,
+    $$LocalAccountsTableFilterComposer,
+    $$LocalAccountsTableOrderingComposer,
+    $$LocalAccountsTableAnnotationComposer,
+    $$LocalAccountsTableCreateCompanionBuilder,
+    $$LocalAccountsTableUpdateCompanionBuilder,
+    (
+      LocalAccount,
+      BaseReferences<_$AppDatabase, $LocalAccountsTable, LocalAccount>
+    ),
+    LocalAccount,
+    PrefetchHooks Function()> {
+  $$LocalAccountsTableTableManager(_$AppDatabase db, $LocalAccountsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalAccountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalAccountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalAccountsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> currency = const Value.absent(),
+            Value<double> initialBalance = const Value.absent(),
+            Value<double> openingBalance = const Value.absent(),
+            Value<String?> color = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isArchived = const Value.absent(),
+            Value<int> version = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            Value<bool> isDeleted = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LocalAccountsCompanion(
+            id: id,
+            userId: userId,
+            name: name,
+            currency: currency,
+            initialBalance: initialBalance,
+            openingBalance: openingBalance,
+            color: color,
+            icon: icon,
+            isDefault: isDefault,
+            isArchived: isArchived,
+            version: version,
+            syncStatus: syncStatus,
+            isDeleted: isDeleted,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String userId,
+            required String name,
+            required String currency,
+            Value<double> initialBalance = const Value.absent(),
+            Value<double> openingBalance = const Value.absent(),
+            Value<String?> color = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<bool> isArchived = const Value.absent(),
+            Value<int> version = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            Value<bool> isDeleted = const Value.absent(),
+            required DateTime createdAt,
+            Value<DateTime?> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LocalAccountsCompanion.insert(
+            id: id,
+            userId: userId,
+            name: name,
+            currency: currency,
+            initialBalance: initialBalance,
+            openingBalance: openingBalance,
+            color: color,
+            icon: icon,
+            isDefault: isDefault,
+            isArchived: isArchived,
+            version: version,
+            syncStatus: syncStatus,
+            isDeleted: isDeleted,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$LocalAccountsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $LocalAccountsTable,
+    LocalAccount,
+    $$LocalAccountsTableFilterComposer,
+    $$LocalAccountsTableOrderingComposer,
+    $$LocalAccountsTableAnnotationComposer,
+    $$LocalAccountsTableCreateCompanionBuilder,
+    $$LocalAccountsTableUpdateCompanionBuilder,
+    (
+      LocalAccount,
+      BaseReferences<_$AppDatabase, $LocalAccountsTable, LocalAccount>
+    ),
+    LocalAccount,
+    PrefetchHooks Function()>;
 typedef $$LocalTransactionsTableCreateCompanionBuilder
     = LocalTransactionsCompanion Function({
   required String id,
   required String userId,
+  Value<String?> accountId,
   required String type,
   required String category,
   required double amount,
@@ -5844,6 +7088,7 @@ typedef $$LocalTransactionsTableUpdateCompanionBuilder
     = LocalTransactionsCompanion Function({
   Value<String> id,
   Value<String> userId,
+  Value<String?> accountId,
   Value<String> type,
   Value<String> category,
   Value<double> amount,
@@ -5871,6 +7116,9 @@ class $$LocalTransactionsTableFilterComposer
 
   ColumnFilters<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnFilters(column));
@@ -5918,6 +7166,9 @@ class $$LocalTransactionsTableOrderingComposer
   ColumnOrderings<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
@@ -5963,6 +7214,9 @@ class $$LocalTransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -6025,6 +7279,7 @@ class $$LocalTransactionsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> userId = const Value.absent(),
+            Value<String?> accountId = const Value.absent(),
             Value<String> type = const Value.absent(),
             Value<String> category = const Value.absent(),
             Value<double> amount = const Value.absent(),
@@ -6040,6 +7295,7 @@ class $$LocalTransactionsTableTableManager extends RootTableManager<
               LocalTransactionsCompanion(
             id: id,
             userId: userId,
+            accountId: accountId,
             type: type,
             category: category,
             amount: amount,
@@ -6055,6 +7311,7 @@ class $$LocalTransactionsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String userId,
+            Value<String?> accountId = const Value.absent(),
             required String type,
             required String category,
             required double amount,
@@ -6070,6 +7327,7 @@ class $$LocalTransactionsTableTableManager extends RootTableManager<
               LocalTransactionsCompanion.insert(
             id: id,
             userId: userId,
+            accountId: accountId,
             type: type,
             category: category,
             amount: amount,
@@ -6108,6 +7366,7 @@ typedef $$LocalCommitmentsTableCreateCompanionBuilder
     = LocalCommitmentsCompanion Function({
   required String id,
   required String userId,
+  Value<String?> accountId,
   required String title,
   required double amount,
   required DateTime dueDate,
@@ -6122,6 +7381,7 @@ typedef $$LocalCommitmentsTableUpdateCompanionBuilder
     = LocalCommitmentsCompanion Function({
   Value<String> id,
   Value<String> userId,
+  Value<String?> accountId,
   Value<String> title,
   Value<double> amount,
   Value<DateTime> dueDate,
@@ -6147,6 +7407,9 @@ class $$LocalCommitmentsTableFilterComposer
 
   ColumnFilters<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
@@ -6188,6 +7451,9 @@ class $$LocalCommitmentsTableOrderingComposer
   ColumnOrderings<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
@@ -6227,6 +7493,9 @@ class $$LocalCommitmentsTableAnnotationComposer
 
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -6282,6 +7551,7 @@ class $$LocalCommitmentsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> userId = const Value.absent(),
+            Value<String?> accountId = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<double> amount = const Value.absent(),
             Value<DateTime> dueDate = const Value.absent(),
@@ -6295,6 +7565,7 @@ class $$LocalCommitmentsTableTableManager extends RootTableManager<
               LocalCommitmentsCompanion(
             id: id,
             userId: userId,
+            accountId: accountId,
             title: title,
             amount: amount,
             dueDate: dueDate,
@@ -6308,6 +7579,7 @@ class $$LocalCommitmentsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String userId,
+            Value<String?> accountId = const Value.absent(),
             required String title,
             required double amount,
             required DateTime dueDate,
@@ -6321,6 +7593,7 @@ class $$LocalCommitmentsTableTableManager extends RootTableManager<
               LocalCommitmentsCompanion.insert(
             id: id,
             userId: userId,
+            accountId: accountId,
             title: title,
             amount: amount,
             dueDate: dueDate,
@@ -6356,6 +7629,7 @@ typedef $$LocalCommitmentsTableProcessedTableManager = ProcessedTableManager<
 typedef $$LocalGoalsTableCreateCompanionBuilder = LocalGoalsCompanion Function({
   required String id,
   required String userId,
+  Value<String?> accountId,
   required String title,
   required double targetAmount,
   required double savedAmount,
@@ -6368,6 +7642,7 @@ typedef $$LocalGoalsTableCreateCompanionBuilder = LocalGoalsCompanion Function({
 typedef $$LocalGoalsTableUpdateCompanionBuilder = LocalGoalsCompanion Function({
   Value<String> id,
   Value<String> userId,
+  Value<String?> accountId,
   Value<String> title,
   Value<double> targetAmount,
   Value<double> savedAmount,
@@ -6392,6 +7667,9 @@ class $$LocalGoalsTableFilterComposer
 
   ColumnFilters<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
@@ -6430,6 +7708,9 @@ class $$LocalGoalsTableOrderingComposer
   ColumnOrderings<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
@@ -6467,6 +7748,9 @@ class $$LocalGoalsTableAnnotationComposer
 
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
@@ -6515,6 +7799,7 @@ class $$LocalGoalsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> userId = const Value.absent(),
+            Value<String?> accountId = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<double> targetAmount = const Value.absent(),
             Value<double> savedAmount = const Value.absent(),
@@ -6527,6 +7812,7 @@ class $$LocalGoalsTableTableManager extends RootTableManager<
               LocalGoalsCompanion(
             id: id,
             userId: userId,
+            accountId: accountId,
             title: title,
             targetAmount: targetAmount,
             savedAmount: savedAmount,
@@ -6539,6 +7825,7 @@ class $$LocalGoalsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String userId,
+            Value<String?> accountId = const Value.absent(),
             required String title,
             required double targetAmount,
             required double savedAmount,
@@ -6551,6 +7838,7 @@ class $$LocalGoalsTableTableManager extends RootTableManager<
               LocalGoalsCompanion.insert(
             id: id,
             userId: userId,
+            accountId: accountId,
             title: title,
             targetAmount: targetAmount,
             savedAmount: savedAmount,
@@ -6583,6 +7871,7 @@ typedef $$LocalDecisionsTableCreateCompanionBuilder = LocalDecisionsCompanion
     Function({
   required String id,
   required String userId,
+  Value<String?> accountId,
   required String action,
   required String note,
   required DateTime createdAt,
@@ -6596,6 +7885,7 @@ typedef $$LocalDecisionsTableUpdateCompanionBuilder = LocalDecisionsCompanion
     Function({
   Value<String> id,
   Value<String> userId,
+  Value<String?> accountId,
   Value<String> action,
   Value<String> note,
   Value<DateTime> createdAt,
@@ -6620,6 +7910,9 @@ class $$LocalDecisionsTableFilterComposer
 
   ColumnFilters<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get action => $composableBuilder(
       column: $table.action, builder: (column) => ColumnFilters(column));
@@ -6658,6 +7951,9 @@ class $$LocalDecisionsTableOrderingComposer
   ColumnOrderings<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get action => $composableBuilder(
       column: $table.action, builder: (column) => ColumnOrderings(column));
 
@@ -6694,6 +7990,9 @@ class $$LocalDecisionsTableAnnotationComposer
 
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
 
   GeneratedColumn<String> get action =>
       $composableBuilder(column: $table.action, builder: (column) => column);
@@ -6746,6 +8045,7 @@ class $$LocalDecisionsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> userId = const Value.absent(),
+            Value<String?> accountId = const Value.absent(),
             Value<String> action = const Value.absent(),
             Value<String> note = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
@@ -6758,6 +8058,7 @@ class $$LocalDecisionsTableTableManager extends RootTableManager<
               LocalDecisionsCompanion(
             id: id,
             userId: userId,
+            accountId: accountId,
             action: action,
             note: note,
             createdAt: createdAt,
@@ -6770,6 +8071,7 @@ class $$LocalDecisionsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String userId,
+            Value<String?> accountId = const Value.absent(),
             required String action,
             required String note,
             required DateTime createdAt,
@@ -6782,6 +8084,7 @@ class $$LocalDecisionsTableTableManager extends RootTableManager<
               LocalDecisionsCompanion.insert(
             id: id,
             userId: userId,
+            accountId: accountId,
             action: action,
             note: note,
             createdAt: createdAt,
@@ -6817,6 +8120,7 @@ typedef $$LocalReviewsTableCreateCompanionBuilder = LocalReviewsCompanion
     Function({
   required String id,
   required String userId,
+  Value<String?> accountId,
   required DateTime start,
   required DateTime end,
   required String periodTitle,
@@ -6835,6 +8139,7 @@ typedef $$LocalReviewsTableUpdateCompanionBuilder = LocalReviewsCompanion
     Function({
   Value<String> id,
   Value<String> userId,
+  Value<String?> accountId,
   Value<DateTime> start,
   Value<DateTime> end,
   Value<String> periodTitle,
@@ -6864,6 +8169,9 @@ class $$LocalReviewsTableFilterComposer
 
   ColumnFilters<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get start => $composableBuilder(
       column: $table.start, builder: (column) => ColumnFilters(column));
@@ -6920,6 +8228,9 @@ class $$LocalReviewsTableOrderingComposer
   ColumnOrderings<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get accountId => $composableBuilder(
+      column: $table.accountId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get start => $composableBuilder(
       column: $table.start, builder: (column) => ColumnOrderings(column));
 
@@ -6974,6 +8285,9 @@ class $$LocalReviewsTableAnnotationComposer
 
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get accountId =>
+      $composableBuilder(column: $table.accountId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get start =>
       $composableBuilder(column: $table.start, builder: (column) => column);
@@ -7040,6 +8354,7 @@ class $$LocalReviewsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> userId = const Value.absent(),
+            Value<String?> accountId = const Value.absent(),
             Value<DateTime> start = const Value.absent(),
             Value<DateTime> end = const Value.absent(),
             Value<String> periodTitle = const Value.absent(),
@@ -7057,6 +8372,7 @@ class $$LocalReviewsTableTableManager extends RootTableManager<
               LocalReviewsCompanion(
             id: id,
             userId: userId,
+            accountId: accountId,
             start: start,
             end: end,
             periodTitle: periodTitle,
@@ -7074,6 +8390,7 @@ class $$LocalReviewsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String userId,
+            Value<String?> accountId = const Value.absent(),
             required DateTime start,
             required DateTime end,
             required String periodTitle,
@@ -7091,6 +8408,7 @@ class $$LocalReviewsTableTableManager extends RootTableManager<
               LocalReviewsCompanion.insert(
             id: id,
             userId: userId,
+            accountId: accountId,
             start: start,
             end: end,
             periodTitle: periodTitle,
@@ -8261,6 +9579,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$LocalUsersTableTableManager get localUsers =>
       $$LocalUsersTableTableManager(_db, _db.localUsers);
+  $$LocalAccountsTableTableManager get localAccounts =>
+      $$LocalAccountsTableTableManager(_db, _db.localAccounts);
   $$LocalTransactionsTableTableManager get localTransactions =>
       $$LocalTransactionsTableTableManager(_db, _db.localTransactions);
   $$LocalCommitmentsTableTableManager get localCommitments =>

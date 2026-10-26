@@ -9,12 +9,14 @@ class TransactionForm extends StatefulWidget {
   final String type;
   final MoneyTransaction? transaction;
   final double availableBalance;
+  final String currency;
 
   const TransactionForm({
     super.key,
     required this.type,
     this.transaction,
     required this.availableBalance,
+    this.currency = 'CRC',
   });
 
   static Future<MoneyTransaction?> show(
@@ -22,6 +24,7 @@ class TransactionForm extends StatefulWidget {
     required String type,
     MoneyTransaction? transaction,
     required double availableBalance,
+    String currency = 'CRC',
   }) {
     return showDialog<MoneyTransaction>(
       context: context,
@@ -39,6 +42,7 @@ class TransactionForm extends StatefulWidget {
             type: type,
             transaction: transaction,
             availableBalance: availableBalance,
+            currency: currency,
           ),
         );
       },
@@ -46,8 +50,7 @@ class TransactionForm extends StatefulWidget {
   }
 
   @override
-  State<TransactionForm> createState() =>
-      _TransactionFormState();
+  State<TransactionForm> createState() => _TransactionFormState();
 }
 
 class _TransactionFormState extends State<TransactionForm> {
@@ -97,22 +100,22 @@ class _TransactionFormState extends State<TransactionForm> {
     _amountController = TextEditingController(
       text: transaction == null
           ? ''
-          : transaction.amount.toStringAsFixed(0),
+          : (widget.currency == 'CRC'
+              ? transaction.amount.toStringAsFixed(0)
+              : transaction.amount.toStringAsFixed(2)),
     );
 
     _descriptionController = TextEditingController(
       text: transaction?.description ?? '',
     );
 
-    _category = transaction?.category ??
-        (isIncome ? 'Salario' : 'Comida');
+    _category = transaction?.category ?? (isIncome ? 'Salario' : 'Comida');
 
     if (!categories.contains(_category)) {
       _category = 'Otros';
     }
 
     _date = transaction?.date ?? DateTime.now();
-
     _recognized = transaction?.recognized ?? true;
   }
 
@@ -120,13 +123,17 @@ class _TransactionFormState extends State<TransactionForm> {
   void dispose() {
     _amountController.dispose();
     _descriptionController.dispose();
-
     super.dispose();
   }
 
   double? _parseAmount(String value) {
+    final symbol = CurrencyFormatter.symbolFor(widget.currency);
     final normalized = value
         .replaceAll('₡', '')
+        .replaceAll(r'$', '')
+        .replaceAll('€', '')
+        .replaceAll(symbol, '')
+        .replaceAll(widget.currency, '')
         .replaceAll(' ', '')
         .replaceAll(',', '.');
 
@@ -134,16 +141,13 @@ class _TransactionFormState extends State<TransactionForm> {
   }
 
   double? get _enteredAmount {
-    return _parseAmount(
-      _amountController.text,
-    );
+    return _parseAmount(_amountController.text);
   }
 
   bool get _expenseExceedsBalance {
     if (isIncome) return false;
 
     final amount = _enteredAmount;
-
     if (amount == null || amount <= 0) {
       return false;
     }
@@ -156,8 +160,7 @@ class _TransactionFormState extends State<TransactionForm> {
       return 0;
     }
 
-    return (_enteredAmount ?? 0) -
-        _maximumAllowedExpense;
+    return (_enteredAmount ?? 0) - _maximumAllowedExpense;
   }
 
   double get _maximumAllowedExpense {
@@ -178,10 +181,21 @@ class _TransactionFormState extends State<TransactionForm> {
     return available;
   }
 
+  String _format(double amount) {
+    return CurrencyFormatter.format(amount, currency: widget.currency);
+  }
+
   Future<void> _showInsufficientBalanceDialog(
     double attemptedAmount,
   ) async {
     final available = _maximumAllowedExpense;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
+    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
+    final surfaceColor = isDark ? AppTheme.surfaceDark : Colors.white;
+    final cardColor = isDark ? const Color(0xFF1E2D4A) : const Color(0xFFF8FAFD);
+    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
+    final iconBg = isDark ? const Color(0xFF3B1818) : const Color(0xFFFFECEC);
 
     await showDialog<void>(
       context: context,
@@ -196,118 +210,104 @@ class _TransactionFormState extends State<TransactionForm> {
             },
           },
           child: AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(
-            22,
-            22,
-            22,
-            8,
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(
-            22,
-            4,
-            22,
-            8,
-          ),
-          actionsPadding: const EdgeInsets.fromLTRB(
-            22,
-            8,
-            22,
-            20,
-          ),
-          title: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFECEC),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: Colors.red.shade700,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Saldo insuficiente',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.text,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Lo sentimos, tu saldo disponible es de '
-                '${money(available)}. No podés registrar un gasto '
-                'mayor a ese monto.',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  height: 1.5,
-                  color: AppTheme.text,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFD),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: AppTheme.border,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    _AmountDialogRow(
-                      label: 'Saldo disponible',
-                      value: money(available),
-                      valueColor: AppTheme.successDark,
-                    ),
-                    const SizedBox(height: 10),
-                    _AmountDialogRow(
-                      label: 'Monto intentado',
-                      value: money(attemptedAmount),
-                      valueColor: Colors.red.shade700,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Reducí el monto del gasto para continuar.',
-                style: TextStyle(
-                  fontSize: 10.5,
-                  color: AppTheme.muted,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                child: const Text(
-                  'Entendido',
-                ),
-              ),
+            backgroundColor: surfaceColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(22),
             ),
-          ],
-        ),
+            titlePadding: const EdgeInsets.fromLTRB(22, 22, 22, 8),
+            contentPadding: const EdgeInsets.fromLTRB(22, 4, 22, 8),
+            actionsPadding: const EdgeInsets.fromLTRB(22, 8, 22, 20),
+            title: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: isDark ? const Color(0xFFEF4444) : Colors.red.shade700,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Saldo insuficiente',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                      color: textColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Lo sentimos, tu saldo disponible es de '
+                  '${_format(available)}. No podés registrar un gasto '
+                  'mayor a ese monto.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.5,
+                    color: textColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: borderColor,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      _AmountDialogRow(
+                        label: 'Saldo disponible',
+                        value: _format(available),
+                        valueColor: isDark ? const Color(0xFF34D399) : AppTheme.successDark,
+                        labelColor: mutedColor,
+                      ),
+                      const SizedBox(height: 10),
+                      _AmountDialogRow(
+                        label: 'Monto intentado',
+                        value: _format(attemptedAmount),
+                        valueColor: isDark ? const Color(0xFFF87171) : Colors.red.shade700,
+                        labelColor: mutedColor,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Reducí el monto del gasto para continuar.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: mutedColor,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('Entendido'),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -336,16 +336,11 @@ class _TransactionFormState extends State<TransactionForm> {
       return;
     }
 
-    final amount = _parseAmount(
-      _amountController.text,
-    );
-
+    final amount = _parseAmount(_amountController.text);
     if (amount == null) return;
 
     if (!isIncome && amount > _maximumAllowedExpense) {
-      await _showInsufficientBalanceDialog(
-        amount,
-      );
+      await _showInsufficientBalanceDialog(amount);
       return;
     }
 
@@ -354,27 +349,31 @@ class _TransactionFormState extends State<TransactionForm> {
       type: widget.type,
       category: _category,
       amount: amount,
-      description:
-          _descriptionController.text.trim(),
+      description: _descriptionController.text.trim(),
       date: _date,
       recognized: _recognized,
     );
 
-    Navigator.pop(
-      context,
-      transaction,
-    );
+    Navigator.pop(context, transaction);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
+    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
+    final surfaceColor = isDark ? AppTheme.surfaceDark : Colors.white;
+    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
     final editing = widget.transaction != null;
 
     final accent = isIncome
-        ? AppTheme.success
-        : AppTheme.primary;
+        ? (isDark ? const Color(0xFF10B981) : AppTheme.success)
+        : (isDark ? AppTheme.primaryDarkTheme : AppTheme.primary);
+
+    final currencySymbol = CurrencyFormatter.symbolFor(widget.currency);
 
     return Dialog(
+      backgroundColor: surfaceColor,
       insetPadding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 24,
@@ -391,11 +390,9 @@ class _TransactionFormState extends State<TransactionForm> {
           padding: const EdgeInsets.all(22),
           child: Form(
             key: _formKey,
-            autovalidateMode:
-                AutovalidateMode.onUserInteraction,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
@@ -405,27 +402,21 @@ class _TransactionFormState extends State<TransactionForm> {
                       height: 44,
                       decoration: BoxDecoration(
                         color: isIncome
-                            ? const Color(0xFFE9FFF1)
-                            : const Color(0xFFEAF3FF),
-                        borderRadius:
-                            BorderRadius.circular(13),
+                            ? (isDark ? const Color(0xFF143825) : const Color(0xFFE9FFF1))
+                            : (isDark ? const Color(0xFF162A45) : const Color(0xFFEAF3FF)),
+                        borderRadius: BorderRadius.circular(13),
                       ),
                       child: Icon(
                         isIncome
-                            ? Icons
-                                .account_balance_wallet_outlined
-                            : Icons
-                                .receipt_long_outlined,
+                            ? Icons.account_balance_wallet_outlined
+                            : Icons.receipt_long_outlined,
                         color: accent,
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             editing
@@ -435,52 +426,48 @@ class _TransactionFormState extends State<TransactionForm> {
                                 : isIncome
                                     ? 'Agregar ingreso'
                                     : 'Agregar gasto',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
-                              fontWeight:
-                                  FontWeight.w900,
+                              fontWeight: FontWeight.w900,
+                              color: textColor,
                             ),
                           ),
-
                           const SizedBox(height: 3),
-
                           Text(
                             isIncome
-                                ? 'Registrá dinero que recibiste.'
-                                : 'Registrá dinero que gastaste.',
-                            style: const TextStyle(
+                                ? 'Registrá dinero que recibiste en ${widget.currency}.'
+                                : 'Registrá dinero que gastaste en ${widget.currency}.',
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppTheme.muted,
+                              color: mutedColor,
                             ),
                           ),
                         ],
                       ),
                     ),
-
                     IconButton(
+                      tooltip: 'Cerrar',
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close_rounded,
+                        color: textColor,
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
-
-                const _Label(
+                _Label(
                   text: 'Monto',
                   requiredField: true,
+                  color: textColor,
                 ),
-
                 const SizedBox(height: 7),
-
                 TextFormField(
                   controller: _amountController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(
+                  style: TextStyle(color: textColor),
+                  keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
                   inputFormatters: [
@@ -488,33 +475,33 @@ class _TransactionFormState extends State<TransactionForm> {
                       RegExp(r'[0-9.,]'),
                     ),
                   ],
-                  decoration: const InputDecoration(
-                    prefixText: '₡ ',
-                    hintText: 'Ej. 85000',
-                    prefixIcon: Icon(
+                  decoration: InputDecoration(
+                    prefixText: '$currencySymbol ',
+                    prefixStyle: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                    hintText: widget.currency == 'CRC' ? 'Ej. 85000' : 'Ej. 150',
+                    prefixIcon: const Icon(
                       Icons.payments_outlined,
                     ),
                   ),
                   validator: (value) {
-                    if (value == null ||
-                        value.trim().isEmpty) {
+                    if (value == null || value.trim().isEmpty) {
                       return 'Ingresá un monto';
                     }
 
                     final amount = _parseAmount(value);
-
                     if (amount == null) {
                       return 'Monto inválido';
                     }
 
                     if (amount <= 0) {
-                      return 'El monto debe ser mayor a ₡0';
+                      return 'El monto debe ser mayor a ${_format(0)}';
                     }
 
-                    if (!isIncome &&
-                        amount >
-                            _maximumAllowedExpense) {
-                      return 'El máximo disponible es ${money(_maximumAllowedExpense)}';
+                    if (!isIncome && amount > _maximumAllowedExpense) {
+                      return 'El máximo disponible es ${_format(_maximumAllowedExpense)}';
                     }
 
                     return null;
@@ -523,15 +510,13 @@ class _TransactionFormState extends State<TransactionForm> {
                     setState(() {});
                   },
                 ),
-
                 if (!isIncome) ...[
                   const SizedBox(height: 10),
-
                   Semantics(
                     liveRegion: true,
                     label: _expenseExceedsBalance
-                        ? 'El monto ingresado supera el saldo disponible por ${money(_amountOverBalance)}.'
-                        : 'Máximo disponible para este gasto: ${money(_maximumAllowedExpense)}.',
+                        ? 'El monto ingresado supera el saldo disponible por ${_format(_amountOverBalance)}.'
+                        : 'Máximo disponible para este gasto: ${_format(_maximumAllowedExpense)}.',
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 13,
@@ -539,58 +524,52 @@ class _TransactionFormState extends State<TransactionForm> {
                       ),
                       decoration: BoxDecoration(
                         color: _expenseExceedsBalance
-                            ? const Color(0xFFFFF1F1)
-                            : const Color(0xFFF0FFF6),
-                        borderRadius:
-                            BorderRadius.circular(13),
+                            ? (isDark ? const Color(0xFF3B1818) : const Color(0xFFFFF1F1))
+                            : (isDark ? const Color(0xFF143021) : const Color(0xFFF0FFF6)),
+                        borderRadius: BorderRadius.circular(13),
                         border: Border.all(
                           color: _expenseExceedsBalance
-                              ? Colors.red.shade400
-                              : const Color(0xFFBCEBCD),
+                              ? (isDark ? const Color(0xFFEF4444) : Colors.red.shade400)
+                              : (isDark ? const Color(0xFF10B981) : const Color(0xFFBCEBCD)),
                         ),
                       ),
                       child: Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
                             _expenseExceedsBalance
                                 ? Icons.warning_amber_rounded
-                                : Icons
-                                    .account_balance_wallet_outlined,
+                                : Icons.account_balance_wallet_outlined,
                             size: 19,
                             color: _expenseExceedsBalance
-                                ? Colors.red.shade700
-                                : AppTheme.success,
+                                ? (isDark ? const Color(0xFFF87171) : Colors.red.shade700)
+                                : (isDark ? const Color(0xFF34D399) : AppTheme.success),
                           ),
                           const SizedBox(width: 9),
                           Expanded(
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   _expenseExceedsBalance
                                       ? 'Este monto supera tu saldo disponible'
                                       : 'Máximo disponible para este gasto',
                                   style: TextStyle(
-                                    fontSize: 10.5,
-                                    fontWeight:
-                                        FontWeight.w700,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
                                     color: _expenseExceedsBalance
-                                        ? Colors.red.shade800
-                                        : AppTheme.muted,
+                                        ? (isDark ? const Color(0xFFFCA5A5) : Colors.red.shade800)
+                                        : mutedColor,
                                   ),
                                 ),
                                 if (_expenseExceedsBalance) ...[
                                   const SizedBox(height: 3),
                                   Text(
-                                    'Reducí el gasto en ${money(_amountOverBalance)} o más para poder guardarlo.',
+                                    'Reducí el gasto en ${_format(_amountOverBalance)} o más para poder guardarlo.',
                                     style: TextStyle(
-                                      fontSize: 9.5,
+                                      fontSize: 10,
                                       height: 1.3,
-                                      color:
-                                          Colors.red.shade800,
+                                      color: isDark ? const Color(0xFFFCA5A5) : Colors.red.shade800,
                                     ),
                                   ),
                                 ],
@@ -599,14 +578,13 @@ class _TransactionFormState extends State<TransactionForm> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            money(_maximumAllowedExpense),
+                            _format(_maximumAllowedExpense),
                             style: TextStyle(
                               fontSize: 12.5,
-                              fontWeight:
-                                  FontWeight.w900,
+                              fontWeight: FontWeight.w900,
                               color: _expenseExceedsBalance
-                                  ? Colors.red.shade700
-                                  : AppTheme.successDark,
+                                  ? (isDark ? const Color(0xFFF87171) : Colors.red.shade700)
+                                  : (isDark ? const Color(0xFF34D399) : AppTheme.successDark),
                             ),
                           ),
                         ],
@@ -614,19 +592,18 @@ class _TransactionFormState extends State<TransactionForm> {
                     ),
                   ),
                 ],
-
                 const SizedBox(height: 18),
-
-                const _Label(
+                _Label(
                   text: 'Categoría',
                   requiredField: true,
+                  color: textColor,
                 ),
-
                 const SizedBox(height: 7),
-
                 DropdownButtonFormField<String>(
                   value: _category,
                   isExpanded: true,
+                  dropdownColor: surfaceColor,
+                  style: TextStyle(color: textColor),
                   decoration: const InputDecoration(
                     prefixIcon: Icon(
                       Icons.category_outlined,
@@ -638,32 +615,29 @@ class _TransactionFormState extends State<TransactionForm> {
                         value: category,
                         child: Text(
                           category,
+                          style: TextStyle(color: textColor),
                         ),
                       );
                     },
                   ).toList(),
                   onChanged: (value) {
                     if (value == null) return;
-
                     setState(() {
                       _category = value;
                     });
                   },
                 ),
-
                 const SizedBox(height: 18),
-
-                const _Label(
+                _Label(
                   text: 'Descripción',
+                  color: textColor,
                 ),
-
                 const SizedBox(height: 7),
-
                 TextFormField(
-                  controller:
-                      _descriptionController,
+                  controller: _descriptionController,
                   maxLines: 3,
                   maxLength: 120,
+                  style: TextStyle(color: textColor),
                   decoration: InputDecoration(
                     hintText: isIncome
                         ? 'Ej. Pago semanal, beca...'
@@ -673,82 +647,68 @@ class _TransactionFormState extends State<TransactionForm> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
-                const _Label(
+                _Label(
                   text: 'Fecha',
                   requiredField: true,
+                  color: textColor,
                 ),
-
                 const SizedBox(height: 7),
-
                 InkWell(
                   onTap: _selectDate,
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14),
                   child: InputDecorator(
-                    decoration:
-                        const InputDecoration(
+                    decoration: const InputDecoration(
                       prefixIcon: Icon(
-                        Icons
-                            .calendar_month_outlined,
+                        Icons.calendar_month_outlined,
                       ),
                       suffixIcon: Icon(
-                        Icons
-                            .chevron_right_rounded,
+                        Icons.chevron_right_rounded,
                       ),
                     ),
                     child: Text(
                       '${_date.day.toString().padLeft(2, '0')}/'
                       '${_date.month.toString().padLeft(2, '0')}/'
                       '${_date.year}',
-                      style: const TextStyle(
-                        fontWeight:
-                            FontWeight.w700,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
                       ),
                     ),
                   ),
                 ),
-
                 if (!isIncome) ...[
                   const SizedBox(height: 18),
-
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          const Color(0xFFF8FBFF),
-                      borderRadius:
-                          BorderRadius.circular(14),
+                      color: isDark ? const Color(0xFF16233B) : const Color(0xFFF8FBFF),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: AppTheme.border,
+                        color: borderColor,
                       ),
                     ),
-                    child:
-                        SwitchListTile.adaptive(
-                      contentPadding:
-                          EdgeInsets.zero,
+                    child: SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
                       value: _recognized,
-                      title: const Text(
+                      title: Text(
                         'Reconozco este movimiento',
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight:
-                              FontWeight.w800,
+                          fontWeight: FontWeight.w800,
+                          color: textColor,
                         ),
                       ),
                       subtitle: Text(
                         _recognized
                             ? 'Movimiento reconocido'
                             : 'Movimiento no reconocido',
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          color: AppTheme.muted,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: mutedColor,
                         ),
                       ),
                       onChanged: (value) {
@@ -759,9 +719,7 @@ class _TransactionFormState extends State<TransactionForm> {
                     ),
                   ),
                 ],
-
                 const SizedBox(height: 24),
-
                 Row(
                   children: [
                     Expanded(
@@ -769,18 +727,13 @@ class _TransactionFormState extends State<TransactionForm> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: const Text(
-                          'Cancelar',
-                        ),
+                        child: const Text('Cancelar'),
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     Expanded(
                       child: FilledButton.icon(
-                        style:
-                            FilledButton.styleFrom(
+                        style: FilledButton.styleFrom(
                           backgroundColor: accent,
                         ),
                         onPressed: _save,
@@ -811,11 +764,13 @@ class _AmountDialogRow extends StatelessWidget {
   final String label;
   final String value;
   final Color valueColor;
+  final Color? labelColor;
 
   const _AmountDialogRow({
     required this.label,
     required this.value,
     required this.valueColor,
+    this.labelColor,
   });
 
   @override
@@ -825,16 +780,16 @@ class _AmountDialogRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              fontSize: 10.5,
-              color: AppTheme.muted,
+            style: TextStyle(
+              fontSize: 11,
+              color: labelColor ?? AppTheme.muted,
             ),
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 12.5,
             fontWeight: FontWeight.w900,
             color: valueColor,
           ),
@@ -847,10 +802,12 @@ class _AmountDialogRow extends StatelessWidget {
 class _Label extends StatelessWidget {
   final String text;
   final bool requiredField;
+  final Color? color;
 
   const _Label({
     required this.text,
     this.requiredField = false,
+    this.color,
   });
 
   @override
@@ -859,12 +816,12 @@ class _Label extends StatelessWidget {
       children: [
         Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12.5,
             fontWeight: FontWeight.w800,
+            color: color,
           ),
         ),
-
         if (requiredField)
           const Text(
             ' *',

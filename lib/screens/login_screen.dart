@@ -208,6 +208,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF263859) : Colors.grey.shade200;
+    final titleColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
+    final subtitleColor = isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600;
+    final demoBg = isDark ? const Color(0xFF16233B) : const Color(0xFFF5F8FD);
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -217,12 +224,13 @@ class _LoginScreenState extends State<LoginScreen> {
               maxWidth: 430,
             ),
             child: Card(
+              color: cardBg,
               elevation: 0,
               clipBehavior: Clip.antiAlias,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(
-                  color: Colors.grey.shade200,
+                  color: borderColor,
                 ),
               ),
               child: Padding(
@@ -257,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             .headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: const Color(0xFF07152F),
+                              color: titleColor,
                             ),
                       ),
 
@@ -267,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Entendé dónde se fue tu dinero y cuánto podés usar realmente.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.grey.shade600,
+                          color: subtitleColor,
                           height: 1.4,
                         ),
                       ),
@@ -369,14 +377,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF5F8FD),
+                          color: demoBg,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           'Demo: demo@plata.app / 123456',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: subtitleColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),

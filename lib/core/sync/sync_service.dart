@@ -191,6 +191,11 @@ class ClientSyncService {
           LocalTransactionsCompanion(version: Value(version), syncStatus: const Value('synced')),
         );
         break;
+      case 'account':
+        await (db.update(db.localAccounts)..where((a) => a.id.equals(entityId))).write(
+          LocalAccountsCompanion(version: Value(version), syncStatus: const Value('synced')),
+        );
+        break;
       case 'commitment':
         await (db.update(db.localCommitments)..where((c) => c.id.equals(entityId))).write(
           LocalCommitmentsCompanion(version: Value(version), syncStatus: const Value('synced')),
@@ -230,6 +235,11 @@ class ClientSyncService {
               LocalTransactionsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
             );
             break;
+          case 'account':
+            await (db.update(db.localAccounts)..where((a) => a.id.equals(entityId) & a.userId.equals(userId))).write(
+              LocalAccountsCompanion(isArchived: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            );
+            break;
           case 'commitment':
             await (db.update(db.localCommitments)..where((c) => c.id.equals(entityId) & c.userId.equals(userId))).write(
               LocalCommitmentsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
@@ -256,6 +266,34 @@ class ClientSyncService {
 
       // Create / Update
       switch (entityType) {
+        case 'account':
+          final existingAcc = await (db.select(db.localAccounts)
+                ..where((a) => a.id.equals(entityId) & a.userId.equals(userId)))
+              .getSingleOrNull();
+
+          // REGLA INQUEBRANTABLE: Moneda inmutable
+          final currency = existingAcc?.currency ?? (payload['currency']?.toString().toUpperCase() ?? 'CRC');
+          final initBalance = (payload['initial_balance'] ?? payload['initialBalance'] ?? payload['opening_balance'] as num?)?.toDouble() ?? (existingAcc?.initialBalance ?? 0.0);
+
+          await db.into(db.localAccounts).insertOnConflictUpdate(
+                LocalAccountsCompanion(
+                  id: Value(entityId),
+                  userId: Value(userId),
+                  name: Value(payload['name']?.toString() ?? 'Cuenta'),
+                  currency: Value(currency),
+                  initialBalance: Value(initBalance),
+                  openingBalance: Value(initBalance),
+                  color: Value(payload['color']?.toString()),
+                  icon: Value(payload['icon']?.toString()),
+                  isDefault: Value(payload['is_default'] == true || payload['is_default'] == 1),
+                  isArchived: Value(payload['is_archived'] == true || payload['is_archived'] == 1),
+                  version: Value(version),
+                  syncStatus: const Value('synced'),
+                  updatedAt: Value(now),
+                ),
+              );
+          break;
+
         case 'transaction':
           final amount = (payload['amount'] as num?)?.toDouble() ?? 0.0;
           final dateStr = payload['date']?.toString();
@@ -265,6 +303,7 @@ class ClientSyncService {
                 LocalTransactionsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
+                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
                   type: Value(payload['type']?.toString() ?? 'expense'),
                   category: Value(payload['category']?.toString() ?? 'Otros'),
                   amount: Value(amount),
@@ -288,6 +327,7 @@ class ClientSyncService {
                 LocalCommitmentsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
+                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
                   title: Value(payload['title']?.toString() ?? 'Compromiso'),
                   amount: Value(amount),
                   dueDate: Value(dueDate),
@@ -308,6 +348,7 @@ class ClientSyncService {
                 LocalGoalsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
+                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
                   title: Value(payload['title']?.toString() ?? 'Meta'),
                   targetAmount: Value(target),
                   savedAmount: Value(saved),
@@ -324,6 +365,7 @@ class ClientSyncService {
                 LocalDecisionsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
+                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
                   action: Value(payload['action']?.toString() ?? ''),
                   note: Value(payload['note']?.toString() ?? ''),
                   createdAt: Value(DateTime.tryParse(payload['created_at']?.toString() ?? '') ?? now),
@@ -340,6 +382,7 @@ class ClientSyncService {
                 LocalReviewsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
+                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
                   start: Value(DateTime.tryParse(payload['start']?.toString() ?? '') ?? now),
                   end: Value(DateTime.tryParse(payload['end']?.toString() ?? '') ?? now),
                   periodTitle: Value(payload['periodTitle']?.toString() ?? ''),

@@ -7,6 +7,7 @@ import '../core/api/api_client.dart';
 import '../core/sync/conflict_resolver.dart';
 import '../core/sync/sync_service.dart';
 import '../core/sync/sync_status.dart';
+import '../core/utils/formatters.dart';
 import '../data/local/app_database.dart';
 import '../data/repositories/finance_repository.dart';
 import '../data/repositories/review_repository.dart';
@@ -29,6 +30,10 @@ class AppState extends ChangeNotifier {
   String? error;
 
   DashboardSummary? dashboard;
+  List<Account> accounts = [];
+  Account? activeAccount;
+  String get activeCurrency => activeAccount?.currency ?? 'CRC';
+
   List<MoneyTransaction> transactions = [];
   List<Commitment> commitments = [];
   List<SavingsGoal> goals = [];
@@ -96,7 +101,8 @@ class AppState extends ChangeNotifier {
   }
 
   double get currentBalance {
-    return openingBalance + totalIncome - totalExpenses;
+    final base = activeAccount?.initialBalance ?? openingBalance;
+    return base + totalIncome - totalExpenses;
   }
 
   double get committedAmount {
@@ -111,6 +117,17 @@ class AppState extends ChangeNotifier {
 
   double get availableBalance {
     return currentBalance - committedAmount - savedAmount;
+  }
+
+  Future<void> setActiveAccount(Account account) async {
+    activeAccount = account;
+    CurrencyFormatter.activeCurrency = account.currency;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('active_account_id', account.id);
+    if (currentUserId != null) {
+      await _loadFromLocalDatabase(currentUserId!);
+    }
+    notifyListeners();
   }
 
   // =========================================================
@@ -154,6 +171,8 @@ class AppState extends ChangeNotifier {
       transactions = [];
       commitments = [];
       goals = [];
+      accounts = [];
+      activeAccount = null;
       notifications = [];
       unreadNotificationsCount = 0;
       dashboard = null;
@@ -186,11 +205,43 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _loadFromLocalDatabase(String userId) async {
-    transactions = await financeRepository.getTransactions(userId);
-    commitments = await financeRepository.getCommitments(userId);
-    goals = await financeRepository.getGoals(userId);
+    accounts = await financeRepository.getAccounts(userId);
+    if (accounts.isEmpty) {
+      // Auto-crear cuenta histórica CRC para compatibilidad total con cuentas previas
+      final historicAcc = Account(
+        id: _uuid.v4(),
+        userId: userId,
+        name: 'Cuenta Principal',
+        currency: 'CRC',
+        initialBalance: openingBalance,
+        currentBalance: openingBalance,
+        isDefault: true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      await financeRepository.saveAccount(
+        userId: userId,
+        account: historicAcc,
+        isNew: true,
+      );
+      accounts = await financeRepository.getAccounts(userId);
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedAccountId = prefs.getString('active_account_id');
+
+    if (savedAccountId != null && accounts.any((a) => a.id == savedAccountId)) {
+      activeAccount = accounts.firstWhere((a) => a.id == savedAccountId);
+    } else {
+      activeAccount = accounts.firstWhere((a) => a.isDefault, orElse: () => accounts.first);
+    }
+    CurrencyFormatter.activeCurrency = activeAccount?.currency ?? 'CRC';
+
+    transactions = await financeRepository.getTransactions(userId, accountId: activeAccount?.id);
+    commitments = await financeRepository.getCommitments(userId, accountId: activeAccount?.id);
+    goals = await financeRepository.getGoals(userId, accountId: activeAccount?.id);
     reviews = await reviewRepository.getReviews(userId);
-    dashboard = await financeRepository.calculateDashboard(userId);
+    dashboard = await financeRepository.calculateDashboard(userId, accountId: activeAccount?.id);
     conflicts = await syncService.getUnresolvedConflicts(userId);
     final pendingCount = await financeRepository.getPendingOperationsCount(userId);
 
@@ -368,14 +419,125 @@ class AppState extends ChangeNotifier {
   }
 
   // =========================================================
+  // GESTIÓN DE CUENTAS MULTI-MONEDA (MONEDA INMUTABLE)
+  // =========================================================
+
+  Future<Account> createAccount({
+    required String name,
+    required String currency,
+    double initialBalance = 0.0,
+    String? color,
+    String? icon,
+    bool isDefault = false,
+  }) => _run(() async {
+        if (currentUserId == null) throw Exception('No hay sesión activa');
+        final trimmedName = name.trim();
+        final trimmedCurrency = currency.trim().toUpperCase();
+
+        if (trimmedName.isEmpty) throw Exception('El nombre de la cuenta es obligatorio.');
+        if (trimmedCurrency.length != 3) {
+          throw Exception('El código de moneda debe tener 3 letras ISO 4217 (ej. CRC, USD, EUR).');
+        }
+
+        final accId = _uuid.v4();
+        final newAccount = Account(
+          id: accId,
+          userId: currentUserId!,
+          name: trimmedName,
+          currency: trimmedCurrency, // Inmutable
+          initialBalance: initialBalance,
+          currentBalance: initialBalance,
+          color: color,
+          icon: icon,
+          isDefault: isDefault,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await financeRepository.saveAccount(
+          userId: currentUserId!,
+          account: newAccount,
+          isNew: true,
+        );
+
+        accounts = await financeRepository.getAccounts(currentUserId!);
+        if (isDefault || accounts.length == 1) {
+          await setActiveAccount(newAccount);
+        } else {
+          await _loadFromLocalDatabase(currentUserId!);
+        }
+
+        notifyListeners();
+        _backgroundSync();
+        return newAccount;
+      });
+
+  Future<void> updateAccount({
+    required String id,
+    required String name,
+    String? color,
+    String? icon,
+    bool? isDefault,
+  }) => _run(() async {
+        if (currentUserId == null) throw Exception('No hay sesión activa');
+        final existing = await financeRepository.getAccountRaw(id, currentUserId!);
+        if (existing == null) throw Exception('Cuenta no encontrada.');
+
+        final trimmedName = name.trim();
+        if (trimmedName.isEmpty) throw Exception('El nombre de la cuenta no puede estar vacío.');
+
+        final updated = Account(
+          id: id,
+          userId: currentUserId!,
+          name: trimmedName,
+          currency: existing.currency, // ¡INMUTABLE! Se ignora cualquier intento de cambio
+          initialBalance: existing.initialBalance,
+          currentBalance: existing.initialBalance,
+          color: color ?? existing.color,
+          icon: icon ?? existing.icon,
+          isDefault: isDefault ?? existing.isDefault,
+        );
+
+        await financeRepository.saveAccount(
+          userId: currentUserId!,
+          account: updated,
+          isNew: false,
+        );
+
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
+        _backgroundSync();
+      });
+
+  Future<void> deleteAccount(String id) => _run(() async {
+        if (currentUserId == null) throw Exception('No hay sesión activa');
+        if (accounts.length <= 1) {
+          throw Exception('No podés eliminar tu única cuenta financiera. Debe existir al menos una activa.');
+        }
+
+        await financeRepository.deleteAccount(userId: currentUserId!, id: id);
+
+        accounts = await financeRepository.getAccounts(currentUserId!);
+        if (activeAccount?.id == id) {
+          final nextAcc = accounts.firstWhere((a) => a.isDefault, orElse: () => accounts.first);
+          await setActiveAccount(nextAcc);
+        } else {
+          await _loadFromLocalDatabase(currentUserId!);
+        }
+
+        notifyListeners();
+        _backgroundSync();
+      });
+
+  // =========================================================
   // TRANSACCIONES OFFLINE-FIRST
   // =========================================================
 
   Future<void> saveTransaction(MoneyTransaction transaction, {bool create = false}) => _run(() async {
         if (currentUserId == null) throw Exception('No hay sesión activa.');
-        if (transaction.amount <= 0) throw Exception('El monto debe ser mayor que ₡0.');
+        if (transaction.amount <= 0) throw Exception('El monto debe ser mayor que 0.');
 
-        // Saldo proyectado incluyendo openingBalance
+        // Saldo proyectado incluyendo openingBalance de la cuenta activa
         double balanceBefore = currentBalance;
         if (!create) {
           final old = transactions.firstWhere((t) => t.id == transaction.id, orElse: () => transaction);
@@ -396,14 +558,14 @@ class AppState extends ChangeNotifier {
           projected += transaction.amount;
         }
 
-        if (projected < 0) {
+        if (newType == 'expense' && projected < 0) {
           final available = balanceBefore < 0 ? 0.0 : balanceBefore;
           throw Exception(
-            'No podés registrar este gasto. Tu saldo disponible es de ₡${_formatAmount(available)}.',
+            'No podés registrar este gasto. Tu disponible real es de ${CurrencyFormatter.format(available)}.',
           );
         }
 
-        // Asignar ID estable generado desde el dispositivo si es nueva
+        final targetAccId = transaction.accountId ?? activeAccount?.id;
         final txId = (create || transaction.id.isEmpty) ? _uuid.v4() : transaction.id;
         final stableTx = MoneyTransaction(
           id: txId,
@@ -413,6 +575,7 @@ class AppState extends ChangeNotifier {
           description: transaction.description,
           date: transaction.date,
           recognized: transaction.recognized,
+          accountId: targetAccId,
         );
 
         // Guardar inmediatamente en SQLite local + cola de operaciones
@@ -454,6 +617,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> saveCommitment(Commitment commitment, {bool create = false}) => _run(() async {
         if (currentUserId == null) return;
+        final targetAccId = commitment.accountId ?? activeAccount?.id;
         final comId = (create || commitment.id.isEmpty) ? _uuid.v4() : commitment.id;
         final stable = Commitment(
           id: comId,
@@ -461,6 +625,7 @@ class AppState extends ChangeNotifier {
           amount: commitment.amount,
           dueDate: commitment.dueDate,
           status: commitment.status,
+          accountId: targetAccId,
         );
 
         await financeRepository.saveCommitment(
@@ -488,12 +653,14 @@ class AppState extends ChangeNotifier {
 
   Future<void> saveGoal(SavingsGoal goal, {bool create = false}) => _run(() async {
         if (currentUserId == null) return;
+        final targetAccId = goal.accountId ?? activeAccount?.id;
         final gId = (create || goal.id.isEmpty) ? _uuid.v4() : goal.id;
         final stable = SavingsGoal(
           id: gId,
           title: goal.title,
           targetAmount: goal.targetAmount,
           savedAmount: goal.savedAmount,
+          accountId: targetAccId,
         );
 
         await financeRepository.saveGoal(
@@ -519,12 +686,13 @@ class AppState extends ChangeNotifier {
   // DECISIONES Y REVISIONES OFFLINE-FIRST
   // =========================================================
 
-  Future<void> saveDecision(String action, String note) => _run(() async {
+  Future<void> saveDecision(String action, String note, {String? accountId}) => _run(() async {
         if (currentUserId == null) return;
         await financeRepository.saveDecision(
           userId: currentUserId!,
           action: action,
           note: note,
+          accountId: accountId ?? activeAccount?.id,
         );
         _backgroundSync();
       });
@@ -719,23 +887,12 @@ class AppState extends ChangeNotifier {
     return financeRepository.getChangeHistory(currentUserId!);
   }
 
-  String _formatAmount(double amount) {
-    final rounded = amount.round().toString();
-    final buffer = StringBuffer();
-    for (var i = 0; i < rounded.length; i++) {
-      final pos = rounded.length - i;
-      buffer.write(rounded[i]);
-      if (pos > 1 && (pos - 1) % 3 == 0) buffer.write('.');
-    }
-    return buffer.toString();
-  }
-
-  Future<void> _run(Future<void> Function() fn) async {
+  Future<T> _run<T>(Future<T> Function() fn) async {
     loading = true;
     error = null;
     notifyListeners();
     try {
-      await fn();
+      return await fn();
     } catch (e) {
       error = e.toString();
       rethrow;

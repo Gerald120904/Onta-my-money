@@ -8,7 +8,6 @@ import 'package:donde_se_fue_mi_plata/core/api/api_client.dart';
 import 'package:donde_se_fue_mi_plata/core/theme/app_theme.dart';
 import 'package:donde_se_fue_mi_plata/data/local/app_database.dart';
 import 'package:donde_se_fue_mi_plata/data/repositories/finance_repository.dart';
-import 'package:donde_se_fue_mi_plata/data/repositories/review_repository.dart';
 import 'package:donde_se_fue_mi_plata/models/models.dart';
 import 'package:donde_se_fue_mi_plata/providers/app_state.dart';
 import 'package:donde_se_fue_mi_plata/screens/more_screen.dart';

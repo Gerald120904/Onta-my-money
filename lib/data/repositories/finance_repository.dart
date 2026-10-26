@@ -78,10 +78,15 @@ class FinanceRepository {
   // TRANSACCIONES LOCALES
   // ==========================================
 
-  Future<List<MoneyTransaction>> getTransactions(String userId) async {
-    final query = db.select(db.localTransactions)
-      ..where((t) => t.userId.equals(userId) & t.isDeleted.equals(false))
-      ..orderBy([(t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc)]);
+  Future<List<MoneyTransaction>> getTransactions(String userId, {String? accountId}) async {
+    var query = db.select(db.localTransactions)
+      ..where((t) => t.userId.equals(userId) & t.isDeleted.equals(false));
+
+    if (accountId != null && accountId.isNotEmpty) {
+      query = query..where((t) => t.accountId.equals(accountId) | t.accountId.isNull());
+    }
+
+    query = query..orderBy([(t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc)]);
 
     final rows = await query.get();
     return rows.map((r) {
@@ -93,6 +98,7 @@ class FinanceRepository {
         description: r.description,
         date: r.date,
         recognized: r.recognized,
+        accountId: r.accountId,
         syncStatus: r.syncStatus,
         version: r.version,
       );
@@ -123,6 +129,7 @@ class FinanceRepository {
             LocalTransactionsCompanion(
               id: Value(transaction.id),
               userId: Value(userId),
+              accountId: Value(transaction.accountId ?? existing?.accountId),
               type: Value(transaction.type),
               category: Value(transaction.category),
               amount: Value(transaction.amount),
@@ -240,13 +247,161 @@ class FinanceRepository {
   }
 
   // ==========================================
+  // CUENTAS FINANCIERAS LOCALES (MONEDA INMUTABLE)
+  // ==========================================
+
+  Future<List<Account>> getAccounts(String userId) async {
+    final rows = await (db.select(db.localAccounts)
+          ..where((a) => a.userId.equals(userId) & a.isArchived.equals(false))
+          ..orderBy([(a) => OrderingTerm(expression: a.createdAt, mode: OrderingMode.asc)]))
+        .get();
+
+    return rows.map((r) => Account(
+      id: r.id,
+      userId: r.userId,
+      name: r.name,
+      currency: r.currency, // Inmutable
+      initialBalance: r.initialBalance,
+      currentBalance: r.initialBalance,
+      color: r.color,
+      icon: r.icon,
+      isDefault: r.isDefault,
+      isArchived: r.isArchived,
+      version: r.version,
+      syncStatus: r.syncStatus,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    )).toList();
+  }
+
+  Future<LocalAccount?> getAccountRaw(String id, String userId) async {
+    final query = db.select(db.localAccounts)
+      ..where((a) => a.id.equals(id) & a.userId.equals(userId));
+    return query.getSingleOrNull();
+  }
+
+  Future<void> saveAccount({
+    required String userId,
+    required Account account,
+    required bool isNew,
+    String? deviceId,
+  }) async {
+    final now = DateTime.now();
+    final opId = _uuid.v4();
+
+    await db.transaction(() async {
+      final existing = await getAccountRaw(account.id, userId);
+      final currentVersion = existing?.version ?? 1;
+
+      // REGLA CRÍTICA: La moneda es estrictamente inmutable.
+      final finalCurrency = existing != null ? existing.currency : account.currency.toUpperCase();
+
+      await db.into(db.localAccounts).insertOnConflictUpdate(
+            LocalAccountsCompanion(
+              id: Value(account.id),
+              userId: Value(userId),
+              name: Value(account.name),
+              currency: Value(finalCurrency),
+              initialBalance: Value(isNew ? account.initialBalance : (existing?.initialBalance ?? account.initialBalance)),
+              openingBalance: Value(isNew ? account.initialBalance : (existing?.openingBalance ?? account.initialBalance)),
+              color: Value(account.color),
+              icon: Value(account.icon),
+              isDefault: Value(account.isDefault),
+              isArchived: Value(account.isArchived),
+              version: Value(currentVersion),
+              syncStatus: const Value('pending'),
+              createdAt: Value(existing?.createdAt ?? now),
+              updatedAt: Value(now),
+            ),
+          );
+
+      // Si se marca como default, desmarcar las demás
+      if (account.isDefault) {
+        await (db.update(db.localAccounts)..where((a) => a.userId.equals(userId) & a.id.isNotValue(account.id)))
+            .write(const LocalAccountsCompanion(isDefault: Value(false)));
+      }
+
+      final payload = {
+        'id': account.id,
+        'user_id': userId,
+        'name': account.name,
+        if (isNew) 'currency': finalCurrency,
+        if (isNew) 'initial_balance': account.initialBalance,
+        'color': account.color,
+        'icon': account.icon,
+        'is_default': account.isDefault,
+        'is_archived': account.isArchived,
+      };
+
+      await db.into(db.localPendingOperations).insert(
+            LocalPendingOperationsCompanion(
+              operationId: Value(opId),
+              userId: Value(userId),
+              deviceId: Value(deviceId),
+              entityType: const Value('account'),
+              entityId: Value(account.id),
+              action: Value(isNew ? 'create' : 'update'),
+              payloadJson: Value(jsonEncode(payload)),
+              baseVersion: Value(currentVersion),
+              status: const Value('pending'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+    });
+  }
+
+  Future<void> deleteAccount({
+    required String userId,
+    required String id,
+    String? deviceId,
+  }) async {
+    final now = DateTime.now();
+    final opId = _uuid.v4();
+
+    await db.transaction(() async {
+      final existing = await getAccountRaw(id, userId);
+      final currentVersion = existing?.version ?? 1;
+
+      await (db.update(db.localAccounts)..where((a) => a.id.equals(id) & a.userId.equals(userId))).write(
+        LocalAccountsCompanion(
+          isArchived: const Value(true),
+          syncStatus: const Value('pending'),
+          updatedAt: Value(now),
+        ),
+      );
+
+      await db.into(db.localPendingOperations).insert(
+            LocalPendingOperationsCompanion(
+              operationId: Value(opId),
+              userId: Value(userId),
+              deviceId: Value(deviceId),
+              entityType: const Value('account'),
+              entityId: Value(id),
+              action: const Value('delete'),
+              payloadJson: const Value('{}'),
+              baseVersion: Value(currentVersion),
+              status: const Value('pending'),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+    });
+  }
+
+  // ==========================================
   // COMPROMISOS LOCALES
   // ==========================================
 
-  Future<List<Commitment>> getCommitments(String userId) async {
-    final query = db.select(db.localCommitments)
-      ..where((c) => c.userId.equals(userId) & c.isDeleted.equals(false))
-      ..orderBy([(c) => OrderingTerm(expression: c.dueDate, mode: OrderingMode.asc)]);
+  Future<List<Commitment>> getCommitments(String userId, {String? accountId}) async {
+    var query = db.select(db.localCommitments)
+      ..where((c) => c.userId.equals(userId) & c.isDeleted.equals(false));
+
+    if (accountId != null && accountId.isNotEmpty) {
+      query = query..where((c) => c.accountId.equals(accountId) | c.accountId.isNull());
+    }
+
+    query = query..orderBy([(c) => OrderingTerm(expression: c.dueDate, mode: OrderingMode.asc)]);
 
     final rows = await query.get();
     return rows.map((r) {
@@ -256,6 +411,7 @@ class FinanceRepository {
         amount: r.amount,
         dueDate: r.dueDate,
         status: r.status,
+        accountId: r.accountId,
         syncStatus: r.syncStatus,
         version: r.version,
       );
@@ -281,6 +437,7 @@ class FinanceRepository {
             LocalCommitmentsCompanion(
               id: Value(commitment.id),
               userId: Value(userId),
+              accountId: Value(commitment.accountId ?? existing?.accountId),
               title: Value(commitment.title),
               amount: Value(commitment.amount),
               dueDate: Value(commitment.dueDate),
@@ -355,10 +512,15 @@ class FinanceRepository {
   // METAS DE AHORRO LOCALES
   // ==========================================
 
-  Future<List<SavingsGoal>> getGoals(String userId) async {
-    final query = db.select(db.localGoals)
-      ..where((g) => g.userId.equals(userId) & g.isDeleted.equals(false))
-      ..orderBy([(g) => OrderingTerm(expression: g.title, mode: OrderingMode.asc)]);
+  Future<List<SavingsGoal>> getGoals(String userId, {String? accountId}) async {
+    var query = db.select(db.localGoals)
+      ..where((g) => g.userId.equals(userId) & g.isDeleted.equals(false));
+
+    if (accountId != null && accountId.isNotEmpty) {
+      query = query..where((g) => g.accountId.equals(accountId) | g.accountId.isNull());
+    }
+
+    query = query..orderBy([(g) => OrderingTerm(expression: g.title, mode: OrderingMode.asc)]);
 
     final rows = await query.get();
     return rows.map((r) {
@@ -367,6 +529,7 @@ class FinanceRepository {
         title: r.title,
         targetAmount: r.targetAmount,
         savedAmount: r.savedAmount,
+        accountId: r.accountId,
         syncStatus: r.syncStatus,
         version: r.version,
       );
@@ -392,6 +555,7 @@ class FinanceRepository {
             LocalGoalsCompanion(
               id: Value(goal.id),
               userId: Value(userId),
+              accountId: Value(goal.accountId ?? existing?.accountId),
               title: Value(goal.title),
               targetAmount: Value(goal.targetAmount),
               savedAmount: Value(goal.savedAmount),
@@ -469,6 +633,7 @@ class FinanceRepository {
     required String userId,
     required String action,
     required String note,
+    String? accountId,
     String? deviceId,
   }) async {
     final now = DateTime.now();
@@ -480,6 +645,7 @@ class FinanceRepository {
             LocalDecisionsCompanion(
               id: Value(id),
               userId: Value(userId),
+              accountId: Value(accountId),
               action: Value(action),
               note: Value(note),
               createdAt: Value(now),
@@ -490,7 +656,12 @@ class FinanceRepository {
             ),
           );
 
-      final payload = {'action': action, 'note': note, 'created_at': now.toIso8601String()};
+      final payload = {
+        'action': action,
+        'note': note,
+        'account_id': accountId,
+        'created_at': now.toIso8601String()
+      };
       await db.into(db.localPendingOperations).insert(
             LocalPendingOperationsCompanion(
               operationId: Value(opId),
@@ -509,10 +680,13 @@ class FinanceRepository {
     });
   }
 
-  Future<List<LocalDecision>> getDecisions(String userId) async {
-    final query = db.select(db.localDecisions)
-      ..where((d) => d.userId.equals(userId) & d.isDeleted.equals(false))
-      ..orderBy([(d) => OrderingTerm(expression: d.createdAt, mode: OrderingMode.desc)]);
+  Future<List<LocalDecision>> getDecisions(String userId, {String? accountId}) async {
+    var query = db.select(db.localDecisions)
+      ..where((d) => d.userId.equals(userId) & d.isDeleted.equals(false));
+    if (accountId != null && accountId.isNotEmpty) {
+      query = query..where((d) => d.accountId.equals(accountId) | d.accountId.isNull());
+    }
+    query = query..orderBy([(d) => OrderingTerm(expression: d.createdAt, mode: OrderingMode.desc)]);
     return query.get();
   }
 
@@ -561,13 +735,35 @@ class FinanceRepository {
   // CÁLCULO DE DASHBOARD LOCAL
   // ==========================================
 
-  Future<DashboardSummary> calculateDashboard(String userId) async {
-    final user = await (db.select(db.localUsers)..where((u) => u.id.equals(userId))).getSingleOrNull();
-    final openingBalance = user?.openingBalance ?? 0.0;
+  Future<DashboardSummary> calculateDashboard(String userId, {String? accountId}) async {
+    LocalAccount? activeAcc;
+    if (accountId != null && accountId.isNotEmpty) {
+      activeAcc = await getAccountRaw(accountId, userId);
+    }
 
-    final txRows = await (db.select(db.localTransactions)
-          ..where((t) => t.userId.equals(userId) & t.isDeleted.equals(false)))
-        .get();
+    if (activeAcc == null) {
+      final userAccounts = await (db.select(db.localAccounts)
+            ..where((a) => a.userId.equals(userId) & a.isArchived.equals(false))
+            ..orderBy([(a) => OrderingTerm(expression: a.isDefault, mode: OrderingMode.desc)]))
+          .get();
+      if (userAccounts.isNotEmpty) {
+        activeAcc = userAccounts.first;
+      }
+    }
+
+    final user = await (db.select(db.localUsers)..where((u) => u.id.equals(userId))).getSingleOrNull();
+    final openingBalance = activeAcc?.initialBalance ?? user?.openingBalance ?? 0.0;
+    final currency = activeAcc?.currency ?? 'CRC';
+    final targetAccId = activeAcc?.id;
+
+    var txQuery = db.select(db.localTransactions)
+      ..where((t) => t.userId.equals(userId) & t.isDeleted.equals(false));
+
+    if (targetAccId != null) {
+      txQuery = txQuery..where((t) => t.accountId.equals(targetAccId) | t.accountId.isNull());
+    }
+
+    final txRows = await txQuery.get();
 
     double income = 0.0;
     double expenses = 0.0;
@@ -582,14 +778,20 @@ class FinanceRepository {
       }
     }
 
-    final commitmentRows = await (db.select(db.localCommitments)
-          ..where((c) => c.userId.equals(userId) & c.isDeleted.equals(false) & c.status.equals('pending')))
-        .get();
+    var commitmentQuery = db.select(db.localCommitments)
+      ..where((c) => c.userId.equals(userId) & c.isDeleted.equals(false) & c.status.equals('pending'));
+    if (targetAccId != null) {
+      commitmentQuery = commitmentQuery..where((c) => c.accountId.equals(targetAccId) | c.accountId.isNull());
+    }
+    final commitmentRows = await commitmentQuery.get();
     final committed = commitmentRows.fold<double>(0.0, (sum, c) => sum + c.amount);
 
-    final goalRows = await (db.select(db.localGoals)
-          ..where((g) => g.userId.equals(userId) & g.isDeleted.equals(false)))
-        .get();
+    var goalQuery = db.select(db.localGoals)
+      ..where((g) => g.userId.equals(userId) & g.isDeleted.equals(false));
+    if (targetAccId != null) {
+      goalQuery = goalQuery..where((g) => g.accountId.equals(targetAccId) | g.accountId.isNull());
+    }
+    final goalRows = await goalQuery.get();
     final saved = goalRows.fold<double>(0.0, (sum, g) => sum + g.savedAmount);
 
     final currentBalance = openingBalance + income - expenses;
@@ -601,6 +803,12 @@ class FinanceRepository {
       ..sort((a, b) => b.total.compareTo(a.total));
 
     return DashboardSummary(
+      accountId: activeAcc?.id,
+      accountName: activeAcc?.name ?? 'Cuenta Principal',
+      currency: currency,
+      openingBalance: openingBalance,
+      income: income,
+      expenses: expenses,
       balance: currentBalance,
       committed: committed,
       saved: saved,

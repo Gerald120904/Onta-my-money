@@ -17,6 +17,7 @@ class LocalUsers extends Table {
 class LocalTransactions extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
+  TextColumn get accountId => text().nullable()();
   TextColumn get type => text()(); // 'income' or 'expense'
   TextColumn get category => text()();
   RealColumn get amount => real()();
@@ -35,6 +36,7 @@ class LocalTransactions extends Table {
 class LocalCommitments extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
+  TextColumn get accountId => text().nullable()();
   TextColumn get title => text()();
   RealColumn get amount => real()();
   DateTimeColumn get dueDate => dateTime()();
@@ -51,6 +53,7 @@ class LocalCommitments extends Table {
 class LocalGoals extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
+  TextColumn get accountId => text().nullable()();
   TextColumn get title => text()();
   RealColumn get targetAmount => real()();
   RealColumn get savedAmount => real()();
@@ -66,6 +69,7 @@ class LocalGoals extends Table {
 class LocalDecisions extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
+  TextColumn get accountId => text().nullable()();
   TextColumn get action => text()();
   TextColumn get note => text()();
   DateTimeColumn get createdAt => dateTime()();
@@ -81,6 +85,7 @@ class LocalDecisions extends Table {
 class LocalReviews extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
+  TextColumn get accountId => text().nullable()();
   DateTimeColumn get start => dateTime()();
   DateTimeColumn get end => dateTime()();
   TextColumn get periodTitle => text()();
@@ -93,6 +98,27 @@ class LocalReviews extends Table {
   TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class LocalAccounts extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get name => text()();
+  TextColumn get currency => text()(); // ISO 4217, e.g. 'CRC', 'USD', 'EUR'
+  RealColumn get initialBalance => real().withDefault(const Constant(0.0))();
+  RealColumn get openingBalance => real().withDefault(const Constant(0.0))();
+  TextColumn get color => text().nullable()();
+  TextColumn get icon => text().nullable()();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  BoolColumn get isArchived => boolean().withDefault(const Constant(false))();
+  IntColumn get version => integer().withDefault(const Constant(1))();
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
