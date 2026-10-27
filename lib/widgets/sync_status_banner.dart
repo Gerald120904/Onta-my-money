@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../core/api/api_client.dart';
 import '../core/sync/sync_status.dart';
 import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
@@ -11,6 +13,28 @@ class SyncStatusBanner extends StatelessWidget {
     super.key,
     required this.state,
   });
+
+  /// blitz.cloud Free solo se despierta con una visita real del navegador.
+  /// Abrir health en una pestana externa mantiene los cambios locales intactos.
+  Future<void> _openWakePage(BuildContext context) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/health');
+    try {
+      final opened = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(opened
+              ? 'Espera a ver healthy en la pestana del servidor, vuelve y pulsa sincronizar.'
+              : 'No se pudo abrir el servidor. Abre ${url.toString()} en tu navegador.'),
+        ),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Abre ${url.toString()} en tu navegador y luego pulsa sincronizar.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +136,12 @@ class SyncStatusBanner extends StatelessWidget {
                   color: Color(0xFF92400E),
                 ),
               ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFFD97706)),
+              tooltip: 'Activar servidor de blitz.cloud en el navegador',
+              visualDensity: VisualDensity.compact,
+              onPressed: () => _openWakePage(context),
             ),
             IconButton(
               icon: const Icon(Icons.refresh_rounded, size: 18, color: Color(0xFFD97706)),
