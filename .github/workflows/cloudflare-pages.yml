@@ -1,0 +1,48 @@
+name: ONTA MY MONEY - Validacion y Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: onta-pages-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Obtener codigo
+        uses: actions/checkout@v4
+      - name: Configurar Flutter estable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Obtener dependencias
+        run: flutter pub get
+      - name: Analisis estatico
+        run: flutter analyze
+      - name: Pruebas Flutter
+        run: flutter test
+      - name: Compilar Flutter Web
+        run: flutter build web --release --dart-define=API_URL=https://onta-my-money-api.gerald.blitz.cloud
+      - name: Preparar Node para Wrangler
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Publicar SOLO en el Pages existente cuando existan credenciales
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning::Compilacion validada, pero no se publico: faltan CLOUDFLARE_API_TOKEN o CLOUDFLARE_ACCOUNT_ID en GitHub."
+            exit 0
+          fi
+          npx --yes wrangler@4 pages deploy build/web --project-name=onta-my-money --branch=main --commit-hash="$GITHUB_SHA"
