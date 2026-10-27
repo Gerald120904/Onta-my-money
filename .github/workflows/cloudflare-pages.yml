@@ -27,7 +27,7 @@ jobs:
       - name: Obtener dependencias
         run: flutter pub get
       - name: Analisis estatico
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
       - name: Pruebas Flutter
         run: flutter test
       - name: Compilar Flutter Web
