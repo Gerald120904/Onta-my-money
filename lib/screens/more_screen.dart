@@ -4,6 +4,8 @@ import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/prototype_ui.dart';
+import 'commitments_screen.dart';
+import 'goals_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
@@ -34,6 +36,38 @@ class MoreScreen extends StatelessWidget {
         PrototypePanel(
           child: Column(
             children: [
+              _OptionTile(
+                icon: Icons.event_note_outlined,
+                title: 'Dinero comprometido',
+                subtitle: 'Gestionar pagos pendientes y obligaciones',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CommitmentsScreen(state: state),
+                    ),
+                  );
+                },
+              ),
+              const Divider(
+                height: 1,
+                color: AppTheme.border,
+              ),
+              _OptionTile(
+                icon: Icons.savings_outlined,
+                title: 'Ahorro',
+                subtitle: 'Metas de ahorro y dinero reservado',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => GoalsScreen(state: state),
+                    ),
+                  );
+                },
+              ),
+              const Divider(
+                height: 1,
+                color: AppTheme.border,
+              ),
               _OptionTile(
                 icon: Icons.sync_rounded,
                 title: 'Sincronización y datos locales',

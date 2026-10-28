@@ -139,6 +139,7 @@ class MoneyCard extends StatelessWidget {
   final bool green;
   final bool blueFill;
   final bool showArrow;
+  final VoidCallback? onTap;
 
   const MoneyCard({
     super.key,
@@ -149,6 +150,7 @@ class MoneyCard extends StatelessWidget {
     this.green = false,
     this.blueFill = false,
     this.showArrow = true,
+    this.onTap,
   });
 
   @override
@@ -171,7 +173,7 @@ class MoneyCard extends StatelessWidget {
     final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
     final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
 
-    return PrototypePanel(
+    final card = PrototypePanel(
       background: background,
       borderColor: border,
       padding: const EdgeInsets.symmetric(
@@ -241,6 +243,20 @@ class MoneyCard extends StatelessWidget {
         ],
       ),
     );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: card,
+        ),
+      );
+    }
+
+    return card;
   }
 }
 

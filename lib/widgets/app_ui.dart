@@ -161,46 +161,33 @@ class PageHeader extends StatelessWidget {
     final textColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
     final subtitleColor = isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600;
 
-    return LayoutBuilder(
-      builder: (context, c) {
-        final heading = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: textColor,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: TextStyle(color: subtitleColor),
-            ),
-          ],
-        );
-
-        if (c.maxWidth < 620) {
-          return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              heading,
-              if (action != null) ...[
-                const SizedBox(height: 14),
-                SizedBox(width: double.infinity, child: action!),
-              ],
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: textColor,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: TextStyle(color: subtitleColor),
+              ),
             ],
-          );
-        }
-
-        return Row(
-          children: [
-            Expanded(child: heading),
-            if (action != null) action!,
-          ],
-        );
-      },
+          ),
+        ),
+        if (action != null) ...[
+          const SizedBox(width: 12),
+          action!,
+        ],
+      ],
     );
   }
 }

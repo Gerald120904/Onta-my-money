@@ -10,6 +10,8 @@ import 'package:donde_se_fue_mi_plata/data/local/app_database.dart';
 import 'package:donde_se_fue_mi_plata/data/repositories/finance_repository.dart';
 import 'package:donde_se_fue_mi_plata/models/models.dart';
 import 'package:donde_se_fue_mi_plata/providers/app_state.dart';
+import 'package:donde_se_fue_mi_plata/screens/commitments_screen.dart';
+import 'package:donde_se_fue_mi_plata/screens/goals_screen.dart';
 import 'package:donde_se_fue_mi_plata/screens/more_screen.dart';
 import 'package:donde_se_fue_mi_plata/screens/notifications_screen.dart';
 import 'package:donde_se_fue_mi_plata/screens/profile_screen.dart';
@@ -178,6 +180,30 @@ void main() {
       expect(find.text('Sesión activa'), findsOneWidget);
       expect(find.text('Editar'), findsOneWidget);
       expect(find.text('Actualizar contraseña'), findsOneWidget);
+    });
+
+    testWidgets('1.3 Dinero comprometido y Ahorro abren sus pantallas desde MoreScreen', (tester) async {
+      await tester.pumpWidget(buildTestApp(MoreScreen(state: appState)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dinero comprometido'), findsOneWidget);
+      expect(find.text('Ahorro'), findsOneWidget);
+
+      // 1. Abrir Dinero comprometido
+      await tester.tap(find.text('Dinero comprometido'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CommitmentsScreen), findsOneWidget);
+      expect(find.text('Compromisos'), findsOneWidget);
+
+      // Regresar a MoreScreen
+      await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+      await tester.pumpAndSettle();
+
+      // 2. Abrir Ahorro
+      await tester.tap(find.text('Ahorro'));
+      await tester.pumpAndSettle();
+      expect(find.byType(GoalsScreen), findsOneWidget);
+      expect(find.text('Separá dinero para tus metas antes de gastarlo.'), findsOneWidget);
     });
   });
 

@@ -6,6 +6,8 @@ import '../models/models.dart';
 import '../providers/app_state.dart';
 import '../widgets/account_selector.dart';
 import '../widgets/prototype_ui.dart';
+import 'commitments_screen.dart';
+import 'goals_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final AppState state;
@@ -81,7 +83,7 @@ class DashboardScreen extends StatelessWidget {
   // =========================================================
 
   double get _committed {
-    return state.dashboard?.committed ?? 0;
+    return state.dashboard?.committed ?? state.committedAmount;
   }
 
   // =========================================================
@@ -89,7 +91,7 @@ class DashboardScreen extends StatelessWidget {
   // =========================================================
 
   double get _saved {
-    return state.dashboard?.saved ?? 0;
+    return state.dashboard?.saved ?? state.savedAmount;
   }
 
   // =========================================================
@@ -294,16 +296,24 @@ class DashboardScreen extends StatelessWidget {
                 // =================================================
 
                 Semantics(
+                  button: true,
                   container: true,
                   label:
-                      'Dinero comprometido. ${money(_committed)}. Dinero reservado para pagos y compromisos pendientes.',
+                      'Dinero comprometido. ${money(_committed)}. Reservado para pagos y compromisos pendientes.',
                   child: ExcludeSemantics(
                     child: MoneyCard(
                       title: 'Dinero comprometido',
                       amount: _committed,
                       subtitle: 'Reservado para pagos y compromisos pendientes',
                       icon: Icons.event_note_outlined,
-                      showArrow: false,
+                      showArrow: true,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CommitmentsScreen(state: state),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -315,6 +325,7 @@ class DashboardScreen extends StatelessWidget {
                 // =================================================
 
                 Semantics(
+                  button: true,
                   container: true,
                   label:
                       'Ahorro reservado. ${money(_saved)}. Dinero protegido para tus metas.',
@@ -324,7 +335,14 @@ class DashboardScreen extends StatelessWidget {
                       amount: _saved,
                       subtitle: 'Dinero protegido para tus metas',
                       icon: Icons.savings_outlined,
-                      showArrow: false,
+                      showArrow: true,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => GoalsScreen(state: state),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
