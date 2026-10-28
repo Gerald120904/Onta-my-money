@@ -89,14 +89,20 @@ class AppState extends ChangeNotifier {
   // =========================================================
 
   double get totalIncome {
+    final accId = activeAccount?.id;
     return transactions
-        .where((t) => t.type.toLowerCase() == 'income')
+        .where((t) =>
+            t.type.toLowerCase() == 'income' &&
+            (accId == null || t.accountId == null || t.accountId == accId))
         .fold<double>(0.0, (total, t) => total + t.amount);
   }
 
   double get totalExpenses {
+    final accId = activeAccount?.id;
     return transactions
-        .where((t) => t.type.toLowerCase() == 'expense')
+        .where((t) =>
+            t.type.toLowerCase() == 'expense' &&
+            (accId == null || t.accountId == null || t.accountId == accId))
         .fold<double>(0.0, (total, t) => total + t.amount);
   }
 
@@ -106,13 +112,20 @@ class AppState extends ChangeNotifier {
   }
 
   double get committedAmount {
+    final accId = activeAccount?.id;
     return commitments
-        .where((c) => c.status.toLowerCase() == 'pending')
+        .where((c) =>
+            c.status.toLowerCase() == 'pending' &&
+            (accId == null || c.accountId == null || c.accountId == accId))
         .fold<double>(0.0, (total, c) => total + c.amount);
   }
 
   double get savedAmount {
-    return goals.fold<double>(0.0, (total, g) => total + g.savedAmount);
+    final accId = activeAccount?.id;
+    return goals
+        .where((g) =>
+            accId == null || g.accountId == null || g.accountId == accId)
+        .fold<double>(0.0, (total, g) => total + g.savedAmount);
   }
 
   double get availableBalance {
@@ -537,21 +550,21 @@ class AppState extends ChangeNotifier {
         if (currentUserId == null) throw Exception('No hay sesión activa.');
         if (transaction.amount <= 0) throw Exception('El monto debe ser mayor que 0.');
 
-        // Saldo proyectado incluyendo openingBalance de la cuenta activa
-        double balanceBefore = currentBalance;
+        // Disponible real proyectado después de descontar compromisos pendientes y ahorro reservado
+        double availableBefore = availableBalance;
         if (!create) {
           final old = transactions.firstWhere((t) => t.id == transaction.id, orElse: () => transaction);
           if (old.id == transaction.id) {
             if (old.type.toLowerCase() == 'expense') {
-              balanceBefore += old.amount;
+              availableBefore += old.amount;
             } else if (old.type.toLowerCase() == 'income') {
-              balanceBefore -= old.amount;
+              availableBefore -= old.amount;
             }
           }
         }
 
         final newType = transaction.type.toLowerCase();
-        double projected = balanceBefore;
+        double projected = availableBefore;
         if (newType == 'expense') {
           projected -= transaction.amount;
         } else if (newType == 'income') {
@@ -559,7 +572,7 @@ class AppState extends ChangeNotifier {
         }
 
         if (newType == 'expense' && projected < 0) {
-          final available = balanceBefore < 0 ? 0.0 : balanceBefore;
+          final available = availableBefore < 0 ? 0.0 : availableBefore;
           throw Exception(
             'No podés registrar este gasto. Tu disponible real es de ${CurrencyFormatter.format(available)}.',
           );
@@ -667,6 +680,38 @@ class AppState extends ChangeNotifier {
           userId: currentUserId!,
           goal: stable,
           isNew: create || goal.id.isEmpty,
+        );
+
+        await _loadFromLocalDatabase(currentUserId!);
+        notifyListeners();
+        _backgroundSync();
+      });
+
+  Future<void> contributeToGoal(String goalId, double amount) => _run(() async {
+        if (currentUserId == null) throw Exception('No hay sesión activa.');
+        if (amount <= 0) throw Exception('El monto debe ser mayor que 0.');
+        if (amount > availableBalance) {
+          final available = availableBalance < 0 ? 0.0 : availableBalance;
+          throw Exception(
+            'No podés aportar más de tu disponible real (${CurrencyFormatter.format(available)}).',
+          );
+        }
+
+        final targetGoal = goals.firstWhere(
+          (g) => g.id == goalId,
+          orElse: () => throw Exception('Meta no encontrada.'),
+        );
+
+        final targetAccId = targetGoal.accountId ?? activeAccount?.id;
+        final updatedGoal = targetGoal.copyWith(
+          savedAmount: targetGoal.savedAmount + amount,
+          accountId: targetAccId,
+        );
+
+        await financeRepository.saveGoal(
+          userId: currentUserId!,
+          goal: updatedGoal,
+          isNew: false,
         );
 
         await _loadFromLocalDatabase(currentUserId!);

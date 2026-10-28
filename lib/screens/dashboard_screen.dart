@@ -35,10 +35,10 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // =========================================================
-  // TOTAL INGRESOS
+  // INDICADORES MENSUALES (SEPARADOS DEL SALDO HISTÓRICO)
   // =========================================================
 
-  double get _totalIncome {
+  double get _monthIncome {
     return _monthTransactions
         .where(
           (transaction) =>
@@ -52,11 +52,7 @@ class DashboardScreen extends StatelessWidget {
         );
   }
 
-  // =========================================================
-  // TOTAL GASTOS
-  // =========================================================
-
-  double get _totalExpenses {
+  double get _monthExpenses {
     return _monthTransactions
         .where(
           (transaction) =>
@@ -70,12 +66,15 @@ class DashboardScreen extends StatelessWidget {
         );
   }
 
+  double get _totalIncome => _monthIncome;
+  double get _totalExpenses => _monthExpenses;
+
   // =========================================================
-  // SALDO ACTUAL
+  // SALDO ACTUAL (HISTÓRICO REAL DE LA CUENTA ACTIVA)
   // =========================================================
 
   double get _currentBalance {
-    return _totalIncome - _totalExpenses;
+    return state.dashboard?.balance ?? state.currentBalance;
   }
 
   // =========================================================
@@ -99,10 +98,8 @@ class DashboardScreen extends StatelessWidget {
   // =========================================================
 
   double get _available {
-    final result =
-        _currentBalance - _committed - _saved;
-
-    return result;
+    return state.dashboard?.available ??
+        (_currentBalance - _committed - _saved);
   }
 
   // =========================================================

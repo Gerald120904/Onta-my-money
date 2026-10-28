@@ -108,6 +108,111 @@ class GoalsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> contribute(BuildContext context, SavingsGoal item) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
+    final isCrc = (state.activeAccount?.currency ?? 'CRC').toUpperCase() == 'CRC';
+
+    final key = GlobalKey<FormState>();
+    final amount = TextEditingController();
+
+    final ok = await AppDialogs.form<bool>(
+      context,
+      title: 'Aportar a ${item.title}',
+      child: Form(
+        key: key,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF132B5C) : const Color(0xFFE7F2FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF263859) : const Color(0xFFBAE6FD),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.account_balance_wallet_outlined,
+                    size: 18,
+                    color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Disponible real: ${money(state.availableBalance)}',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            AppField(
+              controller: amount,
+              label: 'Monto a aportar',
+              hint: isCrc ? 'Ej. 10000' : 'Ej. 25.50',
+              keyboardType: TextInputType.numberWithOptions(decimal: !isCrc),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) {
+                  return 'Campo obligatorio';
+                }
+                final val = double.tryParse(v.trim().replaceAll(',', ''));
+                if (val == null || val <= 0) {
+                  return 'Ingresá un monto mayor a 0';
+                }
+                if (val > state.availableBalance) {
+                  return 'Supera el disponible real (${money(state.availableBalance)})';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () async {
+                      if (!key.currentState!.validate()) return;
+                      final val = double.parse(amount.text.trim().replaceAll(',', ''));
+                      try {
+                        await state.contributeToGoal(item.id, val);
+                        if (context.mounted) Navigator.pop(context, true);
+                      } catch (e) {
+                        if (context.mounted) {
+                          AppAlerts.error(context, e.toString());
+                        }
+                      }
+                    },
+                    child: const Text('Aportar'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (ok == true && context.mounted) {
+      AppAlerts.success(context, 'Aporte registrado con éxito');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -228,11 +333,66 @@ class GoalsScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
-                                '${(p * 100).round()}% completado',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: textColor,
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${(p * 100).round()}% completado',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                  if (x.savedAmount >= x.targetAmount)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: (isDark
+                                                ? const Color(0xFF4ADE80)
+                                                : AppTheme.success)
+                                            .withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '¡Meta alcanzada!',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? const Color(0xFF4ADE80)
+                                              : AppTheme.success,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => contribute(context, x),
+                                  icon: const Icon(
+                                    Icons.add_circle_outline_rounded,
+                                    size: 18,
+                                  ),
+                                  label: const Text('+ Aportar'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: isDark
+                                        ? const Color(0xFF60A5FA)
+                                        : AppTheme.primary,
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? const Color(0xFF3B82F6)
+                                          : AppTheme.primary,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
