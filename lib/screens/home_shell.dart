@@ -20,12 +20,10 @@ class HomeShell extends StatefulWidget {
   });
 
   @override
-  State<HomeShell> createState() =>
-      _HomeShellState();
+  State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState
-    extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell> {
   int index = 0;
 
   @override
@@ -45,14 +43,11 @@ class _HomeShellState
           reviewContext,
         ) {
           return review.ReviewScreen(
-            state:
-                widget.state,
-
+            state: widget.state,
             onCompleted: (
               result,
             ) {
-              widget.state
-                  .saveReviewResult(
+              widget.state.saveReviewResult(
                 result,
               );
 
@@ -64,7 +59,6 @@ class _HomeShellState
                 index = 2;
               });
             },
-
             onExit: () {
               Navigator.of(
                 reviewContext,
@@ -98,87 +92,57 @@ class _HomeShellState
   ) {
     final pages = [
       DashboardScreen(
-        state:
-            widget.state,
-        onReview:
-            goReview,
+        state: widget.state,
+        onReview: goReview,
       ),
-
       TransactionsScreen(
-        state:
-            widget.state,
+        state: widget.state,
       ),
-
       reports.ReportsScreen(
-        state:
-            widget.state,
-        onCreateReview:
-            goReview,
+        state: widget.state,
+        onCreateReview: goReview,
       ),
-
       MoreScreen(
-        state:
-            widget.state,
+        state: widget.state,
       ),
     ];
 
     const destinations = [
       NavigationDestination(
-        icon:
-            Icon(
+        icon: Icon(
           Icons.home_outlined,
         ),
-        selectedIcon:
-            Icon(
+        selectedIcon: Icon(
           Icons.home_rounded,
         ),
-        label:
-            'Inicio',
+        label: 'Inicio',
       ),
-
       NavigationDestination(
-        icon:
-            Icon(
-          Icons
-              .receipt_long_outlined,
+        icon: Icon(
+          Icons.receipt_long_outlined,
         ),
-        selectedIcon:
-            Icon(
-          Icons
-              .receipt_long_rounded,
+        selectedIcon: Icon(
+          Icons.receipt_long_rounded,
         ),
-        label:
-            'Movimientos',
+        label: 'Movimientos',
       ),
-
       NavigationDestination(
-        icon:
-            Icon(
-          Icons
-              .insert_chart_outlined,
+        icon: Icon(
+          Icons.insert_chart_outlined,
         ),
-        selectedIcon:
-            Icon(
-          Icons
-              .insert_chart_rounded,
+        selectedIcon: Icon(
+          Icons.insert_chart_rounded,
         ),
-        label:
-            'Reportes',
+        label: 'Reportes',
       ),
-
       NavigationDestination(
-        icon:
-            Icon(
-          Icons
-              .more_horiz_rounded,
+        icon: Icon(
+          Icons.more_horiz_rounded,
         ),
-        selectedIcon:
-            Icon(
-          Icons
-              .more_horiz_rounded,
+        selectedIcon: Icon(
+          Icons.more_horiz_rounded,
         ),
-        label:
-            'Más',
+        label: 'Más',
       ),
     ];
 
@@ -187,9 +151,7 @@ class _HomeShellState
         context,
         constraints,
       ) {
-        final desktop =
-            constraints.maxWidth >=
-                900;
+        final desktop = constraints.maxWidth >= 900;
 
         double maxWidth;
 
@@ -206,17 +168,12 @@ class _HomeShellState
             maxWidth = 470;
         }
 
-        final content =
-            SafeArea(
+        final content = SafeArea(
           child: Align(
-            alignment:
-                Alignment.topCenter,
-            child:
-                ConstrainedBox(
-              constraints:
-                  BoxConstraints(
-                maxWidth:
-                    maxWidth,
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: maxWidth,
               ),
               child: Column(
                 children: [
@@ -230,82 +187,52 @@ class _HomeShellState
 
         if (!desktop) {
           return Scaffold(
-            backgroundColor:
-                AppTheme.background,
-            body:
-                content,
-            bottomNavigationBar:
-                NavigationBar(
-              selectedIndex:
-                  index,
-              onDestinationSelected:
-                  changePage,
-              destinations:
-                  destinations,
+            backgroundColor: AppTheme.bg(context),
+            body: content,
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: index,
+              onDestinationSelected: changePage,
+              destinations: destinations,
             ),
           );
         }
 
         return Scaffold(
-          backgroundColor:
-              AppTheme.background,
+          backgroundColor: AppTheme.bg(context),
           body: Row(
             children: [
               NavigationRail(
-                selectedIndex:
-                    index,
-                labelType:
-                    NavigationRailLabelType
-                        .all,
-                onDestinationSelected:
-                    changePage,
-                leading:
-                    const Padding(
-                  padding:
-                      EdgeInsets
-                          .symmetric(
-                    vertical:
-                        16,
+                selectedIndex: index,
+                labelType: NavigationRailLabelType.all,
+                onDestinationSelected: changePage,
+                leading: const Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 16,
                   ),
-                  child:
-                      AppLogo.small(
-                    size:
-                        48,
-                    showBadgeBackground:
-                        true,
+                  child: AppLogo.small(
+                    size: 48,
+                    showBadgeBackground: true,
                   ),
                 ),
-                destinations:
-                    destinations
-                        .map(
-                          (
-                            destination,
-                          ) {
-                            return NavigationRailDestination(
-                              icon:
-                                  destination
-                                      .icon,
-                              selectedIcon:
-                                  destination
-                                      .selectedIcon,
-                              label:
-                                  Text(
-                                destination
-                                    .label,
-                              ),
-                            );
-                          },
-                        )
-                        .toList(),
+                destinations: destinations.map(
+                  (
+                    destination,
+                  ) {
+                    return NavigationRailDestination(
+                      icon: destination.icon,
+                      selectedIcon: destination.selectedIcon,
+                      label: Text(
+                        destination.label,
+                      ),
+                    );
+                  },
+                ).toList(),
               ),
-
               const VerticalDivider(
                 width: 1,
               ),
-
               Expanded(
-                child:
-                    content,
+                child: content,
               ),
             ],
           ),

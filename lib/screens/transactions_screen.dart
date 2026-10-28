@@ -17,8 +17,7 @@ class TransactionsScreen extends StatefulWidget {
   });
 
   @override
-  State<TransactionsScreen> createState() =>
-      _TransactionsScreenState();
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
@@ -26,8 +25,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   String categoryFilter = 'Todos';
   String searchQuery = '';
 
-  final TextEditingController _searchController =
-      TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   bool get _hasActiveFilters =>
       searchQuery.trim().isNotEmpty ||
@@ -110,14 +108,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   Future<void> _deleteTransaction(
     MoneyTransaction transaction,
   ) async {
-    final isIncome =
-        transaction.type.toLowerCase() == 'income';
+    final isIncome = transaction.type.toLowerCase() == 'income';
 
     final confirmed = await AppDialogs.confirm(
       context,
-      title: isIncome
-          ? 'Eliminar ingreso'
-          : 'Eliminar gasto',
+      title: isIncome ? 'Eliminar ingreso' : 'Eliminar gasto',
       message:
           '¿Querés eliminar ${transaction.category} por ${money(transaction.amount)}?',
       confirmText: 'Eliminar',
@@ -193,8 +188,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   List<MoneyTransaction> get _expenses {
     return _transactions
         .where(
-          (transaction) =>
-              transaction.type.toLowerCase() == 'expense',
+          (transaction) => transaction.type.toLowerCase() == 'expense',
         )
         .toList();
   }
@@ -202,8 +196,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   List<MoneyTransaction> get _incomes {
     return _transactions
         .where(
-          (transaction) =>
-              transaction.type.toLowerCase() == 'income',
+          (transaction) => transaction.type.toLowerCase() == 'income',
         )
         .toList();
   }
@@ -215,9 +208,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (typeFilter == 'Gastos') {
       result = result
           .where(
-            (transaction) =>
-                transaction.type.toLowerCase() ==
-                'expense',
+            (transaction) => transaction.type.toLowerCase() == 'expense',
           )
           .toList();
     }
@@ -225,9 +216,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (typeFilter == 'Ingresos') {
       result = result
           .where(
-            (transaction) =>
-                transaction.type.toLowerCase() ==
-                'income',
+            (transaction) => transaction.type.toLowerCase() == 'income',
           )
           .toList();
     }
@@ -249,11 +238,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (query.isNotEmpty) {
       result = result.where(
         (transaction) {
-          final isIncome =
-              transaction.type.toLowerCase() == 'income';
+          final isIncome = transaction.type.toLowerCase() == 'income';
 
-          final typeLabel =
-              isIncome ? 'ingreso' : 'gasto';
+          final typeLabel = isIncome ? 'ingreso' : 'gasto';
 
           final searchableText = [
             transaction.category,
@@ -273,16 +260,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   double get _totalExpenses {
     return _expenses.fold<double>(
       0,
-      (total, transaction) =>
-          total + transaction.amount,
+      (total, transaction) => total + transaction.amount,
     );
   }
 
   double get _totalIncome {
     return _incomes.fold<double>(
       0,
-      (total, transaction) =>
-          total + transaction.amount,
+      (total, transaction) => total + transaction.amount,
     );
   }
 
@@ -413,8 +398,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return RefreshIndicator(
       onRefresh: _refresh,
       child: ListView(
-        physics:
-            const AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(
           18,
           18,
@@ -449,8 +433,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               Expanded(
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor:
-                        AppTheme.primary,
+                    backgroundColor: AppTheme.primary,
                   ),
                   onPressed: widget.state.loading
                       ? null
@@ -460,22 +443,18 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                           );
                         },
                   icon: const Icon(
-                    Icons
-                        .remove_circle_outline_rounded,
+                    Icons.remove_circle_outline_rounded,
                   ),
                   label: const Text(
                     'Gasto',
                   ),
                 ),
               ),
-
               const SizedBox(width: 10),
-
               Expanded(
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor:
-                        AppTheme.success,
+                    backgroundColor: AppTheme.success,
                   ),
                   onPressed: widget.state.loading
                       ? null
@@ -485,8 +464,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                           );
                         },
                   icon: const Icon(
-                    Icons
-                        .add_circle_outline_rounded,
+                    Icons.add_circle_outline_rounded,
                   ),
                   label: const Text(
                     'Ingreso',
@@ -502,12 +480,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           // BÚSQUEDA RÁPIDA
           // ===================================================
 
-          const Text(
+          Text(
             'Buscar y filtrar',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.5,
               fontWeight: FontWeight.w900,
-              color: AppTheme.text,
+              color: AppTheme.textColor(context),
             ),
           ),
 
@@ -547,7 +525,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
           if (_hasActiveFilters) ...[
             const SizedBox(height: 8),
-
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
@@ -569,12 +546,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           // FILTRO POR TIPO
           // ===================================================
 
-          const Text(
+          Text(
             'Tipo de movimiento',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.5,
               fontWeight: FontWeight.w900,
-              color: AppTheme.text,
+              color: AppTheme.textColor(context),
             ),
           ),
 
@@ -585,8 +562,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               Expanded(
                 child: _TypeFilterButton(
                   label: 'Todos',
-                  selected:
-                      typeFilter == 'Todos',
+                  selected: typeFilter == 'Todos',
                   onTap: () {
                     setState(() {
                       typeFilter = 'Todos';
@@ -595,14 +571,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   },
                 ),
               ),
-
               const SizedBox(width: 8),
-
               Expanded(
                 child: _TypeFilterButton(
                   label: 'Gastos',
-                  selected:
-                      typeFilter == 'Gastos',
+                  selected: typeFilter == 'Gastos',
                   onTap: () {
                     setState(() {
                       typeFilter = 'Gastos';
@@ -611,14 +584,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   },
                 ),
               ),
-
               const SizedBox(width: 8),
-
               Expanded(
                 child: _TypeFilterButton(
                   label: 'Ingresos',
-                  selected:
-                      typeFilter == 'Ingresos',
+                  selected: typeFilter == 'Ingresos',
                   green: true,
                   onTap: () {
                     setState(() {
@@ -637,12 +607,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           // FILTRO CATEGORÍA
           // ===================================================
 
-          const Text(
+          Text(
             'Filtrar por categoría',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 13.5,
               fontWeight: FontWeight.w900,
-              color: AppTheme.text,
+              color: AppTheme.textColor(context),
             ),
           ),
 
@@ -652,17 +622,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                for (final category
-                    in _availableCategories)
+                for (final category in _availableCategories)
                   _CategoryChip(
                     label: category,
-                    selected:
-                        categoryFilter ==
-                        category,
+                    selected: categoryFilter == category,
                     onTap: () {
                       setState(() {
-                        categoryFilter =
-                            category;
+                        categoryFilter = category;
                       });
                     },
                   ),
@@ -678,38 +644,31 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Movimientos',
                   style: TextStyle(
                     fontSize: 17,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: AppTheme.text,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
               ),
-
               Container(
-                padding:
-                    const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 10,
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color:
-                      const Color(0xFFEAF3FF),
-                  borderRadius:
-                      BorderRadius.circular(20),
+                  color: AppTheme.tintPrimary(context),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${transactions.length}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color:
-                        AppTheme.primary,
-                    fontWeight:
-                        FontWeight.w900,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppTheme.primaryColor(context),
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
@@ -742,24 +701,18 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ...transactions.map(
               (transaction) {
                 return Padding(
-                  padding:
-                      const EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     bottom: 10,
                   ),
-                  child:
-                      _TransactionCard(
-                    icon:
-                        _iconForCategory(
+                  child: _TransactionCard(
+                    icon: _iconForCategory(
                       transaction.category,
                     ),
-                    transaction:
-                        transaction,
+                    transaction: transaction,
                     onEdit: () {
                       _openTransactionForm(
-                        type:
-                            transaction.type,
-                        transaction:
-                            transaction,
+                        type: transaction.type,
+                        transaction: transaction,
                       );
                     },
                     onDelete: () {
@@ -794,13 +747,14 @@ class _SummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = AppTheme.isDarkMode(context);
     final isPositive = balance >= 0;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
-    final borderColor = isDark ? const Color(0xFF263859) : AppTheme.border;
-    final panelBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final balanceBg = isDark ? const Color(0xFF0F1A30) : const Color(0xFFF8FAFD);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final borderColor = AppTheme.borderColor(context);
+    final panelBg = AppTheme.cardBg(context);
+    final balanceBg =
+        isDark ? const Color(0xFF0F1A30) : const Color(0xFFF8FAFD);
 
     return PrototypePanel(
       background: panelBg,
@@ -822,14 +776,13 @@ class _SummarySection extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w900,
-                  color: textColor, // WCAG AA compliant contrast in light and dark
+                  color:
+                      textColor, // WCAG AA compliant contrast in light and dark
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 15),
-
           Row(
             children: [
               Expanded(
@@ -839,12 +792,12 @@ class _SummarySection extends StatelessWidget {
                   description: 'Dinero recibido',
                   amount: income,
                   color: isDark ? const Color(0xFF4ADE80) : AppTheme.success,
-                  background: isDark ? const Color(0xFF0F3A2A) : const Color(0xFFE9FFF2),
+                  background: isDark
+                      ? const Color(0xFF0F3A2A)
+                      : const Color(0xFFE9FFF2),
                 ),
               ),
-
               const SizedBox(width: 10),
-
               Expanded(
                 child: _SummaryValue(
                   icon: Icons.remove_circle_outline_rounded,
@@ -852,14 +805,14 @@ class _SummarySection extends StatelessWidget {
                   description: 'Dinero utilizado',
                   amount: expenses,
                   color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
-                  background: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF),
+                  background: isDark
+                      ? const Color(0xFF1E3A8A)
+                      : const Color(0xFFEAF3FF),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 10),
-
           Semantics(
             container: true,
             label:
@@ -886,12 +839,14 @@ class _SummarySection extends StatelessWidget {
                           : Icons.warning_amber_rounded,
                       size: 20,
                       color: isPositive
-                          ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
-                          : (isDark ? const Color(0xFFF87171) : Colors.red.shade700),
+                          ? (isDark
+                              ? const Color(0xFF4ADE80)
+                              : AppTheme.success)
+                          : (isDark
+                              ? const Color(0xFFF87171)
+                              : Colors.red.shade700),
                     ),
-
                     const SizedBox(width: 8),
-
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -918,17 +873,19 @@ class _SummarySection extends StatelessWidget {
                         ],
                       ),
                     ),
-
                     const SizedBox(width: 8),
-
                     Text(
                       money(balance),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                         color: isPositive
-                            ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
-                            : (isDark ? const Color(0xFFF87171) : Colors.red.shade700),
+                            ? (isDark
+                                ? const Color(0xFF4ADE80)
+                                : AppTheme.success)
+                            : (isDark
+                                ? const Color(0xFFF87171)
+                                : Colors.red.shade700),
                       ),
                     ),
                   ],
@@ -1002,9 +959,7 @@ class _SummaryValue extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 3),
-
               Text(
                 description,
                 style: TextStyle(
@@ -1012,9 +967,7 @@ class _SummaryValue extends StatelessWidget {
                   color: mutedColor,
                 ),
               ),
-
               const SizedBox(height: 7),
-
               FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
@@ -1063,19 +1016,17 @@ class _TransactionCard extends StatelessWidget {
         ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
         : (isDark ? const Color(0xFFF87171) : Colors.red.shade700);
 
-    final iconBackground = isIncome
-        ? (isDark ? const Color(0xFF0F3A2A) : const Color(0xFFE9FFF2))
-        : (isDark ? const Color(0xFF3F1218) : const Color(0xFFFFF1F1));
+    final iconBackground =
+        isIncome ? AppTheme.tintSuccess(context) : AppTheme.tintError(context);
 
-    final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final cardBorder = isDark ? const Color(0xFF263859) : AppTheme.border;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
+    final cardBg = AppTheme.cardBg(context);
+    final cardBorder = AppTheme.borderColor(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
 
     final description = transaction.description.trim();
-    final recognizedLabel = !isIncome && !transaction.recognized
-        ? 'Movimiento no reconocido'
-        : '';
+    final recognizedLabel =
+        !isIncome && !transaction.recognized ? 'Movimiento no reconocido' : '';
 
     return Semantics(
       container: true,
@@ -1149,7 +1100,9 @@ class _TransactionCard extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                isIncome ? Icons.add_rounded : Icons.remove_rounded,
+                                isIncome
+                                    ? Icons.add_rounded
+                                    : Icons.remove_rounded,
                                 size: 11,
                                 color: accent,
                               ),
@@ -1203,10 +1156,14 @@ class _TransactionCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF422006) : const Color(0xFFFFF7E8),
+                                color: isDark
+                                    ? const Color(0xFF422006)
+                                    : const Color(0xFFFFF7E8),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: isDark ? const Color(0xFFB45309) : Colors.orange.shade700,
+                                  color: isDark
+                                      ? const Color(0xFFB45309)
+                                      : Colors.orange.shade700,
                                 ),
                               ),
                               child: Row(
@@ -1215,14 +1172,18 @@ class _TransactionCard extends StatelessWidget {
                                   Icon(
                                     Icons.help_outline_rounded,
                                     size: 13,
-                                    color: isDark ? const Color(0xFFFBBF24) : Colors.orange.shade800,
+                                    color: isDark
+                                        ? const Color(0xFFFBBF24)
+                                        : Colors.orange.shade800,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'MOVIMIENTO NO RECONOCIDO',
                                     style: TextStyle(
                                       fontSize: 8.5,
-                                      color: isDark ? const Color(0xFFFDE68A) : Colors.orange.shade900,
+                                      color: isDark
+                                          ? const Color(0xFFFDE68A)
+                                          : Colors.orange.shade900,
                                       fontWeight: FontWeight.w900,
                                     ),
                                   ),
@@ -1249,9 +1210,7 @@ class _TransactionCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
-                          color: isIncome
-                              ? accent
-                              : textColor,
+                          color: isIncome ? accent : textColor,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1270,15 +1229,12 @@ class _TransactionCard extends StatelessWidget {
                 // MENÚ
 
                 Semantics(
-                  label:
-                      'Opciones de ${transaction.category}',
+                  label: 'Opciones de ${transaction.category}',
                   button: true,
-                  child:
-                      PopupMenuButton<String>(
+                  child: PopupMenuButton<String>(
                     tooltip: 'Opciones',
                     icon: const Icon(
-                      Icons
-                          .more_vert_rounded,
+                      Icons.more_vert_rounded,
                       color: AppTheme.muted,
                     ),
                     onSelected: (value) {
@@ -1286,20 +1242,17 @@ class _TransactionCard extends StatelessWidget {
                         onEdit();
                       }
 
-                      if (value ==
-                          'delete') {
+                      if (value == 'delete') {
                         onDelete();
                       }
                     },
-                    itemBuilder: (_) =>
-                        const [
+                    itemBuilder: (_) => const [
                       PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
                             Icon(
-                              Icons
-                                  .edit_outlined,
+                              Icons.edit_outlined,
                               size: 19,
                             ),
                             SizedBox(
@@ -1309,27 +1262,22 @@ class _TransactionCard extends StatelessWidget {
                           ],
                         ),
                       ),
-
                       PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
                             Icon(
-                              Icons
-                                  .delete_outline_rounded,
+                              Icons.delete_outline_rounded,
                               size: 19,
-                              color:
-                                  Colors.red,
+                              color: Colors.red,
                             ),
                             SizedBox(
                               width: 10,
                             ),
                             Text(
                               'Eliminar',
-                              style:
-                                  TextStyle(
-                                color:
-                                    Colors.red,
+                              style: TextStyle(
+                                color: Colors.red,
                               ),
                             ),
                           ],
@@ -1365,44 +1313,35 @@ class _TypeFilterButton extends StatefulWidget {
   });
 
   @override
-  State<_TypeFilterButton> createState() =>
-      _TypeFilterButtonState();
+  State<_TypeFilterButton> createState() => _TypeFilterButtonState();
 }
 
-class _TypeFilterButtonState
-    extends State<_TypeFilterButton> {
+class _TypeFilterButtonState extends State<_TypeFilterButton> {
   bool _hasFocus = false;
 
   @override
   Widget build(BuildContext context) {
-    final accent = widget.green
-        ? AppTheme.success
-        : AppTheme.primary;
+    final accent = widget.green ? AppTheme.success : AppTheme.primary;
 
     return Semantics(
       button: true,
       selected: widget.selected,
-      label:
-          'Filtro ${widget.label}${widget.selected ? ', seleccionado' : ''}',
+      label: 'Filtro ${widget.label}${widget.selected ? ', seleccionado' : ''}',
       child: AnimatedContainer(
         duration: const Duration(
           milliseconds: 120,
         ),
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
-          borderRadius:
-              BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: _hasFocus
-                ? AppTheme.primaryDark
-                : Colors.transparent,
+            color: _hasFocus ? AppTheme.primaryDark : Colors.transparent,
             width: 3,
           ),
           boxShadow: _hasFocus
               ? [
                   BoxShadow(
-                    color: AppTheme.primaryDark
-                        .withOpacity(.28),
+                    color: AppTheme.primaryDark.withOpacity(.28),
                     blurRadius: 0,
                     spreadRadius: 2,
                   ),
@@ -1411,11 +1350,9 @@ class _TypeFilterButtonState
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius:
-              BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12),
           child: InkWell(
-            borderRadius:
-                BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             onTap: widget.onTap,
             onFocusChange: (focused) {
               if (_hasFocus == focused) {
@@ -1434,24 +1371,20 @@ class _TypeFilterButtonState
               height: 43,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: widget.selected
-                    ? accent
-                    : Colors.white,
-                borderRadius:
-                    BorderRadius.circular(12),
+                color: widget.selected ? accent : AppTheme.cardBg(context),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: widget.selected
                       ? accent
-                      : AppTheme.border,
-                  width:
-                      widget.selected ? 2 : 1,
+                      : (_hasFocus
+                          ? AppTheme.focusRingColor(context)
+                          : AppTheme.borderColor(context)),
+                  width: widget.selected ? 2 : 1,
                 ),
               ),
               child: Row(
-                mainAxisSize:
-                    MainAxisSize.min,
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (widget.selected) ...[
                     const Icon(
@@ -1464,12 +1397,11 @@ class _TypeFilterButtonState
                   Text(
                     widget.label,
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight:
-                          FontWeight.w800,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                       color: widget.selected
                           ? Colors.white
-                          : AppTheme.text,
+                          : AppTheme.textColor(context),
                     ),
                   ),
                 ],
@@ -1498,19 +1430,16 @@ class _CategoryChip extends StatefulWidget {
   });
 
   @override
-  State<_CategoryChip> createState() =>
-      _CategoryChipState();
+  State<_CategoryChip> createState() => _CategoryChipState();
 }
 
-class _CategoryChipState
-    extends State<_CategoryChip> {
+class _CategoryChipState extends State<_CategoryChip> {
   bool _hasFocus = false;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(
+      padding: const EdgeInsets.only(
         right: 8,
       ),
       child: Semantics(
@@ -1524,19 +1453,15 @@ class _CategoryChipState
           ),
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(54),
+            borderRadius: BorderRadius.circular(54),
             border: Border.all(
-              color: _hasFocus
-                  ? AppTheme.primaryDark
-                  : Colors.transparent,
+              color: _hasFocus ? AppTheme.primaryDark : Colors.transparent,
               width: 3,
             ),
             boxShadow: _hasFocus
                 ? [
                     BoxShadow(
-                      color: AppTheme.primaryDark
-                          .withOpacity(.28),
+                      color: AppTheme.primaryDark.withOpacity(.28),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
@@ -1545,11 +1470,9 @@ class _CategoryChipState
           ),
           child: Material(
             color: Colors.transparent,
-            borderRadius:
-                BorderRadius.circular(50),
+            borderRadius: BorderRadius.circular(50),
             child: InkWell(
-              borderRadius:
-                  BorderRadius.circular(50),
+              borderRadius: BorderRadius.circular(50),
               onTap: widget.onTap,
               onFocusChange: (focused) {
                 if (_hasFocus == focused) {
@@ -1560,35 +1483,31 @@ class _CategoryChipState
                   _hasFocus = focused;
                 });
               },
-              focusColor:
-                  Colors.transparent,
+              focusColor: Colors.transparent,
               child: AnimatedContainer(
-                duration:
-                    const Duration(
+                duration: const Duration(
                   milliseconds: 150,
                 ),
-                padding:
-                    const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: 15,
                   vertical: 9,
                 ),
                 decoration: BoxDecoration(
                   color: widget.selected
-                      ? AppTheme.primary
-                      : Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(50),
+                      ? AppTheme.primaryColor(context)
+                      : AppTheme.cardBg(context),
+                  borderRadius: BorderRadius.circular(50),
                   border: Border.all(
                     color: widget.selected
-                        ? AppTheme.primary
-                        : AppTheme.border,
-                    width:
-                        widget.selected ? 2 : 1,
+                        ? AppTheme.primaryColor(context)
+                        : (_hasFocus
+                            ? AppTheme.focusRingColor(context)
+                            : AppTheme.borderColor(context)),
+                    width: widget.selected ? 2 : 1,
                   ),
                 ),
                 child: Row(
-                  mainAxisSize:
-                      MainAxisSize.min,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     if (widget.selected) ...[
                       const Icon(
@@ -1603,12 +1522,11 @@ class _CategoryChipState
                     Text(
                       widget.label,
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight:
-                            FontWeight.w800,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
                         color: widget.selected
                             ? Colors.white
-                            : AppTheme.text,
+                            : AppTheme.textColor(context),
                       ),
                     ),
                   ],
@@ -1626,8 +1544,7 @@ class _CategoryChipState
 // ESTADO VACÍO
 // =============================================================
 
-class _EmptyTransactions
-    extends StatelessWidget {
+class _EmptyTransactions extends StatelessWidget {
   final String filter;
   final bool hasActiveFilters;
 
@@ -1654,31 +1571,26 @@ class _EmptyTransactions
           'No hay resultados que coincidan con la búsqueda o los filtros seleccionados.';
     } else if (filter == 'Gastos') {
       title = 'No hay gastos';
-      description =
-          'Los gastos que registrés aparecerán aquí.';
+      description = 'Los gastos que registrés aparecerán aquí.';
     } else if (filter == 'Ingresos') {
       title = 'No hay ingresos';
-      description =
-          'Registrá dinero que recibís para comenzar.';
+      description = 'Registrá dinero que recibís para comenzar.';
     } else {
       title = 'No hay movimientos';
-      description =
-          'Agregá un gasto o un ingreso para comenzar.';
+      description = 'Agregá un gasto o un ingreso para comenzar.';
     }
 
     return Container(
       width: double.infinity,
-      padding:
-          const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 25,
         vertical: 38,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(18),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Column(
@@ -1687,49 +1599,36 @@ class _EmptyTransactions
             width: 65,
             height: 65,
             decoration: BoxDecoration(
-              color:
-                  const Color(0xFFEAF3FF),
-              borderRadius:
-                  BorderRadius.circular(18),
+              color: AppTheme.tintPrimary(context),
+              borderRadius: BorderRadius.circular(18),
             ),
-            child: const Icon(
-              Icons
-                  .account_balance_wallet_outlined,
-              color: AppTheme.primary,
+            child: Icon(
+              Icons.account_balance_wallet_outlined,
+              color: AppTheme.primaryColor(context),
               size: 32,
             ),
           ),
-
           const SizedBox(height: 16),
-
           Text(
             title,
-            textAlign:
-                TextAlign.center,
-            style:
-                const TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               fontSize: 16,
-              fontWeight:
-                  FontWeight.w900,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.textColor(context),
             ),
           ),
-
           const SizedBox(height: 7),
-
           Text(
             description,
-            textAlign:
-                TextAlign.center,
-            style:
-                const TextStyle(
-              fontSize: 12,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13.5,
               height: 1.4,
-              color: AppTheme.muted,
+              color: AppTheme.mutedColor(context),
             ),
           ),
-
           const SizedBox(height: 18),
-
           if (hasActiveFilters)
             OutlinedButton.icon(
               onPressed: onClearFilters,
@@ -1742,10 +1641,8 @@ class _EmptyTransactions
             )
           else if (filter == 'Ingresos')
             FilledButton.icon(
-              style:
-                  FilledButton.styleFrom(
-                backgroundColor:
-                    AppTheme.success,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.success,
               ),
               onPressed: onAddIncome,
               icon: const Icon(
@@ -1769,41 +1666,29 @@ class _EmptyTransactions
             Row(
               children: [
                 Expanded(
-                  child:
-                      FilledButton.icon(
-                    onPressed:
-                        onAddExpense,
+                  child: FilledButton.icon(
+                    onPressed: onAddExpense,
                     icon: const Icon(
-                      Icons
-                          .remove_circle_outline_rounded,
+                      Icons.remove_circle_outline_rounded,
                     ),
-                    label:
-                        const Text(
+                    label: const Text(
                       'Gasto',
                     ),
                   ),
                 ),
-
                 const SizedBox(
                   width: 10,
                 ),
-
                 Expanded(
-                  child:
-                      FilledButton.icon(
-                    style:
-                        FilledButton.styleFrom(
-                      backgroundColor:
-                          AppTheme.success,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.success,
                     ),
-                    onPressed:
-                        onAddIncome,
+                    onPressed: onAddIncome,
                     icon: const Icon(
-                      Icons
-                          .add_circle_outline_rounded,
+                      Icons.add_circle_outline_rounded,
                     ),
-                    label:
-                        const Text(
+                    label: const Text(
                       'Ingreso',
                     ),
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/app_ui.dart';
@@ -81,7 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 return null;
               },
             ),
-
             AppField(
               controller: mailController,
               label: 'Correo',
@@ -96,7 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 return null;
               },
             ),
-
             AppField(
               controller: passController,
               label: 'Contraseña',
@@ -109,9 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 return null;
               },
             ),
-
             const SizedBox(height: 8),
-
             Row(
               children: [
                 Expanded(
@@ -124,16 +121,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 Expanded(
                   child: FilledButton(
                     onPressed: () async {
                       final valid =
-                          registerFormKey.currentState
-                                  ?.validate() ??
-                              false;
+                          registerFormKey.currentState?.validate() ?? false;
 
                       if (!valid) return;
 
@@ -208,14 +201,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF263859) : Colors.grey.shade200;
-    final titleColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
-    final subtitleColor = isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600;
-    final demoBg = isDark ? const Color(0xFF16233B) : const Color(0xFFF5F8FD);
+    final cardBg = AppTheme.cardBg(context);
+    final borderColor = AppTheme.borderColor(context);
+    final titleColor = AppTheme.textColor(context);
+    final subtitleColor = AppTheme.mutedColor(context);
+    final demoBg = AppTheme.tintPrimary(context);
 
     return Scaffold(
+      backgroundColor: AppTheme.bg(context),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(22),
@@ -238,8 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // =================================================
                       // LOGO OFICIAL
@@ -260,13 +252,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         '¿Dónde se fue mi plata?',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: titleColor,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: titleColor,
+                                ),
                       ),
 
                       const SizedBox(height: 8),
@@ -325,8 +315,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // =================================================
 
                       FilledButton(
-                        onPressed:
-                            widget.state.loading ? null : _submit,
+                        onPressed: widget.state.loading ? null : _submit,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             vertical: 14,
@@ -355,8 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       // =================================================
 
                       OutlinedButton(
-                        onPressed:
-                            widget.state.loading ? null : _register,
+                        onPressed: widget.state.loading ? null : _register,
                         child: const Text(
                           'Crear cuenta',
                           style: TextStyle(

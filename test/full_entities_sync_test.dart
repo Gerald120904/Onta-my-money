@@ -12,7 +12,8 @@ import 'package:donde_se_fue_mi_plata/models/review_result.dart';
 
 /// Servidor simulado con motor de sincronización idéntico al Backend
 class MockSyncServer {
-  final Map<String, Map<String, dynamic>> _entities = {}; // key: "entityType:id" -> data
+  final Map<String, Map<String, dynamic>> _entities =
+      {}; // key: "entityType:id" -> data
   final List<Map<String, dynamic>> _syncLog = [];
   final Map<String, Map<String, dynamic>> _idempotencyKeys = {};
   int _sequence = 0;
@@ -37,7 +38,9 @@ class MockSyncServer {
       final idemKey = '$userId:$opId';
 
       if (action == 'create') {
-        if (existing != null && existing['deleted'] != true && existing['userId'] == userId) {
+        if (existing != null &&
+            existing['deleted'] != true &&
+            existing['userId'] == userId) {
           final res = {
             'operation_id': opId,
             'status': 'applied',
@@ -81,7 +84,9 @@ class MockSyncServer {
         _idempotencyKeys[idemKey] = res;
         processed.add(res);
       } else if (action == 'update') {
-        if (existing == null || existing['userId'] != userId || existing['deleted'] == true) {
+        if (existing == null ||
+            existing['userId'] != userId ||
+            existing['deleted'] == true) {
           processed.add({
             'operation_id': opId,
             'status': 'error',
@@ -185,11 +190,13 @@ class MockSyncServer {
   }) {
     // Filtrado estricto por user_id (aislamiento entre cuentas)
     final filtered = _syncLog
-        .where((entry) => entry['user_id'] == userId && (entry['sequence'] as int) > cursor)
+        .where((entry) =>
+            entry['user_id'] == userId && (entry['sequence'] as int) > cursor)
         .take(limit)
         .toList();
 
-    final nextCursor = filtered.isNotEmpty ? (filtered.last['sequence'] as int) : cursor;
+    final nextCursor =
+        filtered.isNotEmpty ? (filtered.last['sequence'] as int) : cursor;
 
     return {
       'changes': filtered,
@@ -215,7 +222,8 @@ class TestBridgeClient extends ApiClient {
       return server.handlePush(
         userId: userId,
         deviceId: deviceId,
-        operations: (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>(),
+        operations:
+            (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>(),
       );
     }
     throw UnimplementedError(path);
@@ -235,7 +243,9 @@ class TestBridgeClient extends ApiClient {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('TAREA 3 — Sincronización multidispositivo integral de todas las entidades', () {
+  group(
+      'TAREA 3 — Sincronización multidispositivo integral de todas las entidades',
+      () {
     const mainUserId = 'user-multidevice-main';
     const otherUserId = 'user-intruder-separated';
 
@@ -282,7 +292,9 @@ void main() {
       await dbDeviceB.close();
     });
 
-    test('3.1 Altas de todas las 5 entidades en Dispositivo A se sincronizan a Dispositivo B', () async {
+    test(
+        '3.1 Altas de todas las 5 entidades en Dispositivo A se sincronizan a Dispositivo B',
+        () async {
       // 1. Crear las 5 entidades en Dispositivo A
       // a) Movimiento (Transaction)
       final txA = MoneyTransaction(
@@ -294,7 +306,8 @@ void main() {
         date: DateTime.parse('2026-10-23T10:00:00.000Z'),
         recognized: true,
       );
-      await repoDeviceA.saveTransaction(userId: mainUserId, transaction: txA, isNew: true, deviceId: 'dev-A');
+      await repoDeviceA.saveTransaction(
+          userId: mainUserId, transaction: txA, isNew: true, deviceId: 'dev-A');
 
       // b) Compromiso (Commitment)
       final commA = Commitment(
@@ -304,7 +317,11 @@ void main() {
         dueDate: DateTime.parse('2026-11-01T00:00:00.000Z'),
         status: 'pending',
       );
-      await repoDeviceA.saveCommitment(userId: mainUserId, commitment: commA, isNew: true, deviceId: 'dev-A');
+      await repoDeviceA.saveCommitment(
+          userId: mainUserId,
+          commitment: commA,
+          isNew: true,
+          deviceId: 'dev-A');
 
       // c) Meta de ahorro (Goal)
       final goalA = SavingsGoal(
@@ -313,7 +330,8 @@ void main() {
         targetAmount: 300000.0,
         savedAmount: 75000.0,
       );
-      await repoDeviceA.saveGoal(userId: mainUserId, goal: goalA, isNew: true, deviceId: 'dev-A');
+      await repoDeviceA.saveGoal(
+          userId: mainUserId, goal: goalA, isNew: true, deviceId: 'dev-A');
 
       // d) Decisión (Decision)
       await repoDeviceA.saveDecision(
@@ -334,11 +352,13 @@ void main() {
         decisionDetails: {'nota': 'Aprobada en reunión familiar'},
         createdAt: DateTime.parse('2026-10-23T10:30:00.000Z'),
       );
-      await reviewRepoDeviceA.saveReview(mainUserId, reviewA, deviceId: 'dev-A');
+      await reviewRepoDeviceA.saveReview(mainUserId, reviewA,
+          deviceId: 'dev-A');
 
       // 2. Dispositivo A sincroniza (PUSH hacia el servidor)
       final reportA = await syncDeviceA.syncNow(mainUserId);
-      expect(reportA.pendingCount, equals(0), reason: 'Dispositivo A no debe tener operaciones pendientes');
+      expect(reportA.pendingCount, equals(0),
+          reason: 'Dispositivo A no debe tener operaciones pendientes');
 
       // 3. Dispositivo B sincroniza (PULL desde el servidor)
       final reportB = await syncDeviceB.syncNow(mainUserId);
@@ -378,7 +398,8 @@ void main() {
       expect(revsB.first.decision, equals('approved'));
     });
 
-    test('3.2 Modificaciones en Dispositivo B se propagan a Dispositivo A', () async {
+    test('3.2 Modificaciones en Dispositivo B se propagan a Dispositivo A',
+        () async {
       // Setup inicial: sembrar meta en A y sincronizar a B
       final goal = SavingsGoal(
         id: 'goal-update-100',
@@ -386,7 +407,8 @@ void main() {
         targetAmount: 50000.0,
         savedAmount: 10000.0,
       );
-      await repoDeviceA.saveGoal(userId: mainUserId, goal: goal, isNew: true, deviceId: 'dev-A');
+      await repoDeviceA.saveGoal(
+          userId: mainUserId, goal: goal, isNew: true, deviceId: 'dev-A');
       await syncDeviceA.syncNow(mainUserId);
       await syncDeviceB.syncNow(mainUserId);
 
@@ -398,7 +420,11 @@ void main() {
         savedAmount: 35000.0,
         version: 1,
       );
-      await repoDeviceB.saveGoal(userId: mainUserId, goal: updatedGoalB, isNew: false, deviceId: 'dev-B');
+      await repoDeviceB.saveGoal(
+          userId: mainUserId,
+          goal: updatedGoalB,
+          isNew: false,
+          deviceId: 'dev-B');
 
       // Dispositivo B hace push
       await syncDeviceB.syncNow(mainUserId);
@@ -412,7 +438,9 @@ void main() {
       expect(goalsA.first.version, equals(2));
     });
 
-    test('3.3 Eliminaciones de entidades (soft delete) se sincronizan limpiamente entre dispositivos', () async {
+    test(
+        '3.3 Eliminaciones de entidades (soft delete) se sincronizan limpiamente entre dispositivos',
+        () async {
       // Crear transacción y compromiso en A
       final tx = MoneyTransaction(
         id: 'tx-del-200',
@@ -423,7 +451,8 @@ void main() {
         date: DateTime.now(),
         recognized: true,
       );
-      await repoDeviceA.saveTransaction(userId: mainUserId, transaction: tx, isNew: true);
+      await repoDeviceA.saveTransaction(
+          userId: mainUserId, transaction: tx, isNew: true);
 
       final comm = Commitment(
         id: 'comm-del-300',
@@ -432,7 +461,8 @@ void main() {
         dueDate: DateTime.now().add(const Duration(days: 10)),
         status: 'pending',
       );
-      await repoDeviceA.saveCommitment(userId: mainUserId, commitment: comm, isNew: true);
+      await repoDeviceA.saveCommitment(
+          userId: mainUserId, commitment: comm, isNew: true);
 
       await syncDeviceA.syncNow(mainUserId);
       await syncDeviceB.syncNow(mainUserId);
@@ -441,9 +471,11 @@ void main() {
       expect((await repoDeviceB.getCommitments(mainUserId)), hasLength(1));
 
       // Eliminar transacción en Dispositivo B
-      await repoDeviceB.deleteTransaction(userId: mainUserId, id: 'tx-del-200', deviceId: 'dev-B');
+      await repoDeviceB.deleteTransaction(
+          userId: mainUserId, id: 'tx-del-200', deviceId: 'dev-B');
       // Eliminar compromiso en Dispositivo A
-      await repoDeviceA.deleteCommitment(userId: mainUserId, id: 'comm-del-300', deviceId: 'dev-A');
+      await repoDeviceA.deleteCommitment(
+          userId: mainUserId, id: 'comm-del-300', deviceId: 'dev-A');
 
       // Sincronizar B y luego A
       await syncDeviceB.syncNow(mainUserId);
@@ -457,7 +489,9 @@ void main() {
       expect((await repoDeviceB.getCommitments(mainUserId)), isEmpty);
     });
 
-    test('3.4 Detección de conflicto ante ediciones concurrentes sobre la misma versión', () async {
+    test(
+        '3.4 Detección de conflicto ante ediciones concurrentes sobre la misma versión',
+        () async {
       // 1. Crear meta inicial con version 1
       final goal = SavingsGoal(
         id: 'goal-conflict-500',
@@ -477,7 +511,8 @@ void main() {
         savedAmount: 30000.0,
         version: 1,
       );
-      await repoDeviceA.saveGoal(userId: mainUserId, goal: editA, isNew: false, deviceId: 'dev-A');
+      await repoDeviceA.saveGoal(
+          userId: mainUserId, goal: editA, isNew: false, deviceId: 'dev-A');
 
       // 3. Dispositivo B modifica en paralelo y sincroniza primero
       final editB = SavingsGoal(
@@ -487,26 +522,33 @@ void main() {
         savedAmount: 45000.0,
         version: 1,
       );
-      await repoDeviceB.saveGoal(userId: mainUserId, goal: editB, isNew: false, deviceId: 'dev-B');
+      await repoDeviceB.saveGoal(
+          userId: mainUserId, goal: editB, isNew: false, deviceId: 'dev-B');
       final reportB = await syncDeviceB.syncNow(mainUserId);
       expect(reportB.pendingCount, equals(0));
 
       // 4. Dispositivo A intenta sincronizar: el servidor debe rechazar la versión desactualizada y reportar conflicto
       final reportA = await syncDeviceA.syncNow(mainUserId);
-      expect(reportA.conflictCount, greaterThanOrEqualTo(1), reason: 'Debe detectarse conflicto por divergencia de versiones');
+      expect(reportA.conflictCount, greaterThanOrEqualTo(1),
+          reason: 'Debe detectarse conflicto por divergencia de versiones');
 
       // Verificar que el conflicto quedó registrado localmente en la base de datos de A
       final conflicts = await (dbDeviceA.select(dbDeviceA.localConflicts)
-            ..where((c) => c.userId.equals(mainUserId) & c.entityId.equals('goal-conflict-500')))
+            ..where((c) =>
+                c.userId.equals(mainUserId) &
+                c.entityId.equals('goal-conflict-500')))
           .get();
       expect(conflicts, isNotEmpty);
       expect(conflicts.first.serverVersion, equals(2));
       expect(conflicts.first.baseVersion, equals(1));
     });
 
-    test('3.5 Aislamiento estricto entre cuentas: Usuario A no puede ver datos de Usuario B', () async {
+    test(
+        '3.5 Aislamiento estricto entre cuentas: Usuario A no puede ver datos de Usuario B',
+        () async {
       // Cliente de Usuario B (Intruso)
-      final clientIntruder = TestBridgeClient(server: server, userId: otherUserId);
+      final clientIntruder =
+          TestBridgeClient(server: server, userId: otherUserId);
       final dbIntruder = AppDatabase.inMemory(NativeDatabase.memory());
       final repoIntruder = FinanceRepository(dbIntruder);
       final syncIntruder = ClientSyncService(
@@ -525,7 +567,11 @@ void main() {
         date: DateTime.now(),
         recognized: true,
       );
-      await repoIntruder.saveTransaction(userId: otherUserId, transaction: privateTxB, isNew: true, deviceId: 'dev-intruder');
+      await repoIntruder.saveTransaction(
+          userId: otherUserId,
+          transaction: privateTxB,
+          isNew: true,
+          deviceId: 'dev-intruder');
       await syncIntruder.syncNow(otherUserId);
 
       // Usuario A sincroniza su cuenta

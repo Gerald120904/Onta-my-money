@@ -48,9 +48,9 @@ class MoreScreen extends StatelessWidget {
                   );
                 },
               ),
-              const Divider(
+              Divider(
                 height: 1,
-                color: AppTheme.border,
+                color: AppTheme.borderColor(context),
               ),
               _OptionTile(
                 icon: Icons.savings_outlined,
@@ -64,9 +64,9 @@ class MoreScreen extends StatelessWidget {
                   );
                 },
               ),
-              const Divider(
+              Divider(
                 height: 1,
-                color: AppTheme.border,
+                color: AppTheme.borderColor(context),
               ),
               _OptionTile(
                 icon: Icons.sync_rounded,
@@ -80,9 +80,9 @@ class MoreScreen extends StatelessWidget {
                   );
                 },
               ),
-              const Divider(
+              Divider(
                 height: 1,
-                color: AppTheme.border,
+                color: AppTheme.borderColor(context),
               ),
               _OptionTile(
                 icon: Icons.person_outline_rounded,
@@ -96,9 +96,9 @@ class MoreScreen extends StatelessWidget {
                   );
                 },
               ),
-              const Divider(
+              Divider(
                 height: 1,
-                color: AppTheme.border,
+                color: AppTheme.borderColor(context),
               ),
               _OptionTile(
                 icon: Icons.notifications_none_rounded,
@@ -112,9 +112,9 @@ class MoreScreen extends StatelessWidget {
                   );
                 },
               ),
-              const Divider(
+              Divider(
                 height: 1,
-                color: AppTheme.border,
+                color: AppTheme.borderColor(context),
               ),
               _OptionTile(
                 icon: Icons.settings_outlined,
@@ -128,9 +128,9 @@ class MoreScreen extends StatelessWidget {
                   );
                 },
               ),
-              const Divider(
+              Divider(
                 height: 1,
-                color: AppTheme.border,
+                color: AppTheme.borderColor(context),
               ),
               _OptionTile(
                 icon: Icons.help_outline_rounded,
@@ -226,11 +226,10 @@ class _OptionTileState extends State<_OptionTile> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final titleColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
-    final iconBg = isDark ? const Color(0xFF1E2D4A) : const Color(0xFFEAF3FF);
-    final iconColor = isDark ? AppTheme.primaryDarkTheme : AppTheme.primary;
+    final titleColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final iconBg = AppTheme.tintPrimary(context);
+    final iconColor = AppTheme.primaryColor(context);
 
     return Semantics(
       button: true,
@@ -242,7 +241,7 @@ class _OptionTileState extends State<_OptionTile> {
           borderRadius: BorderRadius.circular(12),
           onTap: widget.onTap,
           canRequestFocus: true,
-          focusColor: AppTheme.primary.withOpacity(.10),
+          focusColor: AppTheme.primaryColor(context).withOpacity(.10),
           onFocusChange: (focused) {
             setState(() {
               _focused = focused;
@@ -261,13 +260,13 @@ class _OptionTileState extends State<_OptionTile> {
               border: Border.all(
                 width: _focused ? 3 : 1,
                 color: _focused
-                    ? (isDark ? AppTheme.focusDark : AppTheme.primaryDark)
+                    ? AppTheme.focusRingColor(context)
                     : Colors.transparent,
               ),
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: AppTheme.primary.withOpacity(.16),
+                        color: AppTheme.primaryColor(context).withOpacity(.16),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -296,7 +295,7 @@ class _OptionTileState extends State<_OptionTile> {
                       Text(
                         widget.title,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.w900,
                           color: titleColor,
                         ),
@@ -305,7 +304,7 @@ class _OptionTileState extends State<_OptionTile> {
                       Text(
                         widget.subtitle,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12.5,
                           color: mutedColor,
                         ),
                       ),
@@ -330,13 +329,13 @@ class _HelpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppTheme.backgroundDark : AppTheme.background;
-    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
-    final cardBg = isDark ? AppTheme.surfaceDark : Colors.white;
-    final bannerBg = isDark ? const Color(0xFF162544) : const Color(0xFFEAF3FF);
-    final primaryColor = isDark ? AppTheme.primaryDarkTheme : AppTheme.primary;
+    final isDark = AppTheme.isDarkMode(context);
+    final bgColor = AppTheme.bg(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final cardBg = AppTheme.cardBg(context);
+    final bannerBg = AppTheme.tintPrimary(context);
+    final primaryColor = AppTheme.primaryColor(context);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -595,8 +594,7 @@ class _HelpScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 _HelpItem(
                   title: 'Atajos y navegación por teclado',
-                  content:
-                      '• Tab: avanzar al siguiente control interactivo.\n'
+                  content: '• Tab: avanzar al siguiente control interactivo.\n'
                       '• Shift + Tab: retroceder al control anterior.\n'
                       '• Enter o Espacio: activar botones, casillas y selectores.\n'
                       '• Escape (Esc): cerrar diálogos, modales o cancelar operaciones.',
@@ -708,10 +706,10 @@ class _HelpItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardBg = isDark ? AppTheme.surfaceDark : Colors.white;
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
-    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
+    final cardBg = AppTheme.cardBg(context);
+    final borderColor = AppTheme.borderColor(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -738,12 +736,12 @@ class _HelpItem extends StatelessWidget {
           14,
           16,
         ),
-        iconColor: isDark ? AppTheme.primaryDarkTheme : AppTheme.primary,
+        iconColor: AppTheme.primaryColor(context),
         collapsedIconColor: mutedColor,
         title: Text(
           title,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.w900,
             color: textColor,
           ),
@@ -754,7 +752,7 @@ class _HelpItem extends StatelessWidget {
             child: Text(
               content,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 13.5,
                 height: 1.55,
                 color: mutedColor,
               ),

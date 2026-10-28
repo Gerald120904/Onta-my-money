@@ -10,7 +10,8 @@ import 'package:donde_se_fue_mi_plata/models/models.dart';
 
 // Simulación de transporte HTTP directo conectando ApiClient de los clientes al motor del backend
 class DirectServerBridgeClient extends ApiClient {
-  final Map<String, dynamic> Function(String path, Map<String, dynamic>? body) onPost;
+  final Map<String, dynamic> Function(String path, Map<String, dynamic>? body)
+      onPost;
   final dynamic Function(String path) onGet;
 
   DirectServerBridgeClient({required this.onPost, required this.onGet});
@@ -29,7 +30,9 @@ class DirectServerBridgeClient extends ApiClient {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('Multi-client E2E: Dos clientes independientes sincronizan sin duplicados ni pérdida', () async {
+  test(
+      'Multi-client E2E: Dos clientes independientes sincronizan sin duplicados ni pérdida',
+      () async {
     const userId = 'user-shared-account';
 
     // 1. Servidor central con estado
@@ -39,9 +42,11 @@ void main() {
     final idempotencyKeys = <String, Map<String, dynamic>>{};
     int serverSeq = 0;
 
-    Map<String, dynamic> handleServerPost(String path, Map<String, dynamic>? body) {
+    Map<String, dynamic> handleServerPost(
+        String path, Map<String, dynamic>? body) {
       if (path == '/api/sync/push') {
-        final ops = (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>();
+        final ops =
+            (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>();
         final processed = <Map<String, dynamic>>[];
 
         for (final op in ops) {
@@ -186,8 +191,11 @@ void main() {
       if (path.startsWith('/api/sync/pull')) {
         final uri = Uri.parse(path);
         final cursor = int.tryParse(uri.queryParameters['cursor'] ?? '0') ?? 0;
-        final changes = serverSyncLog.where((log) => (log['sequence'] as int) > cursor).toList();
-        final nextCursor = changes.isNotEmpty ? changes.last['sequence'] as int : cursor;
+        final changes = serverSyncLog
+            .where((log) => (log['sequence'] as int) > cursor)
+            .toList();
+        final nextCursor =
+            changes.isNotEmpty ? changes.last['sequence'] as int : cursor;
 
         return {
           'changes': changes,
@@ -201,7 +209,9 @@ void main() {
     // 2. Crear Cliente A (Android) con BD local A
     final dbA = AppDatabase(NativeDatabase.memory());
     final repoA = FinanceRepository(dbA);
-    final apiA = DirectServerBridgeClient(onPost: handleServerPost, onGet: handleServerGet)..token = 'token-A';
+    final apiA = DirectServerBridgeClient(
+        onPost: handleServerPost, onGet: handleServerGet)
+      ..token = 'token-A';
     final syncA = ClientSyncService(api: apiA, db: dbA, repository: repoA);
 
     await repoA.saveUser(
@@ -216,7 +226,9 @@ void main() {
     // 3. Crear Cliente B (Web) con BD local B
     final dbB = AppDatabase(NativeDatabase.memory());
     final repoB = FinanceRepository(dbB);
-    final apiB = DirectServerBridgeClient(onPost: handleServerPost, onGet: handleServerGet)..token = 'token-B';
+    final apiB = DirectServerBridgeClient(
+        onPost: handleServerPost, onGet: handleServerGet)
+      ..token = 'token-B';
     final syncB = ClientSyncService(api: apiB, db: dbB, repository: repoB);
 
     await repoB.saveUser(
@@ -337,8 +349,10 @@ void main() {
     // Cliente B sincroniza y recibe la versión ganadora (1200, versión 3)
     await syncB.syncNow(userId);
 
-    final finalTxInA = (await repoA.getTransactions(userId)).firstWhere((t) => t.id == 'tx-A-1');
-    final finalTxInB = (await repoB.getTransactions(userId)).firstWhere((t) => t.id == 'tx-A-1');
+    final finalTxInA = (await repoA.getTransactions(userId))
+        .firstWhere((t) => t.id == 'tx-A-1');
+    final finalTxInB = (await repoB.getTransactions(userId))
+        .firstWhere((t) => t.id == 'tx-A-1');
 
     expect(finalTxInA.amount, equals(1200.0));
     expect(finalTxInB.amount, equals(1200.0));

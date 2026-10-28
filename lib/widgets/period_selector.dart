@@ -222,8 +222,7 @@ class PeriodSelector {
 // DIÁLOGO
 // =============================================================
 
-class _PeriodSelectorDialog
-    extends StatefulWidget {
+class _PeriodSelectorDialog extends StatefulWidget {
   final ReportPeriod current;
 
   const _PeriodSelectorDialog({
@@ -231,13 +230,10 @@ class _PeriodSelectorDialog
   });
 
   @override
-  State<_PeriodSelectorDialog>
-      createState() =>
-          _PeriodSelectorDialogState();
+  State<_PeriodSelectorDialog> createState() => _PeriodSelectorDialogState();
 }
 
-class _PeriodSelectorDialogState
-    extends State<_PeriodSelectorDialog> {
+class _PeriodSelectorDialogState extends State<_PeriodSelectorDialog> {
   late ReportPeriodType selected;
 
   DateTimeRange? customRange;
@@ -248,8 +244,7 @@ class _PeriodSelectorDialogState
 
     selected = widget.current.type;
 
-    if (widget.current.type ==
-        ReportPeriodType.custom) {
+    if (widget.current.type == ReportPeriodType.custom) {
       customRange = DateTimeRange(
         start: widget.current.start,
         end: widget.current.end,
@@ -264,8 +259,7 @@ class _PeriodSelectorDialogState
   Future<void> _selectCustomRange() async {
     final now = DateTime.now();
 
-    final range =
-        await showDateRangePicker(
+    final range = await showDateRangePicker(
       context: context,
       firstDate: DateTime(
         2020,
@@ -288,13 +282,9 @@ class _PeriodSelectorDialogState
       ) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme:
-                Theme.of(context)
-                    .colorScheme
-                    .copyWith(
-              primary:
-                  AppTheme.primary,
-            ),
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppTheme.primary,
+                ),
           ),
           child: child!,
         );
@@ -304,8 +294,7 @@ class _PeriodSelectorDialogState
     if (range == null) return;
 
     setState(() {
-      selected =
-          ReportPeriodType.custom;
+      selected = ReportPeriodType.custom;
 
       customRange = range;
     });
@@ -320,18 +309,15 @@ class _PeriodSelectorDialogState
 
     switch (selected) {
       case ReportPeriodType.today:
-        result =
-            ReportPeriod.today();
+        result = ReportPeriod.today();
         break;
 
       case ReportPeriodType.week:
-        result =
-            ReportPeriod.week();
+        result = ReportPeriod.week();
         break;
 
       case ReportPeriodType.month:
-        result =
-            ReportPeriod.month();
+        result = ReportPeriod.month();
         break;
 
       case ReportPeriodType.custom:
@@ -343,12 +329,9 @@ class _PeriodSelectorDialogState
           }
         }
 
-        result =
-            ReportPeriod.custom(
-          start:
-              customRange!.start,
-          end:
-              customRange!.end,
+        result = ReportPeriod.custom(
+          start: customRange!.start,
+          end: customRange!.end,
         );
 
         break;
@@ -370,29 +353,23 @@ class _PeriodSelectorDialogState
     final now = DateTime.now();
 
     return Dialog(
-      insetPadding:
-          const EdgeInsets.symmetric(
+      insetPadding: const EdgeInsets.symmetric(
         horizontal: 18,
         vertical: 24,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24),
       ),
       clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
-        constraints:
-            const BoxConstraints(
+        constraints: const BoxConstraints(
           maxWidth: 460,
         ),
         child: SingleChildScrollView(
-          padding:
-              const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisSize:
-                MainAxisSize.min,
-            crossAxisAlignment:
-                CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // =================================================
               // HEADER
@@ -406,54 +383,36 @@ class _PeriodSelectorDialogState
                         context,
                       ).pop();
                     },
-                    icon: const Icon(
-                      Icons
-                          .arrow_back_rounded,
+                    icon: Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppTheme.textColor(context),
                     ),
                   ),
-
-                  const SizedBox(
-                    width: 3,
-                  ),
-
-                  const Expanded(
+                  const SizedBox(width: 4),
+                  Expanded(
                     child: Text(
                       'Elegir periodo',
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight:
-                            FontWeight
-                                .w900,
-                        color:
-                            AppTheme.text,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textColor(context),
                       ),
                     ),
                   ),
                 ],
               ),
-
-              const SizedBox(
-                height: 4,
-              ),
-
-              const Padding(
-                padding:
-                    EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   'Seleccioná el período que querés analizar.',
                   style: TextStyle(
-                    fontSize: 11.5,
-                    color:
-                        AppTheme.muted,
+                    fontSize: 13,
+                    color: AppTheme.mutedColor(context),
                   ),
                 ),
               ),
-
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
 
               // =================================================
               // HOY
@@ -461,19 +420,12 @@ class _PeriodSelectorDialogState
 
               _PeriodOption(
                 title: 'Hoy',
-                subtitle:
-                    _formatDate(now),
-                icon:
-                    Icons.today_outlined,
-                selected:
-                    selected ==
-                    ReportPeriodType
-                        .today,
+                subtitle: _formatDate(now),
+                icon: Icons.today_outlined,
+                selected: selected == ReportPeriodType.today,
                 onTap: () {
                   setState(() {
-                    selected =
-                        ReportPeriodType
-                            .today;
+                    selected = ReportPeriodType.today;
                   });
                 },
               ),
@@ -487,23 +439,13 @@ class _PeriodSelectorDialogState
               // =================================================
 
               _PeriodOption(
-                title:
-                    'Esta semana',
-                subtitle:
-                    ReportPeriod
-                            .week()
-                        .subtitle,
-                icon: Icons
-                    .date_range_outlined,
-                selected:
-                    selected ==
-                    ReportPeriodType
-                        .week,
+                title: 'Esta semana',
+                subtitle: ReportPeriod.week().subtitle,
+                icon: Icons.date_range_outlined,
+                selected: selected == ReportPeriodType.week,
                 onTap: () {
                   setState(() {
-                    selected =
-                        ReportPeriodType
-                            .week;
+                    selected = ReportPeriodType.week;
                   });
                 },
               ),
@@ -518,19 +460,12 @@ class _PeriodSelectorDialogState
 
               _PeriodOption(
                 title: 'Este mes',
-                subtitle:
-                    '${now.month.toString().padLeft(2, '0')}/${now.year}',
-                icon: Icons
-                    .calendar_month_outlined,
-                selected:
-                    selected ==
-                    ReportPeriodType
-                        .month,
+                subtitle: '${now.month.toString().padLeft(2, '0')}/${now.year}',
+                icon: Icons.calendar_month_outlined,
+                selected: selected == ReportPeriodType.month,
                 onTap: () {
                   setState(() {
-                    selected =
-                        ReportPeriodType
-                            .month;
+                    selected = ReportPeriodType.month;
                   });
                 },
               ),
@@ -544,25 +479,16 @@ class _PeriodSelectorDialogState
               // =================================================
 
               _PeriodOption(
-                title:
-                    'Rango de fechas',
-                subtitle:
-                    customRange ==
-                            null
-                        ? 'Elegí una fecha de inicio y final'
-                        : '${_formatDate(customRange!.start)} - '
-                            '${_formatDate(customRange!.end)}',
-                icon: Icons
-                    .calendar_today_outlined,
-                selected:
-                    selected ==
-                    ReportPeriodType
-                        .custom,
+                title: 'Rango de fechas',
+                subtitle: customRange == null
+                    ? 'Elegí una fecha de inicio y final'
+                    : '${_formatDate(customRange!.start)} - '
+                        '${_formatDate(customRange!.end)}',
+                icon: Icons.calendar_today_outlined,
+                selected: selected == ReportPeriodType.custom,
                 onTap: () async {
                   setState(() {
-                    selected =
-                        ReportPeriodType
-                            .custom;
+                    selected = ReportPeriodType.custom;
                   });
 
                   await _selectCustomRange();
@@ -578,12 +504,9 @@ class _PeriodSelectorDialogState
               // =================================================
 
               FilledButton(
-                onPressed:
-                    _continue,
+                onPressed: _continue,
                 child: const Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment
-                          .center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'Continuar',
@@ -592,8 +515,7 @@ class _PeriodSelectorDialogState
                       width: 7,
                     ),
                     Icon(
-                      Icons
-                          .arrow_forward_rounded,
+                      Icons.arrow_forward_rounded,
                       size: 18,
                     ),
                   ],
@@ -619,8 +541,7 @@ class _PeriodSelectorDialogState
 // OPCIÓN DE PERÍODO
 // =============================================================
 
-class _PeriodOption
-    extends StatelessWidget {
+class _PeriodOption extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
@@ -637,39 +558,30 @@ class _PeriodOption
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDarkMode(context);
+    final cardBg =
+        selected ? AppTheme.tintPrimary(context) : AppTheme.cardBg(context);
+    final cardBorder = selected
+        ? AppTheme.primaryColor(context)
+        : AppTheme.borderColor(context);
+    final primaryColor = AppTheme.primaryColor(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+
     return Material(
-      color: selected
-          ? const Color(
-              0xFFEAF3FF,
-            )
-          : Colors.white,
-      borderRadius:
-          BorderRadius.circular(15),
+      color: cardBg,
+      borderRadius: BorderRadius.circular(15),
       child: InkWell(
-        borderRadius:
-            BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15),
         onTap: onTap,
         child: AnimatedContainer(
-          duration:
-              const Duration(
-            milliseconds: 160,
-          ),
-          padding:
-              const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 13,
-          ),
+          duration: const Duration(milliseconds: 140),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(
-              15,
-            ),
+            borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              width:
-                  selected ? 1.7 : 1,
-              color: selected
-                  ? AppTheme.primary
-                  : AppTheme.border,
+              width: selected ? 1.75 : 1.15,
+              color: cardBorder,
             ),
           ),
           child: Row(
@@ -677,97 +589,62 @@ class _PeriodOption
               Container(
                 width: 42,
                 height: 42,
-                decoration:
-                    BoxDecoration(
-                  color: selected
-                      ? AppTheme.primary
-                      : const Color(
-                          0xFFF2F6FC,
-                        ),
-                  borderRadius:
-                      BorderRadius
-                          .circular(11),
+                decoration: BoxDecoration(
+                  color:
+                      selected ? primaryColor : AppTheme.tintPrimary(context),
+                  borderRadius: BorderRadius.circular(11),
                 ),
                 child: Icon(
                   icon,
                   size: 21,
-                  color: selected
-                      ? Colors.white
-                      : AppTheme.primary,
+                  color: selected ? Colors.white : primaryColor,
                 ),
               ),
-
-              const SizedBox(
-                width: 12,
-              ),
-
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment
-                          .start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style:
-                          const TextStyle(
-                        fontSize: 13.5,
-                        fontWeight:
-                            FontWeight
-                                .w900,
-                        color:
-                            AppTheme.text,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: textColor,
                       ),
                     ),
-
-                    const SizedBox(
-                      height: 3,
-                    ),
-
+                    const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style:
-                          const TextStyle(
-                        fontSize: 10.5,
-                        color:
-                            AppTheme.muted,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: mutedColor,
                       ),
                     ),
                   ],
                 ),
               ),
-
-              const SizedBox(
-                width: 8,
-              ),
-
+              const SizedBox(width: 8),
               Container(
                 width: 22,
                 height: 22,
-                decoration:
-                    BoxDecoration(
-                  shape:
-                      BoxShape.circle,
-                  color: selected
-                      ? AppTheme.primary
-                      : Colors
-                          .transparent,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: selected ? primaryColor : Colors.transparent,
                   border: Border.all(
                     width: 2,
                     color: selected
-                        ? AppTheme
-                            .primary
-                        : AppTheme
-                            .border,
+                        ? primaryColor
+                        : (isDark
+                            ? const Color(0xFF64748B)
+                            : AppTheme.borderColor(context)),
                   ),
                 ),
                 child: selected
                     ? const Icon(
-                        Icons
-                            .check_rounded,
+                        Icons.check_rounded,
                         size: 15,
-                        color:
-                            Colors.white,
+                        color: Colors.white,
                       )
                     : null,
               ),

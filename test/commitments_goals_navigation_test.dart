@@ -114,7 +114,9 @@ void main() {
   }
 
   group('1. NAVEGACIÓN DESDE MORESCREEN Y DASHBOARDSCREEN', () {
-    testWidgets('1.1 Opciones visibles en MoreScreen abren CommitmentsScreen y GoalsScreen', (tester) async {
+    testWidgets(
+        '1.1 Opciones visibles en MoreScreen abren CommitmentsScreen y GoalsScreen',
+        (tester) async {
       await tester.pumpWidget(buildTestApp(MoreScreen(state: appState)));
       await tester.pumpAndSettle();
 
@@ -137,7 +139,8 @@ void main() {
       await tester.tap(find.text('Ahorro'));
       await tester.pumpAndSettle();
       expect(find.byType(GoalsScreen), findsOneWidget);
-      expect(find.text('Separá dinero para tus metas antes de gastarlo.'), findsOneWidget);
+      expect(find.text('Separá dinero para tus metas antes de gastarlo.'),
+          findsOneWidget);
 
       // Regresar
       await tester.tap(find.byIcon(Icons.arrow_back_rounded));
@@ -145,8 +148,11 @@ void main() {
       expect(find.byType(GoalsScreen), findsNothing);
     });
 
-    testWidgets('1.2 Tarjetas en DashboardScreen (Inicio) abren CommitmentsScreen y GoalsScreen al tocar', (tester) async {
-      await tester.pumpWidget(buildTestApp(DashboardScreen(state: appState, onReview: () {})));
+    testWidgets(
+        '1.2 Tarjetas en DashboardScreen (Inicio) abren CommitmentsScreen y GoalsScreen al tocar',
+        (tester) async {
+      await tester.pumpWidget(
+          buildTestApp(DashboardScreen(state: appState, onReview: () {})));
       await tester.pumpAndSettle();
 
       // Verificar que las tarjetas existen en Inicio
@@ -177,7 +183,9 @@ void main() {
   });
 
   group('2. ADMINISTRACIÓN (CRUD) OFFLINE-FIRST DE COMPROMISOS Y METAS', () {
-    test('2.1 Crear, editar y eliminar compromiso persiste en Drift y encola sync', () async {
+    test(
+        '2.1 Crear, editar y eliminar compromiso persiste en Drift y encola sync',
+        () async {
       // 1. CREAR COMPROMISO
       final commitment = Commitment(
         id: 'com_alquiler_1',
@@ -203,7 +211,8 @@ void main() {
 
       // Verificar cola de sincronización
       final pendingOps = await financeRepo.getPendingOperations(testUserId);
-      final comOps = pendingOps.where((op) => op.entityType == 'commitment').toList();
+      final comOps =
+          pendingOps.where((op) => op.entityType == 'commitment').toList();
       expect(comOps.length, 1);
       expect(comOps.first.action, 'create');
 
@@ -225,11 +234,15 @@ void main() {
       expect(appState.committedAmount, 0.0);
 
       final opsAfterDelete = await financeRepo.getPendingOperations(testUserId);
-      final delOps = opsAfterDelete.where((op) => op.entityType == 'commitment' && op.action == 'delete').toList();
+      final delOps = opsAfterDelete
+          .where((op) => op.entityType == 'commitment' && op.action == 'delete')
+          .toList();
       expect(delOps.length, 1);
     });
 
-    test('2.2 Crear, editar y eliminar meta de ahorro persiste en Drift y encola sync', () async {
+    test(
+        '2.2 Crear, editar y eliminar meta de ahorro persiste en Drift y encola sync',
+        () async {
       // 1. CREAR META
       final goal = SavingsGoal(
         id: 'goal_viaje_1',
@@ -254,7 +267,8 @@ void main() {
 
       // Verificar cola de sincronización
       final pendingOps = await financeRepo.getPendingOperations(testUserId);
-      final goalOps = pendingOps.where((op) => op.entityType == 'goal').toList();
+      final goalOps =
+          pendingOps.where((op) => op.entityType == 'goal').toList();
       expect(goalOps.length, 1);
       expect(goalOps.first.action, 'create');
 
@@ -274,13 +288,16 @@ void main() {
       expect(appState.savedAmount, 0.0);
 
       final opsAfterDelete = await financeRepo.getPendingOperations(testUserId);
-      final delOps = opsAfterDelete.where((op) => op.entityType == 'goal' && op.action == 'delete').toList();
+      final delOps = opsAfterDelete
+          .where((op) => op.entityType == 'goal' && op.action == 'delete')
+          .toList();
       expect(delOps.length, 1);
     });
   });
 
   group('3. DISPONIBLE REAL EN INICIO: CÁLCULO PRECISO SIN DUPLICACIONES', () {
-    test('3.1 Disponible real = Saldo actual - Comprometido - Ahorrado', () async {
+    test('3.1 Disponible real = Saldo actual - Comprometido - Ahorrado',
+        () async {
       // Saldo inicial cuenta CRC: 200.000
       expect(appState.currentBalance, 200000.0);
       expect(appState.committedAmount, 0.0);
@@ -351,7 +368,8 @@ void main() {
       expect(appState.availableBalance, 160000.0);
 
       // Marcar compromiso como pagado ('paid') libera el dinero comprometido
-      final paidCommitment = appState.commitments.first.copyWith(status: 'paid');
+      final paidCommitment =
+          appState.commitments.first.copyWith(status: 'paid');
       await appState.saveCommitment(paidCommitment, create: false);
 
       // Al estar 'paid', no descuenta de disponible real
@@ -360,7 +378,8 @@ void main() {
       expect(appState.availableBalance, 200000.0);
     });
 
-    test('3.2 Gastos que intenten consumir dinero reservado son bloqueados', () async {
+    test('3.2 Gastos que intenten consumir dinero reservado son bloqueados',
+        () async {
       // Saldo actual = 200.000
       expect(appState.currentBalance, 200000.0);
 
@@ -439,7 +458,9 @@ void main() {
       expect(appState.availableBalance, 20000.0);
     });
 
-    test('3.3 Edición de movimientos existentes no duplica descuento ni consume reservas', () async {
+    test(
+        '3.3 Edición de movimientos existentes no duplica descuento ni consume reservas',
+        () async {
       // Estado: Saldo 200.000, disponible 200.000
       expect(appState.availableBalance, 200000.0);
 
@@ -483,7 +504,9 @@ void main() {
       );
     });
 
-    test('3.4 Flujo de marcar compromiso como pagado y registrar gasto correspondiente sin duplicación', () async {
+    test(
+        '3.4 Flujo de marcar compromiso como pagado y registrar gasto correspondiente sin duplicación',
+        () async {
       // Compromiso de 70.000 pendiente
       await appState.saveCommitment(
         Commitment(
@@ -534,7 +557,9 @@ void main() {
       expect(appState.availableBalance, 130000.0);
     });
 
-    testWidgets('3.5 Saldo histórico real en DashboardScreen incluye saldo inicial y movimientos de meses anteriores', (tester) async {
+    testWidgets(
+        '3.5 Saldo histórico real en DashboardScreen incluye saldo inicial y movimientos de meses anteriores',
+        (tester) async {
       // Saldo inicial cuenta: 200.000 CRC
       final now = DateTime.now();
       final pastDate = DateTime(now.year, now.month - 2, 10);
@@ -601,7 +626,8 @@ void main() {
       // Saldo histórico total = 200.000 + 100.000 - 40.000 + 30.000 - 10.000 = 280.000
       expect(appState.currentBalance, 280000.0);
 
-      await tester.pumpWidget(buildTestApp(DashboardScreen(state: appState, onReview: () {})));
+      await tester.pumpWidget(
+          buildTestApp(DashboardScreen(state: appState, onReview: () {})));
       await tester.pumpAndSettle();
 
       // En la tarjeta de saldo actual, debe mostrarse el saldo histórico real: ₡280.000
@@ -615,8 +641,10 @@ void main() {
   });
 
   group('4. MULTI-DIVISA Y RESPETO DE CUENTA ACTIVA (CRC, USD, EUR)', () {
-    test('4.1 Cuenta activa CRC formatea en colones y aísla sus importes', () async {
-      final crcAccount = appState.accounts.firstWhere((a) => a.currency == 'CRC');
+    test('4.1 Cuenta activa CRC formatea en colones y aísla sus importes',
+        () async {
+      final crcAccount =
+          appState.accounts.firstWhere((a) => a.currency == 'CRC');
       await appState.setActiveAccount(crcAccount);
 
       expect(appState.activeCurrency, 'CRC');
@@ -624,8 +652,11 @@ void main() {
       expect(CurrencyFormatter.format(150000), '₡150.000');
     });
 
-    test('4.2 Cambiar a cuenta USD aísla metas y compromisos en USD sin mezclar con CRC', () async {
-      final usdAccount = appState.accounts.firstWhere((a) => a.currency == 'USD');
+    test(
+        '4.2 Cambiar a cuenta USD aísla metas y compromisos en USD sin mezclar con CRC',
+        () async {
+      final usdAccount =
+          appState.accounts.firstWhere((a) => a.currency == 'USD');
       await appState.setActiveAccount(usdAccount);
 
       expect(appState.activeCurrency, 'USD');
@@ -651,16 +682,21 @@ void main() {
       expect(appState.committedAmount, 50.0);
 
       // Regresar a cuenta CRC: el compromiso en USD NO debe mezclarse con CRC
-      final crcAccount = appState.accounts.firstWhere((a) => a.currency == 'CRC');
+      final crcAccount =
+          appState.accounts.firstWhere((a) => a.currency == 'CRC');
       await appState.setActiveAccount(crcAccount);
 
       expect(appState.activeCurrency, 'CRC');
-      final crcCommitments = appState.commitments.where((c) => c.accountId == crcAccount.id).toList();
+      final crcCommitments = appState.commitments
+          .where((c) => c.accountId == crcAccount.id)
+          .toList();
       expect(crcCommitments.any((c) => c.id == 'com_usd_software'), false);
     });
 
-    test('4.3 Cuenta EUR: formateo en euros y aislamiento de balances', () async {
-      final eurAccount = appState.accounts.firstWhere((a) => a.currency == 'EUR');
+    test('4.3 Cuenta EUR: formateo en euros y aislamiento de balances',
+        () async {
+      final eurAccount =
+          appState.accounts.firstWhere((a) => a.currency == 'EUR');
       await appState.setActiveAccount(eurAccount);
 
       expect(appState.activeCurrency, 'EUR');
@@ -686,7 +722,8 @@ void main() {
       expect(appState.currentBalance, 649.50);
 
       // Cambiar a cuenta CRC: no debe verse afectado por el gasto en EUR
-      final crcAccount = appState.accounts.firstWhere((a) => a.currency == 'CRC');
+      final crcAccount =
+          appState.accounts.firstWhere((a) => a.currency == 'CRC');
       await appState.setActiveAccount(crcAccount);
 
       expect(appState.activeCurrency, 'CRC');
@@ -695,7 +732,9 @@ void main() {
   });
 
   group('5. GOALS SCREEN: BOTÓN «+ APORTAR» Y PERSISTENCIA OFFLINE-FIRST', () {
-    testWidgets('5.1 Botón + Aportar suma ahorro a la meta, descuenta disponible real y persiste sin movimientos ficticios', (tester) async {
+    testWidgets(
+        '5.1 Botón + Aportar suma ahorro a la meta, descuenta disponible real y persiste sin movimientos ficticios',
+        (tester) async {
       // Meta con objetivo 100.000 y ahorro inicial 20.000
       await appState.saveGoal(
         SavingsGoal(
@@ -727,7 +766,8 @@ void main() {
       expect(find.text('Disponible real: ₡180.000'), findsOneWidget);
 
       // Ingresar monto de aporte: 30.000
-      await tester.enterText(find.widgetWithText(TextFormField, 'Monto a aportar'), '30000');
+      await tester.enterText(
+          find.widgetWithText(TextFormField, 'Monto a aportar'), '30000');
       await tester.pumpAndSettle();
 
       // Confirmar aporte
@@ -751,11 +791,15 @@ void main() {
 
       // Operación encolada en sincronización
       final pendingOps = await financeRepo.getPendingOperations(testUserId);
-      final updateGoalOps = pendingOps.where((op) => op.entityType == 'goal' && op.action == 'update').toList();
+      final updateGoalOps = pendingOps
+          .where((op) => op.entityType == 'goal' && op.action == 'update')
+          .toList();
       expect(updateGoalOps.isNotEmpty, true);
     });
 
-    testWidgets('5.2 Aporte que supera el disponible real es bloqueado por la validación', (tester) async {
+    testWidgets(
+        '5.2 Aporte que supera el disponible real es bloqueado por la validación',
+        (tester) async {
       // Saldo 200.000, meta con 190.000 reservados -> disponible real = 10.000
       await appState.saveGoal(
         SavingsGoal(
@@ -777,7 +821,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Intentar aportar 25.000 cuando solo hay 10.000 disponible
-      await tester.enterText(find.widgetWithText(TextFormField, 'Monto a aportar'), '25000');
+      await tester.enterText(
+          find.widgetWithText(TextFormField, 'Monto a aportar'), '25000');
       await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(FilledButton, 'Aportar'));

@@ -123,8 +123,8 @@ class AppState extends ChangeNotifier {
   double get savedAmount {
     final accId = activeAccount?.id;
     return goals
-        .where((g) =>
-            accId == null || g.accountId == null || g.accountId == accId)
+        .where(
+            (g) => accId == null || g.accountId == null || g.accountId == accId)
         .fold<double>(0.0, (total, g) => total + g.savedAmount);
   }
 
@@ -179,7 +179,9 @@ class AppState extends ChangeNotifier {
       openingBalance = localUser.openingBalance;
     }
 
-    if (currentUserId == null || currentUserEmail == null || api.token == null) {
+    if (currentUserId == null ||
+        currentUserEmail == null ||
+        api.token == null) {
       reviews = [];
       transactions = [];
       commitments = [];
@@ -197,7 +199,8 @@ class AppState extends ChangeNotifier {
     await _loadFromLocalDatabase(currentUserId!);
 
     // Migración idempotente de revisiones desde SharedPreferences a Drift
-    await reviewRepository.migrateFromSharedPreferences(currentUserId!, currentUserEmail!);
+    await reviewRepository.migrateFromSharedPreferences(
+        currentUserId!, currentUserEmail!);
     reviews = await reviewRepository.getReviews(currentUserId!);
 
     notifyListeners();
@@ -208,7 +211,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> _backgroundSync() async {
     if (currentUserId == null || !isAuthenticated) return;
-    if (!autoSyncEnabled) return; // Respeta la preferencia de auto-sincronización
+    if (!autoSyncEnabled)
+      return; // Respeta la preferencia de auto-sincronización
     try {
       await syncNow();
       await refreshAll(silent: true);
@@ -246,17 +250,23 @@ class AppState extends ChangeNotifier {
     if (savedAccountId != null && accounts.any((a) => a.id == savedAccountId)) {
       activeAccount = accounts.firstWhere((a) => a.id == savedAccountId);
     } else {
-      activeAccount = accounts.firstWhere((a) => a.isDefault, orElse: () => accounts.first);
+      activeAccount =
+          accounts.firstWhere((a) => a.isDefault, orElse: () => accounts.first);
     }
     CurrencyFormatter.activeCurrency = activeAccount?.currency ?? 'CRC';
 
-    transactions = await financeRepository.getTransactions(userId, accountId: activeAccount?.id);
-    commitments = await financeRepository.getCommitments(userId, accountId: activeAccount?.id);
-    goals = await financeRepository.getGoals(userId, accountId: activeAccount?.id);
+    transactions = await financeRepository.getTransactions(userId,
+        accountId: activeAccount?.id);
+    commitments = await financeRepository.getCommitments(userId,
+        accountId: activeAccount?.id);
+    goals =
+        await financeRepository.getGoals(userId, accountId: activeAccount?.id);
     reviews = await reviewRepository.getReviews(userId);
-    dashboard = await financeRepository.calculateDashboard(userId, accountId: activeAccount?.id);
+    dashboard = await financeRepository.calculateDashboard(userId,
+        accountId: activeAccount?.id);
     conflicts = await syncService.getUnresolvedConflicts(userId);
-    final pendingCount = await financeRepository.getPendingOperationsCount(userId);
+    final pendingCount =
+        await financeRepository.getPendingOperationsCount(userId);
 
     // Recalcular recordatorios para compromisos y cargar avisos
     await notificationService.recalculateCommitmentReminders(
@@ -287,10 +297,13 @@ class AppState extends ChangeNotifier {
         final token = data['token'].toString();
         final userMap = Map<String, dynamic>.from(data['user'] as Map? ?? {});
         final userId = userMap['id']?.toString() ?? _uuid.v4();
-        final userEmail = (userMap['email'] ?? email).toString().trim().toLowerCase();
+        final userEmail =
+            (userMap['email'] ?? email).toString().trim().toLowerCase();
         final userName = userMap['name']?.toString() ?? 'Usuario';
-        final userCreatedAt = userMap['created_at']?.toString() ?? DateTime.now().toIso8601String();
-        final serverOpeningBalance = (userMap['opening_balance'] as num?)?.toDouble() ?? 0.0;
+        final userCreatedAt = userMap['created_at']?.toString() ??
+            DateTime.now().toIso8601String();
+        final serverOpeningBalance =
+            (userMap['opening_balance'] as num?)?.toDouble() ?? 0.0;
 
         api.token = token;
         currentUserId = userId;
@@ -325,7 +338,8 @@ class AppState extends ChangeNotifier {
         await refreshAll(silent: true);
       });
 
-  Future<void> register(String name, String email, String password) => _run(() async {
+  Future<void> register(String name, String email, String password) =>
+      _run(() async {
         await api.post('/api/auth/register', {
           'name': name,
           'email': email,
@@ -336,7 +350,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> logout({bool force = false}) async {
     if (currentUserId != null) {
-      final pendingCount = await financeRepository.getPendingOperationsCount(currentUserId!);
+      final pendingCount =
+          await financeRepository.getPendingOperationsCount(currentUserId!);
       if (pendingCount > 0 && !force) {
         throw Exception(
           'Tenés $pendingCount cambios pendientes de sincronizar. Sincronizá antes de salir o confirmá para cerrar sesión sin borrar tus datos locales.',
@@ -400,7 +415,8 @@ class AppState extends ChangeNotifier {
               currentUserName = remoteName;
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('current_user_name', remoteName);
-              await financeRepository.updateUserName(currentUserId!, remoteName);
+              await financeRepository.updateUserName(
+                  currentUserId!, remoteName);
             }
             if (remoteCreatedAt != null && remoteCreatedAt.isNotEmpty) {
               currentUserCreatedAt = remoteCreatedAt;
@@ -411,10 +427,12 @@ class AppState extends ChangeNotifier {
 
           final remoteDashboard = await api.get('/api/dashboard');
           if (remoteDashboard is Map) {
-            final remoteOpening = (remoteDashboard['opening_balance'] as num?)?.toDouble();
+            final remoteOpening =
+                (remoteDashboard['opening_balance'] as num?)?.toDouble();
             if (remoteOpening != null && remoteOpening != openingBalance) {
               openingBalance = remoteOpening;
-              await financeRepository.updateOpeningBalance(currentUserId!, openingBalance);
+              await financeRepository.updateOpeningBalance(
+                  currentUserId!, openingBalance);
               final prefs = await SharedPreferences.getInstance();
               await prefs.setDouble('opening_balance', openingBalance);
             }
@@ -442,14 +460,17 @@ class AppState extends ChangeNotifier {
     String? color,
     String? icon,
     bool isDefault = false,
-  }) => _run(() async {
+  }) =>
+      _run(() async {
         if (currentUserId == null) throw Exception('No hay sesión activa');
         final trimmedName = name.trim();
         final trimmedCurrency = currency.trim().toUpperCase();
 
-        if (trimmedName.isEmpty) throw Exception('El nombre de la cuenta es obligatorio.');
+        if (trimmedName.isEmpty)
+          throw Exception('El nombre de la cuenta es obligatorio.');
         if (trimmedCurrency.length != 3) {
-          throw Exception('El código de moneda debe tener 3 letras ISO 4217 (ej. CRC, USD, EUR).');
+          throw Exception(
+              'El código de moneda debe tener 3 letras ISO 4217 (ej. CRC, USD, EUR).');
         }
 
         final accId = _uuid.v4();
@@ -491,19 +512,23 @@ class AppState extends ChangeNotifier {
     String? color,
     String? icon,
     bool? isDefault,
-  }) => _run(() async {
+  }) =>
+      _run(() async {
         if (currentUserId == null) throw Exception('No hay sesión activa');
-        final existing = await financeRepository.getAccountRaw(id, currentUserId!);
+        final existing =
+            await financeRepository.getAccountRaw(id, currentUserId!);
         if (existing == null) throw Exception('Cuenta no encontrada.');
 
         final trimmedName = name.trim();
-        if (trimmedName.isEmpty) throw Exception('El nombre de la cuenta no puede estar vacío.');
+        if (trimmedName.isEmpty)
+          throw Exception('El nombre de la cuenta no puede estar vacío.');
 
         final updated = Account(
           id: id,
           userId: currentUserId!,
           name: trimmedName,
-          currency: existing.currency, // ¡INMUTABLE! Se ignora cualquier intento de cambio
+          currency: existing
+              .currency, // ¡INMUTABLE! Se ignora cualquier intento de cambio
           initialBalance: existing.initialBalance,
           currentBalance: existing.initialBalance,
           color: color ?? existing.color,
@@ -525,14 +550,16 @@ class AppState extends ChangeNotifier {
   Future<void> deleteAccount(String id) => _run(() async {
         if (currentUserId == null) throw Exception('No hay sesión activa');
         if (accounts.length <= 1) {
-          throw Exception('No podés eliminar tu única cuenta financiera. Debe existir al menos una activa.');
+          throw Exception(
+              'No podés eliminar tu única cuenta financiera. Debe existir al menos una activa.');
         }
 
         await financeRepository.deleteAccount(userId: currentUserId!, id: id);
 
         accounts = await financeRepository.getAccounts(currentUserId!);
         if (activeAccount?.id == id) {
-          final nextAcc = accounts.firstWhere((a) => a.isDefault, orElse: () => accounts.first);
+          final nextAcc = accounts.firstWhere((a) => a.isDefault,
+              orElse: () => accounts.first);
           await setActiveAccount(nextAcc);
         } else {
           await _loadFromLocalDatabase(currentUserId!);
@@ -546,14 +573,18 @@ class AppState extends ChangeNotifier {
   // TRANSACCIONES OFFLINE-FIRST
   // =========================================================
 
-  Future<void> saveTransaction(MoneyTransaction transaction, {bool create = false}) => _run(() async {
+  Future<void> saveTransaction(MoneyTransaction transaction,
+          {bool create = false}) =>
+      _run(() async {
         if (currentUserId == null) throw Exception('No hay sesión activa.');
-        if (transaction.amount <= 0) throw Exception('El monto debe ser mayor que 0.');
+        if (transaction.amount <= 0)
+          throw Exception('El monto debe ser mayor que 0.');
 
         // Disponible real proyectado después de descontar compromisos pendientes y ahorro reservado
         double availableBefore = availableBalance;
         if (!create) {
-          final old = transactions.firstWhere((t) => t.id == transaction.id, orElse: () => transaction);
+          final old = transactions.firstWhere((t) => t.id == transaction.id,
+              orElse: () => transaction);
           if (old.id == transaction.id) {
             if (old.type.toLowerCase() == 'expense') {
               availableBefore += old.amount;
@@ -579,7 +610,8 @@ class AppState extends ChangeNotifier {
         }
 
         final targetAccId = transaction.accountId ?? activeAccount?.id;
-        final txId = (create || transaction.id.isEmpty) ? _uuid.v4() : transaction.id;
+        final txId =
+            (create || transaction.id.isEmpty) ? _uuid.v4() : transaction.id;
         final stableTx = MoneyTransaction(
           id: txId,
           type: transaction.type,
@@ -608,16 +640,26 @@ class AppState extends ChangeNotifier {
 
   Future<void> deleteTransaction(String id) => _run(() async {
         if (currentUserId == null) return;
-        final tx = transactions.firstWhere((t) => t.id == id, orElse: () => MoneyTransaction(id: id, type: '', category: '', amount: 0, description: '', date: DateTime.now(), recognized: true));
+        final tx = transactions.firstWhere((t) => t.id == id,
+            orElse: () => MoneyTransaction(
+                id: id,
+                type: '',
+                category: '',
+                amount: 0,
+                description: '',
+                date: DateTime.now(),
+                recognized: true));
 
         if (tx.type.toLowerCase() == 'income') {
           final projected = currentBalance - tx.amount;
           if (projected < 0) {
-            throw Exception('No podés eliminar este ingreso porque el saldo quedaría en negativo.');
+            throw Exception(
+                'No podés eliminar este ingreso porque el saldo quedaría en negativo.');
           }
         }
 
-        await financeRepository.deleteTransaction(userId: currentUserId!, id: id);
+        await financeRepository.deleteTransaction(
+            userId: currentUserId!, id: id);
         await _loadFromLocalDatabase(currentUserId!);
         notifyListeners();
 
@@ -628,10 +670,12 @@ class AppState extends ChangeNotifier {
   // COMPROMISOS OFFLINE-FIRST
   // =========================================================
 
-  Future<void> saveCommitment(Commitment commitment, {bool create = false}) => _run(() async {
+  Future<void> saveCommitment(Commitment commitment, {bool create = false}) =>
+      _run(() async {
         if (currentUserId == null) return;
         final targetAccId = commitment.accountId ?? activeAccount?.id;
-        final comId = (create || commitment.id.isEmpty) ? _uuid.v4() : commitment.id;
+        final comId =
+            (create || commitment.id.isEmpty) ? _uuid.v4() : commitment.id;
         final stable = Commitment(
           id: comId,
           title: commitment.title,
@@ -654,7 +698,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> deleteCommitment(String id) => _run(() async {
         if (currentUserId == null) return;
-        await financeRepository.deleteCommitment(userId: currentUserId!, id: id);
+        await financeRepository.deleteCommitment(
+            userId: currentUserId!, id: id);
         await _loadFromLocalDatabase(currentUserId!);
         notifyListeners();
         _backgroundSync();
@@ -664,7 +709,8 @@ class AppState extends ChangeNotifier {
   // METAS OFFLINE-FIRST
   // =========================================================
 
-  Future<void> saveGoal(SavingsGoal goal, {bool create = false}) => _run(() async {
+  Future<void> saveGoal(SavingsGoal goal, {bool create = false}) =>
+      _run(() async {
         if (currentUserId == null) return;
         final targetAccId = goal.accountId ?? activeAccount?.id;
         final gId = (create || goal.id.isEmpty) ? _uuid.v4() : goal.id;
@@ -731,7 +777,8 @@ class AppState extends ChangeNotifier {
   // DECISIONES Y REVISIONES OFFLINE-FIRST
   // =========================================================
 
-  Future<void> saveDecision(String action, String note, {String? accountId}) => _run(() async {
+  Future<void> saveDecision(String action, String note, {String? accountId}) =>
+      _run(() async {
         if (currentUserId == null) return;
         await financeRepository.saveDecision(
           userId: currentUserId!,
@@ -769,7 +816,9 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> resolveConflict(String conflictId, ConflictResolutionStrategy strategy, [Map<String, dynamic>? merged]) async {
+  Future<void> resolveConflict(
+      String conflictId, ConflictResolutionStrategy strategy,
+      [Map<String, dynamic>? merged]) async {
     if (currentUserId == null) return;
     await syncService.resolveConflict(
       userId: currentUserId!,
@@ -852,7 +901,8 @@ class AppState extends ChangeNotifier {
     bool revokeOtherSessions = true,
   }) async {
     if (!isAuthenticated) {
-      throw Exception('Esta función requiere conexión con el servidor. Verificá tu conexión e intentá de nuevo.');
+      throw Exception(
+          'Esta función requiere conexión con el servidor. Verificá tu conexión e intentá de nuevo.');
     }
     final res = await api.post('/api/me/change-password', {
       'current_password': currentPassword,
@@ -879,7 +929,8 @@ class AppState extends ChangeNotifier {
       commitments: commitments,
     );
     notifications = await notificationService.getNotifications(currentUserId!);
-    unreadNotificationsCount = await notificationService.getUnreadCount(currentUserId!);
+    unreadNotificationsCount =
+        await notificationService.getUnreadCount(currentUserId!);
     notifyListeners();
   }
 
@@ -916,9 +967,11 @@ class AppState extends ChangeNotifier {
 
   Future<void> clearRegenerableCache() async {
     if (currentUserId != null) {
-      final pendingCount = await financeRepository.getPendingOperationsCount(currentUserId!);
+      final pendingCount =
+          await financeRepository.getPendingOperationsCount(currentUserId!);
       if (pendingCount > 0) {
-        throw Exception('Tenés $pendingCount cambios pendientes de sincronizar. Sincronizá antes de limpiar la caché.');
+        throw Exception(
+            'Tenés $pendingCount cambios pendientes de sincronizar. Sincronizá antes de limpiar la caché.');
       }
     }
     final prefs = await SharedPreferences.getInstance();

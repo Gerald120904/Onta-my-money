@@ -41,28 +41,22 @@ class DashboardScreen extends StatelessWidget {
   double get _monthIncome {
     return _monthTransactions
         .where(
-          (transaction) =>
-              transaction.type.toLowerCase() ==
-              'income',
+          (transaction) => transaction.type.toLowerCase() == 'income',
         )
         .fold<double>(
           0,
-          (total, transaction) =>
-              total + transaction.amount,
+          (total, transaction) => total + transaction.amount,
         );
   }
 
   double get _monthExpenses {
     return _monthTransactions
         .where(
-          (transaction) =>
-              transaction.type.toLowerCase() ==
-              'expense',
+          (transaction) => transaction.type.toLowerCase() == 'expense',
         )
         .fold<double>(
           0,
-          (total, transaction) =>
-              total + transaction.amount,
+          (total, transaction) => total + transaction.amount,
         );
   }
 
@@ -109,12 +103,12 @@ class DashboardScreen extends StatelessWidget {
   @override
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
-    final borderColor = isDark ? const Color(0xFF263859) : AppTheme.border;
-    final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final balanceBg = isDark ? const Color(0xFF132B5C) : const Color(0xFFE7F2FF);
+    final isDark = AppTheme.isDarkMode(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final borderColor = AppTheme.borderColor(context);
+    final cardBg = AppTheme.cardBg(context);
+    final balanceBg = AppTheme.tintPrimary(context);
 
     return RefreshIndicator(
       onRefresh: state.refreshAll,
@@ -184,7 +178,8 @@ class DashboardScreen extends StatelessWidget {
                       Icon(
                         Icons.visibility_outlined,
                         size: 18,
-                        color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                        color:
+                            isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
                       ),
                     ],
                   ),
@@ -219,7 +214,9 @@ class DashboardScreen extends StatelessWidget {
                               Icon(
                                 Icons.account_balance_wallet_outlined,
                                 size: 19,
-                                color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                                color: isDark
+                                    ? const Color(0xFF60A5FA)
+                                    : AppTheme.primary,
                               ),
                               const SizedBox(width: 7),
                               Expanded(
@@ -234,20 +231,16 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 4),
-
                           Text(
                             'Dinero restante después de ingresos y gastos',
                             style: TextStyle(
-                              fontSize: 10.5,
+                              fontSize: 12.5,
                               height: 1.3,
                               color: mutedColor,
                             ),
                           ),
-
                           const SizedBox(height: 7),
-
                           Text(
                             money(_currentBalance),
                             style: TextStyle(
@@ -256,12 +249,12 @@ class DashboardScreen extends StatelessWidget {
                               fontWeight: FontWeight.w900,
                               color: _currentBalance >= 0
                                   ? textColor
-                                  : (isDark ? const Color(0xFFF87171) : Colors.red.shade700),
+                                  : (isDark
+                                      ? const Color(0xFFF87171)
+                                      : Colors.red.shade700),
                             ),
                           ),
-
                           const SizedBox(height: 10),
-
                           Wrap(
                             spacing: 8,
                             runSpacing: 7,
@@ -270,13 +263,17 @@ class DashboardScreen extends StatelessWidget {
                                 icon: Icons.add_circle_outline_rounded,
                                 label: 'Ingreso',
                                 amount: _totalIncome,
-                                color: isDark ? const Color(0xFF4ADE80) : AppTheme.success,
+                                color: isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : AppTheme.success,
                               ),
                               _BalanceDetail(
                                 icon: Icons.remove_circle_outline_rounded,
                                 label: 'Gasto',
                                 amount: _totalExpenses,
-                                color: isDark ? const Color(0xFFF87171) : Colors.red.shade700,
+                                color: isDark
+                                    ? const Color(0xFFF87171)
+                                    : Colors.red.shade700,
                               ),
                             ],
                           ),
@@ -358,7 +355,8 @@ class DashboardScreen extends StatelessWidget {
                     child: MoneyCard(
                       title: 'Disponible real',
                       amount: _available,
-                      subtitle: 'Dinero que podés utilizar sin afectar compromisos ni ahorro',
+                      subtitle:
+                          'Dinero que podés utilizar sin afectar compromisos ni ahorro',
                       icon: Icons.check_circle_outline_rounded,
                       green: _available >= 0,
                       showArrow: false,
@@ -411,7 +409,8 @@ class DashboardScreen extends StatelessWidget {
                     Icon(
                       Icons.receipt_long_outlined,
                       size: 32,
-                      color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                      color:
+                          isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
                     ),
                     const SizedBox(height: 9),
                     Text(
@@ -428,7 +427,7 @@ class DashboardScreen extends StatelessWidget {
                       'Cuando registrés un ingreso o un gasto, aparecerá aquí.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         height: 1.35,
                         color: mutedColor,
                       ),
@@ -446,9 +445,7 @@ class DashboardScreen extends StatelessWidget {
                 color: textColor,
               ),
             ),
-
             const SizedBox(height: 10),
-
             ..._latestTransactions.map(
               (transaction) {
                 final isIncome = transaction.type.toLowerCase() == 'income';
@@ -457,12 +454,17 @@ class DashboardScreen extends StatelessWidget {
                     ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
                     : (isDark ? const Color(0xFFF87171) : Colors.red.shade700);
                 final iconBg = isIncome
-                    ? (isDark ? const Color(0xFF0F3A2A) : const Color(0xFFE9FFF2))
-                    : (isDark ? const Color(0xFF3F1218) : const Color(0xFFFFF1F1));
+                    ? (isDark
+                        ? const Color(0xFF0F3A2A)
+                        : const Color(0xFFE9FFF2))
+                    : (isDark
+                        ? const Color(0xFF3F1218)
+                        : const Color(0xFFFFF1F1));
 
-                final semanticDescription = transaction.description.trim().isEmpty
-                    ? ''
-                    : '. ${transaction.description}';
+                final semanticDescription =
+                    transaction.description.trim().isEmpty
+                        ? ''
+                        : '. ${transaction.description}';
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -496,14 +498,14 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                               ),
                               child: Icon(
-                                isIncome ? Icons.add_rounded : Icons.remove_rounded,
+                                isIncome
+                                    ? Icons.add_rounded
+                                    : Icons.remove_rounded,
                                 color: accent,
                                 size: 23,
                               ),
                             ),
-
                             const SizedBox(width: 11),
-
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,33 +525,32 @@ class DashboardScreen extends StatelessWidget {
                                     child: Text(
                                       typeLabel,
                                       style: TextStyle(
-                                        fontSize: 8.5,
+                                        fontSize: 10.5,
                                         letterSpacing: .4,
                                         fontWeight: FontWeight.w900,
                                         color: accent,
                                       ),
                                     ),
                                   ),
-
                                   const SizedBox(height: 5),
-
                                   Text(
                                     transaction.category,
                                     style: TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 14.5,
                                       fontWeight: FontWeight.w900,
                                       color: textColor,
                                     ),
                                   ),
-
-                                  if (transaction.description.trim().isNotEmpty) ...[
+                                  if (transaction.description
+                                      .trim()
+                                      .isNotEmpty) ...[
                                     const SizedBox(height: 2),
                                     Text(
                                       transaction.description,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 12,
                                         color: mutedColor,
                                       ),
                                     ),
@@ -557,9 +558,7 @@ class DashboardScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-
                             const SizedBox(width: 8),
-
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -568,18 +567,16 @@ class DashboardScreen extends StatelessWidget {
                                       ? '+${money(transaction.amount)}'
                                       : '-${money(transaction.amount)}',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 14.5,
                                     fontWeight: FontWeight.w900,
                                     color: isIncome ? accent : textColor,
                                   ),
                                 ),
-
                                 const SizedBox(height: 2),
-
                                 Text(
                                   isIncome ? 'Recibido' : 'Gastado',
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 11.5,
                                     color: mutedColor,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -622,7 +619,8 @@ class _LoadingStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF2D2005) : const Color(0xFFFFF8E8);
-    final borderColor = isDark ? const Color(0xFFB45309) : const Color(0xFFE8C86B);
+    final borderColor =
+        isDark ? const Color(0xFFB45309) : const Color(0xFFE8C86B);
     final textColor = isDark ? const Color(0xFFFDE68A) : AppTheme.text;
     final progressColor = isDark ? const Color(0xFFFBBF24) : AppTheme.primary;
 
@@ -680,15 +678,12 @@ class _BalanceDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark
-        ? const Color(0xFF14213D).withOpacity(.85)
-        : Colors.white.withOpacity(.75);
-    final borderColor = isDark ? const Color(0xFF263859) : AppTheme.border;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
+    final bg = AppTheme.cardBg(context).withOpacity(.85);
+    final borderColor = AppTheme.borderColor(context);
+    final textColor = AppTheme.textColor(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(9),
@@ -697,12 +692,12 @@ class _BalanceDetail extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
+          Icon(icon, size: 15, color: color),
+          const SizedBox(width: 5),
           Text(
             '$label: ${money(amount)}',
             style: TextStyle(
-              fontSize: 10.5,
+              fontSize: 12,
               color: textColor,
               fontWeight: FontWeight.w800,
             ),

@@ -9,7 +9,9 @@ import 'package:donde_se_fue_mi_plata/models/models.dart';
 // Función para calcular la luminancia relativa según WCAG 2.1
 double _relativeLuminance(Color color) {
   double transform(double val) {
-    return val <= 0.03928 ? val / 12.92 : math.pow((val + 0.055) / 1.055, 2.4).toDouble();
+    return val <= 0.03928
+        ? val / 12.92
+        : math.pow((val + 0.055) / 1.055, 2.4).toDouble();
   }
 
   final r = transform((color.r * 255.0).round().clamp(0, 255) / 255.0);
@@ -67,7 +69,9 @@ void main() {
   });
 
   group('2. Account Model & Strict Currency Immutability', () {
-    test('Account creation sets currency in uppercase and copyWith protects currency', () {
+    test(
+        'Account creation sets currency in uppercase and copyWith protects currency',
+        () {
       final account = Account(
         id: 'acc-1',
         userId: 'user-1',
@@ -134,34 +138,43 @@ void main() {
       expect(ratio, greaterThanOrEqualTo(4.5));
     });
 
-    test('Dark theme textDark on surfaceDark meets WCAG AA & AAA (>= 7.0:1)', () {
+    test('Dark theme textDark on surfaceDark meets WCAG AA & AAA (>= 7.0:1)',
+        () {
       final ratio = _contrastRatio(AppTheme.textDark, AppTheme.surfaceDark);
       // AppTheme.textDark (0xFFF8FAFC) on surfaceDark (0xFF14213D)
       expect(ratio, greaterThanOrEqualTo(4.5));
       expect(ratio, greaterThanOrEqualTo(7.0));
     });
 
-    test('Dark theme textDark on backgroundDark meets WCAG AA & AAA (>= 7.0:1)', () {
+    test('Dark theme textDark on backgroundDark meets WCAG AA & AAA (>= 7.0:1)',
+        () {
       final ratio = _contrastRatio(AppTheme.textDark, AppTheme.backgroundDark);
       // AppTheme.textDark (0xFFF8FAFC) on backgroundDark (0xFF0B132B)
       expect(ratio, greaterThanOrEqualTo(7.0));
     });
 
-    test('Dark theme mutedDark on surfaceDark meets WCAG AA for normal text (>= 4.5:1)', () {
+    test(
+        'Dark theme mutedDark on surfaceDark meets WCAG AA for normal text (>= 4.5:1)',
+        () {
       final ratio = _contrastRatio(AppTheme.mutedDark, AppTheme.surfaceDark);
       // AppTheme.mutedDark (0xFF94A3B8) on surfaceDark (0xFF14213D) is ~5.6:1
       expect(ratio, greaterThanOrEqualTo(4.5));
     });
 
-    test('Focus indicator focusDark on surfaceDark meets graphical WCAG (>= 3.0:1)', () {
+    test(
+        'Focus indicator focusDark on surfaceDark meets graphical WCAG (>= 3.0:1)',
+        () {
       final ratio = _contrastRatio(AppTheme.focusDark, AppTheme.surfaceDark);
       // AppTheme.focusDark (0xFF93C5FD) on surfaceDark (0xFF14213D) is > 7:1
       expect(ratio, greaterThanOrEqualTo(3.0));
     });
   });
 
-  group('4. Segregated Financial Calculations Across Multi-Currency Accounts', () {
-    test('Transactions are strictly isolated by accountId without cross-account contamination', () {
+  group('4. Segregated Financial Calculations Across Multi-Currency Accounts',
+      () {
+    test(
+        'Transactions are strictly isolated by accountId without cross-account contamination',
+        () {
       final txCRC = [
         MoneyTransaction(
           id: 'tx-1',
@@ -212,8 +225,12 @@ void main() {
 
       // Filtrado por cuenta CRC
       final crcOnly = allTx.where((t) => t.accountId == 'acc-crc').toList();
-      final crcIncome = crcOnly.where((t) => t.type == 'income').fold<double>(0, (s, t) => s + t.amount);
-      final crcExpense = crcOnly.where((t) => t.type == 'expense').fold<double>(0, (s, t) => s + t.amount);
+      final crcIncome = crcOnly
+          .where((t) => t.type == 'income')
+          .fold<double>(0, (s, t) => s + t.amount);
+      final crcExpense = crcOnly
+          .where((t) => t.type == 'expense')
+          .fold<double>(0, (s, t) => s + t.amount);
       final crcNet = crcIncome - crcExpense;
 
       expect(crcIncome, 500000.0);
@@ -222,8 +239,12 @@ void main() {
 
       // Filtrado por cuenta USD
       final usdOnly = allTx.where((t) => t.accountId == 'acc-usd').toList();
-      final usdIncome = usdOnly.where((t) => t.type == 'income').fold<double>(0, (s, t) => s + t.amount);
-      final usdExpense = usdOnly.where((t) => t.type == 'expense').fold<double>(0, (s, t) => s + t.amount);
+      final usdIncome = usdOnly
+          .where((t) => t.type == 'income')
+          .fold<double>(0, (s, t) => s + t.amount);
+      final usdExpense = usdOnly
+          .where((t) => t.type == 'expense')
+          .fold<double>(0, (s, t) => s + t.amount);
       final usdNet = usdIncome - usdExpense;
 
       expect(usdIncome, 1200.0);
@@ -235,7 +256,8 @@ void main() {
       expect(usdOnly.any((t) => t.accountId == 'acc-crc'), isFalse);
     });
 
-    test('Available balance formula respects commitments and reserved savings', () {
+    test('Available balance formula respects commitments and reserved savings',
+        () {
       const currentBalance = 350000.0;
       const committedMoney = 120000.0;
       const reservedSavings = 80000.0;
@@ -248,7 +270,9 @@ void main() {
   });
 
   group('5. Decision Dialog Form Validations (H9 & H5)', () {
-    test('Validates "Reducir gasto" requires category, amount > 0 and target date when type=date', () {
+    test(
+        'Validates "Reducir gasto" requires category, amount > 0 and target date when type=date',
+        () {
       bool validateReduce({
         required String? category,
         required double amount,
@@ -261,15 +285,53 @@ void main() {
         return true;
       }
 
-      expect(validateReduce(category: null, amount: 10000, periodType: 'weeks', targetDate: null), isFalse);
-      expect(validateReduce(category: 'Comida', amount: 0, periodType: 'weeks', targetDate: null), isFalse);
-      expect(validateReduce(category: 'Comida', amount: -500, periodType: 'weeks', targetDate: null), isFalse);
-      expect(validateReduce(category: 'Comida', amount: 15000, periodType: 'date', targetDate: null), isFalse);
-      expect(validateReduce(category: 'Comida', amount: 15000, periodType: 'date', targetDate: DateTime.now()), isTrue);
-      expect(validateReduce(category: 'Comida', amount: 15000, periodType: 'weeks', targetDate: null), isTrue);
+      expect(
+          validateReduce(
+              category: null,
+              amount: 10000,
+              periodType: 'weeks',
+              targetDate: null),
+          isFalse);
+      expect(
+          validateReduce(
+              category: 'Comida',
+              amount: 0,
+              periodType: 'weeks',
+              targetDate: null),
+          isFalse);
+      expect(
+          validateReduce(
+              category: 'Comida',
+              amount: -500,
+              periodType: 'weeks',
+              targetDate: null),
+          isFalse);
+      expect(
+          validateReduce(
+              category: 'Comida',
+              amount: 15000,
+              periodType: 'date',
+              targetDate: null),
+          isFalse);
+      expect(
+          validateReduce(
+              category: 'Comida',
+              amount: 15000,
+              periodType: 'date',
+              targetDate: DateTime.now()),
+          isTrue);
+      expect(
+          validateReduce(
+              category: 'Comida',
+              amount: 15000,
+              periodType: 'weeks',
+              targetDate: null),
+          isTrue);
     });
 
-    test('Validates "Posponer una compra" requires name, amount > 0 and target date', () {
+    test(
+        'Validates "Posponer una compra" requires name, amount > 0 and target date',
+        () {
       bool validatePostpone({
         required String name,
         required double amount,
@@ -281,10 +343,19 @@ void main() {
         return true;
       }
 
-      expect(validatePostpone(name: '', amount: 50000, targetDate: DateTime.now()), isFalse);
-      expect(validatePostpone(name: 'Zapatos', amount: 0, targetDate: DateTime.now()), isFalse);
-      expect(validatePostpone(name: 'Zapatos', amount: 50000, targetDate: null), isFalse);
-      expect(validatePostpone(name: 'Zapatos', amount: 50000, targetDate: DateTime.now()), isTrue);
+      expect(
+          validatePostpone(name: '', amount: 50000, targetDate: DateTime.now()),
+          isFalse);
+      expect(
+          validatePostpone(
+              name: 'Zapatos', amount: 0, targetDate: DateTime.now()),
+          isFalse);
+      expect(validatePostpone(name: 'Zapatos', amount: 50000, targetDate: null),
+          isFalse);
+      expect(
+          validatePostpone(
+              name: 'Zapatos', amount: 50000, targetDate: DateTime.now()),
+          isTrue);
     });
   });
 }

@@ -25,7 +25,8 @@ class LocalTransactions extends Table {
   DateTimeColumn get date => dateTime()();
   BoolColumn get recognized => boolean().withDefault(const Constant(true))();
   IntColumn get version => integer().withDefault(const Constant(1))();
-  TextColumn get syncStatus => text().withDefault(const Constant('synced'))(); // 'synced', 'pending', 'conflict', 'error'
+  TextColumn get syncStatus => text().withDefault(
+      const Constant('synced'))(); // 'synced', 'pending', 'conflict', 'error'
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -133,7 +134,8 @@ class LocalPendingOperations extends Table {
   TextColumn get action => text()(); // 'create', 'update', 'delete'
   TextColumn get payloadJson => text()();
   IntColumn get baseVersion => integer().withDefault(const Constant(1))();
-  TextColumn get status => text().withDefault(const Constant('pending'))(); // 'pending', 'syncing', 'synced', 'conflict', 'failed'
+  TextColumn get status => text().withDefault(const Constant(
+      'pending'))(); // 'pending', 'syncing', 'synced', 'conflict', 'failed'
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
   TextColumn get lastError => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
@@ -180,10 +182,12 @@ class LocalChangeHistory extends Table {
 class LocalNotifications extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
-  TextColumn get type => text()(); // 'reminder_7d', 'reminder_3d', 'reminder_1d', 'reminder_due', 'overdue', 'weekly_review'
+  TextColumn get type =>
+      text()(); // 'reminder_7d', 'reminder_3d', 'reminder_1d', 'reminder_due', 'overdue', 'weekly_review'
   TextColumn get title => text()();
   TextColumn get body => text()();
-  TextColumn get relatedEntityType => text().nullable()(); // 'commitment', 'review'
+  TextColumn get relatedEntityType =>
+      text().nullable()(); // 'commitment', 'review'
   TextColumn get relatedEntityId => text().nullable()();
   RealColumn get amount => real().nullable()();
   DateTimeColumn get scheduledDate => dateTime()();

@@ -21,17 +21,18 @@ class AccountSelectorBar extends StatelessWidget {
     final accountName = activeAccount?.name ?? 'Cuenta Principal';
     final currency = activeAccount?.currency ?? state.activeCurrency;
 
-    final bgColor = isDark ? const Color(0xFF14213D) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF263859) : AppTheme.border;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
-    final badgeBg = isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF);
-    final badgeColor = isDark ? const Color(0xFF93C5FD) : AppTheme.primary;
+    final bgColor = AppTheme.cardBg(context);
+    final borderColor = AppTheme.borderColor(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final badgeBg = AppTheme.tintPrimary(context);
+    final badgeColor = AppTheme.primaryColor(context);
 
     return Semantics(
       container: true,
       button: true,
-      label: 'Cuenta activa: $accountName en $currency. Saldo: ${money(state.currentBalance)}. Tocá para cambiar o crear cuenta.',
+      label:
+          'Cuenta activa: $accountName en $currency. Saldo: ${money(state.currentBalance)}. Tocá para cambiar o crear cuenta.',
       child: Material(
         color: bgColor,
         borderRadius: BorderRadius.circular(14),
@@ -40,7 +41,7 @@ class AccountSelectorBar extends StatelessWidget {
           onTap: () => showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            backgroundColor: isDark ? const Color(0xFF0B132B) : Colors.white,
+            backgroundColor: AppTheme.cardBg(context),
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
@@ -93,7 +94,8 @@ class AccountSelectorBar extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: badgeBg,
                               borderRadius: BorderRadius.circular(6),
@@ -169,7 +171,9 @@ class AccountSwitcherSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -200,9 +204,9 @@ class AccountSwitcherSheet extends StatelessWidget {
             Text(
               'Cada cuenta mantiene su propia divisa inmutable, movimientos y disponible real separado.',
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: 13,
                 color: mutedColor,
-                height: 1.3,
+                height: 1.35,
               ),
             ),
             const SizedBox(height: 14),
@@ -217,11 +221,14 @@ class AccountSwitcherSheet extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final acc = state.accounts[index];
                   final isSelected = acc.id == state.activeAccount?.id;
-                  final symbol = CurrencyFormatter.symbolFor(acc.currency).trim();
+                  final symbol =
+                      CurrencyFormatter.symbolFor(acc.currency).trim();
 
                   return Material(
                     color: isSelected
-                        ? (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF))
+                        ? (isDark
+                            ? const Color(0xFF1E3A8A)
+                            : const Color(0xFFEAF3FF))
                         : cardBg,
                     borderRadius: BorderRadius.circular(12),
                     child: InkWell(
@@ -231,12 +238,15 @@ class AccountSwitcherSheet extends StatelessWidget {
                         Navigator.pop(context);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isSelected
-                                ? (isDark ? const Color(0xFF60A5FA) : AppTheme.primary)
+                                ? (isDark
+                                    ? const Color(0xFF60A5FA)
+                                    : AppTheme.primary)
                                 : borderColor,
                             width: isSelected ? 1.6 : 1.0,
                           ),
@@ -248,8 +258,12 @@ class AccountSwitcherSheet extends StatelessWidget {
                               height: 38,
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? (isDark ? const Color(0xFF2563EB) : AppTheme.primary)
-                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                    ? (isDark
+                                        ? const Color(0xFF2563EB)
+                                        : AppTheme.primary)
+                                    : (isDark
+                                        ? const Color(0xFF1E293B)
+                                        : const Color(0xFFE2E8F0)),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Center(
@@ -258,7 +272,8 @@ class AccountSwitcherSheet extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w900,
-                                    color: isSelected ? Colors.white : textColor,
+                                    color:
+                                        isSelected ? Colors.white : textColor,
                                   ),
                                 ),
                               ),
@@ -282,17 +297,23 @@ class AccountSwitcherSheet extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 6),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: isDark
+                                              ? const Color(0xFF0F172A)
+                                              : const Color(0xFFE2E8F0),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                         child: Text(
                                           acc.currency,
                                           style: TextStyle(
                                             fontSize: 9.5,
                                             fontWeight: FontWeight.w900,
-                                            color: isDark ? const Color(0xFF93C5FD) : AppTheme.primaryDark,
+                                            color: isDark
+                                                ? const Color(0xFF93C5FD)
+                                                : AppTheme.primaryDark,
                                           ),
                                         ),
                                       ),
@@ -313,7 +334,9 @@ class AccountSwitcherSheet extends StatelessWidget {
                             if (isSelected)
                               Icon(
                                 Icons.check_circle_rounded,
-                                color: isDark ? const Color(0xFF4ADE80) : AppTheme.success,
+                                color: isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : AppTheme.success,
                                 size: 22,
                               ),
                           ],
@@ -394,7 +417,8 @@ class _CreateAccountDialogState extends State<CreateAccountDialog> {
 
     if (currency.length != 3) {
       setState(() {
-        _errorMessage = 'El código de moneda debe tener 3 letras ISO 4217 (ej. CRC, USD, EUR).';
+        _errorMessage =
+            'El código de moneda debe tener 3 letras ISO 4217 (ej. CRC, USD, EUR).';
       });
       return;
     }
@@ -431,10 +455,10 @@ class _CreateAccountDialogState extends State<CreateAccountDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dialogBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
+    final isDark = AppTheme.isDarkMode(context);
+    final dialogBg = AppTheme.cardBg(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
 
     return AlertDialog(
       backgroundColor: dialogBg,
@@ -560,7 +584,8 @@ class _CreateAccountDialogState extends State<CreateAccountDialog> {
                     counterText: '',
                   ),
                   validator: (val) {
-                    if (_isCustomCurrency && (val == null || val.trim().length != 3)) {
+                    if (_isCustomCurrency &&
+                        (val == null || val.trim().length != 3)) {
                       return 'Ingresá 3 letras ISO válidas';
                     }
                     return null;
@@ -571,7 +596,9 @@ class _CreateAccountDialogState extends State<CreateAccountDialog> {
               Container(
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -580,7 +607,8 @@ class _CreateAccountDialogState extends State<CreateAccountDialog> {
                     Icon(
                       Icons.lock_outline_rounded,
                       size: 15,
-                      color: isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
+                      color:
+                          isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
                     ),
                     const SizedBox(width: 6),
                     Expanded(
@@ -608,17 +636,20 @@ class _CreateAccountDialogState extends State<CreateAccountDialog> {
               const SizedBox(height: 6),
               TextFormField(
                 controller: _balanceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 style: TextStyle(color: textColor, fontSize: 14),
                 decoration: InputDecoration(
-                  prefixText: '${CurrencyFormatter.symbolFor(_isCustomCurrency ? _customCurrencyController.text : _selectedCurrency)} ',
+                  prefixText:
+                      '${CurrencyFormatter.symbolFor(_isCustomCurrency ? _customCurrencyController.text : _selectedCurrency)} ',
                   hintText: '0',
                 ),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
                     return 'Ingresá el saldo inicial (puede ser 0)';
                   }
-                  final parsed = double.tryParse(val.trim().replaceAll(',', '.'));
+                  final parsed =
+                      double.tryParse(val.trim().replaceAll(',', '.'));
                   if (parsed == null) {
                     return 'Ingresá un número válido';
                   }
@@ -651,7 +682,8 @@ class _CreateAccountDialogState extends State<CreateAccountDialog> {
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
                 )
               : const Text('Crear cuenta'),
         ),

@@ -15,7 +15,9 @@ class ReviewRepository {
   Future<List<ReviewResult>> getReviews(String userId) async {
     final query = db.select(db.localReviews)
       ..where((r) => r.userId.equals(userId) & r.isDeleted.equals(false))
-      ..orderBy([(r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)]);
+      ..orderBy([
+        (r) => OrderingTerm(expression: r.createdAt, mode: OrderingMode.desc)
+      ]);
 
     final rows = await query.get();
     return rows.map((r) {
@@ -49,7 +51,8 @@ class ReviewRepository {
     }).toList();
   }
 
-  Future<void> saveReview(String userId, ReviewResult result, {String? deviceId}) async {
+  Future<void> saveReview(String userId, ReviewResult result,
+      {String? deviceId}) async {
     final now = DateTime.now();
     final reviewId = _uuid.v4();
     final opId = _uuid.v4();
@@ -93,18 +96,21 @@ class ReviewRepository {
     });
   }
 
-  Future<void> deleteReview(String userId, DateTime createdAt, {String? deviceId}) async {
+  Future<void> deleteReview(String userId, DateTime createdAt,
+      {String? deviceId}) async {
     final now = DateTime.now();
     final opId = _uuid.v4();
 
     await db.transaction(() async {
       final existing = await (db.select(db.localReviews)
-            ..where((r) => r.userId.equals(userId) & r.createdAt.equals(createdAt)))
+            ..where(
+                (r) => r.userId.equals(userId) & r.createdAt.equals(createdAt)))
           .getSingleOrNull();
 
       if (existing == null) return;
 
-      await (db.update(db.localReviews)..where((r) => r.id.equals(existing.id))).write(
+      await (db.update(db.localReviews)..where((r) => r.id.equals(existing.id)))
+          .write(
         LocalReviewsCompanion(
           isDeleted: const Value(true),
           syncStatus: const Value('pending'),
@@ -144,7 +150,8 @@ class ReviewRepository {
         if (decoded is List) {
           toMigrate = decoded
               .whereType<Map>()
-              .map((item) => ReviewResult.fromJson(Map<String, dynamic>.from(item)))
+              .map((item) =>
+                  ReviewResult.fromJson(Map<String, dynamic>.from(item)))
               .toList();
         }
       } catch (_) {}
@@ -155,7 +162,8 @@ class ReviewRepository {
     if (oldSingle != null && oldSingle.trim().isNotEmpty) {
       try {
         final decoded = jsonDecode(oldSingle);
-        final review = ReviewResult.fromJson(Map<String, dynamic>.from(decoded));
+        final review =
+            ReviewResult.fromJson(Map<String, dynamic>.from(decoded));
         if (!toMigrate.any((r) => r.createdAt == review.createdAt)) {
           toMigrate.add(review);
         }
@@ -168,7 +176,9 @@ class ReviewRepository {
     await db.transaction(() async {
       for (final review in toMigrate) {
         final existing = await (db.select(db.localReviews)
-              ..where((r) => r.userId.equals(userId) & r.createdAt.equals(review.createdAt)))
+              ..where((r) =>
+                  r.userId.equals(userId) &
+                  r.createdAt.equals(review.createdAt)))
             .getSingleOrNull();
 
         if (existing == null) {
@@ -182,7 +192,8 @@ class ReviewRepository {
                   periodSubtitle: Value(review.periodSubtitle),
                   transactionIdsJson: Value(jsonEncode(review.transactionIds)),
                   decision: Value(review.decision),
-                  decisionDetailsJson: Value(jsonEncode(review.decisionDetails)),
+                  decisionDetailsJson:
+                      Value(jsonEncode(review.decisionDetails)),
                   createdAt: Value(review.createdAt),
                   version: const Value(1),
                   syncStatus: const Value('synced'),

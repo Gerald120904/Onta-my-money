@@ -47,7 +47,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _updatePref(NotificationPreferences Function(NotificationPreferences) updater) async {
+  Future<void> _updatePref(
+      NotificationPreferences Function(NotificationPreferences) updater) async {
     final userId = widget.state.currentUserId;
     if (userId == null) return;
     final updated = updater(_prefs);
@@ -115,7 +116,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.amber.shade900),
+            style:
+                FilledButton.styleFrom(backgroundColor: Colors.amber.shade900),
             child: const Text('Limpiar caché'),
           ),
         ],
@@ -157,17 +159,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
-    final cardBg = isDark ? AppTheme.surfaceDark : Colors.white;
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
+    final isDark = AppTheme.isDarkMode(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final cardBg = AppTheme.cardBg(context);
+    final borderColor = AppTheme.borderColor(context);
     final state = widget.state;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.backgroundDark : AppTheme.background,
+      backgroundColor: AppTheme.bg(context),
       appBar: AppBar(
-        backgroundColor: isDark ? AppTheme.surfaceDark : AppTheme.background,
+        backgroundColor: AppTheme.cardBg(context),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
@@ -194,7 +196,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // ==========================================
                 // SECCIÓN: APARIENCIA
                 // ==========================================
-                _SectionTitle(title: 'Apariencia y tema', icon: Icons.palette_outlined, textColor: textColor),
+                _SectionTitle(
+                    title: 'Apariencia y tema',
+                    icon: Icons.palette_outlined,
+                    textColor: textColor),
                 const SizedBox(height: 10),
                 PrototypePanel(
                   background: cardBg,
@@ -205,7 +210,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       Text(
                         'Tema visual de la aplicación',
-                        style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: textColor),
+                        style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: textColor),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -248,7 +256,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // ==========================================
                 // SECCIÓN: CUENTA Y MONEDA INMUTABLE
                 // ==========================================
-                _SectionTitle(title: 'Cuenta y moneda', icon: Icons.account_balance_rounded, textColor: textColor),
+                _SectionTitle(
+                    title: 'Cuenta y moneda',
+                    icon: Icons.account_balance_rounded,
+                    textColor: textColor),
                 const SizedBox(height: 10),
                 PrototypePanel(
                   background: cardBg,
@@ -264,24 +275,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  state.activeAccount?.name ?? 'Cuenta Principal',
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: textColor),
+                                  state.activeAccount?.name ??
+                                      'Cuenta Principal',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color: textColor),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   'Cuenta activa seleccionada',
-                                  style: TextStyle(fontSize: 11, color: mutedColor),
+                                  style: TextStyle(
+                                      fontSize: 11, color: mutedColor),
                                 ),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF),
+                              color: isDark
+                                  ? const Color(0xFF1E3A8A)
+                                  : const Color(0xFFEAF3FF),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                                color: isDark
+                                    ? const Color(0xFF60A5FA)
+                                    : AppTheme.primary,
                                 width: 1.2,
                               ),
                             ),
@@ -291,7 +312,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 Icon(
                                   Icons.lock_rounded,
                                   size: 13,
-                                  color: isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
+                                  color: isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : AppTheme.primary,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -299,7 +322,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w900,
-                                    color: isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
+                                    color: isDark
+                                        ? const Color(0xFF93C5FD)
+                                        : AppTheme.primary,
                                   ),
                                 ),
                               ],
@@ -311,7 +336,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: borderColor),
                         ),
@@ -321,7 +348,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Icon(
                               Icons.info_outline_rounded,
                               size: 16,
-                              color: isDark ? const Color(0xFF93C5FD) : AppTheme.primary,
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : AppTheme.primary,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -346,14 +375,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 showModalBottomSheet(
                                   context: context,
                                   isScrollControlled: true,
-                                  backgroundColor: isDark ? const Color(0xFF0B132B) : Colors.white,
+                                  backgroundColor: AppTheme.cardBg(context),
                                   shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
                                   ),
-                                  builder: (ctx) => AccountSwitcherSheet(state: state),
+                                  builder: (ctx) =>
+                                      AccountSwitcherSheet(state: state),
                                 );
                               },
-                              icon: const Icon(Icons.sync_alt_rounded, size: 18),
+                              icon:
+                                  const Icon(Icons.sync_alt_rounded, size: 18),
                               label: const Text('Cambiar cuenta'),
                             ),
                           ),
@@ -363,7 +395,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               onPressed: () {
                                 showDialog(
                                   context: context,
-                                  builder: (ctx) => CreateAccountDialog(state: state),
+                                  builder: (ctx) =>
+                                      CreateAccountDialog(state: state),
                                 );
                               },
                               icon: const Icon(Icons.add_rounded, size: 18),
@@ -380,12 +413,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // ==========================================
                 // SECCIÓN: PREFERENCIAS DE RECORDATORIOS
                 // ==========================================
-                _SectionTitle(title: 'Recordatorios y alertas', icon: Icons.notifications_active_outlined, textColor: textColor),
+                _SectionTitle(
+                    title: 'Recordatorios y alertas',
+                    icon: Icons.notifications_active_outlined,
+                    textColor: textColor),
                 const SizedBox(height: 10),
                 PrototypePanel(
                   background: cardBg,
                   borderColor: borderColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: _loadingPrefs
                       ? const Padding(
                           padding: EdgeInsets.all(20),
@@ -397,50 +434,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             children: [
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text('Avisar 7 días antes', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor)),
-                                subtitle: Text('Compromisos con vencimiento a una semana', style: TextStyle(fontSize: 11, color: mutedColor)),
+                                title: Text('Avisar 7 días antes',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor)),
+                                subtitle: Text(
+                                    'Compromisos con vencimiento a una semana',
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor)),
                                 value: _prefs.reminder7d,
-                                onChanged: (v) => _updatePref((p) => p.copyWith(reminder7d: v)),
+                                onChanged: (v) => _updatePref(
+                                    (p) => p.copyWith(reminder7d: v)),
                               ),
                               Divider(height: 1, color: borderColor),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text('Avisar 3 días antes', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor)),
-                                subtitle: Text('Alerta cercana al pago programado', style: TextStyle(fontSize: 11, color: mutedColor)),
+                                title: Text('Avisar 3 días antes',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor)),
+                                subtitle: Text(
+                                    'Alerta cercana al pago programado',
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor)),
                                 value: _prefs.reminder3d,
-                                onChanged: (v) => _updatePref((p) => p.copyWith(reminder3d: v)),
+                                onChanged: (v) => _updatePref(
+                                    (p) => p.copyWith(reminder3d: v)),
                               ),
                               Divider(height: 1, color: borderColor),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text('Avisar 1 día antes', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor)),
-                                subtitle: Text('Recordatorio de víspera para reservar saldo', style: TextStyle(fontSize: 11, color: mutedColor)),
+                                title: Text('Avisar 1 día antes',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor)),
+                                subtitle: Text(
+                                    'Recordatorio de víspera para reservar saldo',
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor)),
                                 value: _prefs.reminder1d,
-                                onChanged: (v) => _updatePref((p) => p.copyWith(reminder1d: v)),
+                                onChanged: (v) => _updatePref(
+                                    (p) => p.copyWith(reminder1d: v)),
                               ),
                               Divider(height: 1, color: borderColor),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text('Avisar el día del vencimiento', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor)),
-                                subtitle: Text('Alerta el día exacto de pago', style: TextStyle(fontSize: 11, color: mutedColor)),
+                                title: Text('Avisar el día del vencimiento',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor)),
+                                subtitle: Text('Alerta el día exacto de pago',
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor)),
                                 value: _prefs.reminderDueDay,
-                                onChanged: (v) => _updatePref((p) => p.copyWith(reminderDueDay: v)),
+                                onChanged: (v) => _updatePref(
+                                    (p) => p.copyWith(reminderDueDay: v)),
                               ),
                               Divider(height: 1, color: borderColor),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text('Avisar pagos vencidos', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor)),
-                                subtitle: Text('Notificación continua si un compromiso sigue pendiente', style: TextStyle(fontSize: 11, color: mutedColor)),
+                                title: Text('Avisar pagos vencidos',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor)),
+                                subtitle: Text(
+                                    'Notificación continua si un compromiso sigue pendiente',
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor)),
                                 value: _prefs.reminderOverdue,
-                                onChanged: (v) => _updatePref((p) => p.copyWith(reminderOverdue: v)),
+                                onChanged: (v) => _updatePref(
+                                    (p) => p.copyWith(reminderOverdue: v)),
                               ),
                               Divider(height: 1, color: borderColor),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
-                                title: Text('Revisión semanal de dinero', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor)),
-                                subtitle: Text('Aviso para revisar tus gastos y disponible real cada semana', style: TextStyle(fontSize: 11, color: mutedColor)),
+                                title: Text('Revisión semanal de dinero',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor)),
+                                subtitle: Text(
+                                    'Aviso para revisar tus gastos y disponible real cada semana',
+                                    style: TextStyle(
+                                        fontSize: 11, color: mutedColor)),
                                 value: _prefs.reminderWeeklyReview,
-                                onChanged: (v) => _updatePref((p) => p.copyWith(reminderWeeklyReview: v)),
+                                onChanged: (v) => _updatePref(
+                                    (p) => p.copyWith(reminderWeeklyReview: v)),
                               ),
                             ],
                           ),
@@ -451,7 +535,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // ==========================================
                 // SECCIÓN: SINCRONIZACIÓN Y MODO OFFLINE
                 // ==========================================
-                _SectionTitle(title: 'Sincronización y datos', icon: Icons.sync_rounded, textColor: textColor),
+                _SectionTitle(
+                    title: 'Sincronización y datos',
+                    icon: Icons.sync_rounded,
+                    textColor: textColor),
                 const SizedBox(height: 10),
                 PrototypePanel(
                   background: cardBg,
@@ -463,7 +550,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: state.syncReport.isOnline
                                   ? AppTheme.success.withOpacity(.12)
@@ -473,17 +561,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Row(
                               children: [
                                 Icon(
-                                  state.syncReport.isOnline ? Icons.wifi_rounded : Icons.wifi_off_rounded,
+                                  state.syncReport.isOnline
+                                      ? Icons.wifi_rounded
+                                      : Icons.wifi_off_rounded,
                                   size: 14,
-                                  color: state.syncReport.isOnline ? AppTheme.success : Colors.orange.shade800,
+                                  color: state.syncReport.isOnline
+                                      ? AppTheme.success
+                                      : Colors.orange.shade800,
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  state.syncReport.isOnline ? 'En línea' : 'Sin conexión (Offline)',
+                                  state.syncReport.isOnline
+                                      ? 'En línea'
+                                      : 'Sin conexión (Offline)',
                                   style: TextStyle(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w800,
-                                    color: state.syncReport.isOnline ? AppTheme.success : Colors.orange.shade800,
+                                    color: state.syncReport.isOnline
+                                        ? AppTheme.success
+                                        : Colors.orange.shade800,
                                   ),
                                 ),
                               ],
@@ -495,7 +591,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
-                              color: state.pendingOperationsCount > 0 ? Colors.orange.shade800 : mutedColor,
+                              color: state.pendingOperationsCount > 0
+                                  ? Colors.orange.shade800
+                                  : mutedColor,
                             ),
                           ),
                         ],
@@ -503,13 +601,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 14),
                       Row(
                         children: [
-                          Icon(Icons.schedule_rounded, size: 16, color: mutedColor),
+                          Icon(Icons.schedule_rounded,
+                              size: 16, color: mutedColor),
                           const SizedBox(width: 8),
-                          Text('Última sincronización confirmada: ', style: TextStyle(fontSize: 11.5, color: mutedColor)),
+                          Text('Última sincronización confirmada: ',
+                              style:
+                                  TextStyle(fontSize: 11.5, color: mutedColor)),
                           Expanded(
                             child: Text(
                               _formatDateTime(state.syncReport.lastSyncTime),
-                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: textColor),
+                              style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -522,7 +626,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         type: MaterialType.transparency,
                         child: SwitchListTile(
                           contentPadding: EdgeInsets.zero,
-                          title: Text('Sincronización automática', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textColor)),
+                          title: Text('Sincronización automática',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor)),
                           subtitle: Text(
                             'Si se desactiva, los cambios se guardan localmente hasta que pulses Sincronizar.',
                             style: TextStyle(fontSize: 11, color: mutedColor),
@@ -533,11 +641,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 12),
                       FilledButton.icon(
-                        onPressed: _syncingManual || state.isSyncing ? null : _handleManualSync,
+                        onPressed: _syncingManual || state.isSyncing
+                            ? null
+                            : _handleManualSync,
                         icon: _syncingManual || state.isSyncing
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2))
                             : const Icon(Icons.sync_rounded, size: 18),
-                        label: Text(_syncingManual || state.isSyncing ? 'Sincronizando...' : 'Sincronizar ahora'),
+                        label: Text(_syncingManual || state.isSyncing
+                            ? 'Sincronizando...'
+                            : 'Sincronizar ahora'),
                       ),
                     ],
                   ),
@@ -547,7 +663,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // ==========================================
                 // SECCIÓN: PREFERENCIAS GENERALES
                 // ==========================================
-                _SectionTitle(title: 'Preferencias generales', icon: Icons.tune_rounded, textColor: textColor),
+                _SectionTitle(
+                    title: 'Preferencias generales',
+                    icon: Icons.tune_rounded,
+                    textColor: textColor),
                 const SizedBox(height: 10),
                 PrototypePanel(
                   background: cardBg,
@@ -556,9 +675,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Pantalla inicial al abrir la aplicación', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textColor)),
+                      Text('Pantalla inicial al abrir la aplicación',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: textColor)),
                       const SizedBox(height: 4),
-                      Text('Elegí a qué sección deseas ingresar de forma predeterminada.', style: TextStyle(fontSize: 11, color: mutedColor)),
+                      Text(
+                          'Elegí a qué sección deseas ingresar de forma predeterminada.',
+                          style: TextStyle(fontSize: 11, color: mutedColor)),
                       const SizedBox(height: 12),
                       Row(
                         children: [
@@ -596,16 +721,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Moneda principal', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textColor)),
+                                Text('Moneda principal',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: textColor)),
                                 const SizedBox(height: 2),
-                                Text('Colón costarricense (₡)', style: TextStyle(fontSize: 11.5, color: mutedColor)),
+                                Text('Colón costarricense (₡)',
+                                    style: TextStyle(
+                                        fontSize: 11.5, color: mutedColor)),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E2D4A) : const Color(0xFFEAF3FF),
+                              color: isDark
+                                  ? const Color(0xFF1E2D4A)
+                                  : const Color(0xFFEAF3FF),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -613,7 +747,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w900,
-                                color: isDark ? AppTheme.primaryDarkTheme : AppTheme.primary,
+                                color: isDark
+                                    ? AppTheme.primaryDarkTheme
+                                    : AppTheme.primary,
                               ),
                             ),
                           ),
@@ -627,7 +763,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // ==========================================
                 // SECCIÓN: PRIVACIDAD Y MANTENIMIENTO
                 // ==========================================
-                _SectionTitle(title: 'Almacenamiento y privacidad', icon: Icons.storage_rounded, textColor: textColor),
+                _SectionTitle(
+                    title: 'Almacenamiento y privacidad',
+                    icon: Icons.storage_rounded,
+                    textColor: textColor),
                 const SizedBox(height: 10),
                 PrototypePanel(
                   background: cardBg,
@@ -636,20 +775,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Resumen de datos locales', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: textColor)),
+                      Text('Resumen de datos locales',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: textColor)),
                       const SizedBox(height: 8),
-                      _DataSummaryRow(label: 'Motor local', value: kIsWeb ? 'Drift WebAssembly (OPFS/IndexedDB)' : 'SQLite nativo Drift', textColor: textColor, mutedColor: mutedColor),
-                      _DataSummaryRow(label: 'Movimientos guardados', value: '${state.transactions.length}', textColor: textColor, mutedColor: mutedColor),
-                      _DataSummaryRow(label: 'Compromisos guardados', value: '${state.commitments.length}', textColor: textColor, mutedColor: mutedColor),
-                      _DataSummaryRow(label: 'Metas guardadas', value: '${state.goals.length}', textColor: textColor, mutedColor: mutedColor),
-                      _DataSummaryRow(label: 'Revisiones guardadas', value: '${state.reviews.length}', textColor: textColor, mutedColor: mutedColor),
+                      _DataSummaryRow(
+                          label: 'Motor local',
+                          value: kIsWeb
+                              ? 'Drift WebAssembly (OPFS/IndexedDB)'
+                              : 'SQLite nativo Drift',
+                          textColor: textColor,
+                          mutedColor: mutedColor),
+                      _DataSummaryRow(
+                          label: 'Movimientos guardados',
+                          value: '${state.transactions.length}',
+                          textColor: textColor,
+                          mutedColor: mutedColor),
+                      _DataSummaryRow(
+                          label: 'Compromisos guardados',
+                          value: '${state.commitments.length}',
+                          textColor: textColor,
+                          mutedColor: mutedColor),
+                      _DataSummaryRow(
+                          label: 'Metas guardadas',
+                          value: '${state.goals.length}',
+                          textColor: textColor,
+                          mutedColor: mutedColor),
+                      _DataSummaryRow(
+                          label: 'Revisiones guardadas',
+                          value: '${state.reviews.length}',
+                          textColor: textColor,
+                          mutedColor: mutedColor),
                       const SizedBox(height: 14),
                       Divider(height: 1, color: borderColor),
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         onPressed: _clearingCache ? null : _handleClearCache,
-                        icon: const Icon(Icons.cleaning_services_rounded, size: 18),
-                        label: Text(_clearingCache ? 'Limpiando...' : 'Limpiar caché temporal'),
+                        icon: const Icon(Icons.cleaning_services_rounded,
+                            size: 18),
+                        label: Text(_clearingCache
+                            ? 'Limpiando...'
+                            : 'Limpiar caché temporal'),
                       ),
                     ],
                   ),
@@ -710,12 +878,12 @@ class _ThemeChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeBg = isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF);
-    final inactiveBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final activeBorder = isDark ? AppTheme.primaryDarkTheme : AppTheme.primary;
-    final inactiveBorder = isDark ? AppTheme.borderDark : AppTheme.border;
-    final activeText = isDark ? Colors.white : AppTheme.primary;
-    final inactiveText = isDark ? AppTheme.textDark : AppTheme.text;
+    final activeBg = AppTheme.tintPrimary(context);
+    final inactiveBg = AppTheme.cardBg(context);
+    final activeBorder = AppTheme.primaryColor(context);
+    final inactiveBorder = AppTheme.borderColor(context);
+    final activeText = AppTheme.primaryColor(context);
+    final inactiveText = AppTheme.textColor(context);
 
     return Expanded(
       child: Material(
@@ -735,12 +903,13 @@ class _ThemeChoiceChip extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Icon(icon, size: 20, color: selected ? activeText : inactiveText),
+                Icon(icon,
+                    size: 20, color: selected ? activeText : inactiveText),
                 const SizedBox(height: 6),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                     color: selected ? activeText : inactiveText,
                   ),
@@ -771,11 +940,11 @@ class _InitialTabChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeBg = isDark ? const Color(0xFF1E3A8A) : AppTheme.primary;
-    final inactiveBg = isDark ? const Color(0xFF14213D) : Colors.white;
+    final activeBg = AppTheme.primaryColor(context);
+    final inactiveBg = AppTheme.cardBg(context);
     final activeText = Colors.white;
-    final inactiveText = isDark ? AppTheme.textDark : AppTheme.text;
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
+    final inactiveText = AppTheme.textColor(context);
+    final borderColor = AppTheme.borderColor(context);
 
     return Expanded(
       child: Material(
@@ -784,17 +953,18 @@ class _InitialTabChoiceChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 11),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected ? activeBg : inactiveBg,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: selected ? Colors.transparent : borderColor),
+              border: Border.all(
+                  color: selected ? Colors.transparent : borderColor),
             ),
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 color: selected ? activeText : inactiveText,
               ),
@@ -827,7 +997,9 @@ class _DataSummaryRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(fontSize: 12, color: mutedColor)),
-          Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: textColor)),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w800, color: textColor)),
         ],
       ),
     );

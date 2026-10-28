@@ -66,9 +66,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
     final expense = widget.expense;
 
     _amountController = TextEditingController(
-      text: expense == null
-          ? ''
-          : expense.amount.toStringAsFixed(0),
+      text: expense == null ? '' : expense.amount.toStringAsFixed(0),
     );
 
     _descriptionController = TextEditingController(
@@ -98,81 +96,69 @@ class _ExpenseFormState extends State<ExpenseForm> {
     final normalized = value
         .replaceAll('₡', '')
         .replaceAll(' ', '')
-        .replaceAll(',', '.');
+        .replaceAll('.', '')
+        .replaceAll(',', '.')
+        .trim();
 
     return double.tryParse(normalized);
   }
 
   double get _maximumAllowedExpense {
-    var available = widget.availableBalance;
-
-    // Si se está editando un gasto, el monto anterior ya está
-    // descontado del saldo actual. Se devuelve temporalmente
-    // para calcular correctamente el máximo permitido.
-    if (widget.expense != null) {
-      available += widget.expense!.amount;
-    }
-
-    if (available < 0) {
-      return 0;
-    }
-
-    return available;
+    final currentExpense = widget.expense?.amount ?? 0;
+    return widget.availableBalance + currentExpense;
   }
 
-  Future<void> _showInsufficientBalanceDialog(
-    double attemptedAmount,
-  ) async {
-    final available = _maximumAllowedExpense;
+  bool _validateBalance(double amount) {
+    return amount <= _maximumAllowedExpense;
+  }
 
-    await showDialog<void>(
+  void _showInsufficientBalanceDialog(double attemptedAmount) {
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        final available = _maximumAllowedExpense;
+        final isDark = AppTheme.isDarkMode(dialogContext);
+        final cardBg = AppTheme.cardBg(dialogContext);
+        final textColor = AppTheme.textColor(dialogContext);
+        final mutedColor = AppTheme.mutedColor(dialogContext);
+        final borderColor = AppTheme.borderColor(dialogContext);
+        final errorColor = AppTheme.errorColor(dialogContext);
+        final successColor = AppTheme.successColor(dialogContext);
+
         return AlertDialog(
+          backgroundColor: cardBg,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: borderColor, width: 1.15),
           ),
-          titlePadding: const EdgeInsets.fromLTRB(
-            22,
-            22,
-            22,
-            8,
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(
-            22,
-            4,
-            22,
-            8,
-          ),
-          actionsPadding: const EdgeInsets.fromLTRB(
-            22,
-            8,
-            22,
-            20,
-          ),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+          titlePadding: const EdgeInsets.fromLTRB(22, 22, 22, 8),
+          contentPadding: const EdgeInsets.fromLTRB(22, 4, 22, 8),
+          actionsPadding: const EdgeInsets.fromLTRB(22, 8, 22, 20),
           title: Row(
             children: [
               Container(
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFECEC),
+                  color: AppTheme.tintError(dialogContext),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: Colors.red.shade700,
+                  color: errorColor,
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Saldo insuficiente',
                   style: TextStyle(
-                    fontSize: 19,
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: AppTheme.text,
+                    color: textColor,
                   ),
                 ),
               ),
@@ -186,44 +172,44 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 'Lo sentimos, tu saldo disponible es de '
                 '${money(available)}. No podés registrar un gasto '
                 'mayor a ese monto.',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  height: 1.5,
-                  color: AppTheme.text,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.45,
+                  color: textColor,
                 ),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFD),
+                  color: isDark
+                      ? AppTheme.backgroundDark
+                      : const Color(0xFFF8FAFD),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: AppTheme.border,
-                  ),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   children: [
                     _AmountDialogRow(
                       label: 'Saldo disponible',
                       value: money(available),
-                      valueColor: AppTheme.successDark,
+                      valueColor: successColor,
                     ),
                     const SizedBox(height: 10),
                     _AmountDialogRow(
                       label: 'Monto intentado',
                       value: money(attemptedAmount),
-                      valueColor: Colors.red.shade700,
+                      valueColor: errorColor,
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Reducí el monto del gasto para continuar.',
                 style: TextStyle(
-                  fontSize: 10.5,
-                  color: AppTheme.muted,
+                  fontSize: 12.5,
+                  color: mutedColor,
                 ),
               ),
             ],
@@ -235,9 +221,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 onPressed: () {
                   Navigator.of(dialogContext).pop();
                 },
-                child: const Text(
-                  'Entendido',
-                ),
+                child: const Text('Entendido'),
               ),
             ),
           ],
@@ -246,86 +230,88 @@ class _ExpenseFormState extends State<ExpenseForm> {
     );
   }
 
-  Future<void> _selectDate() async {
-    final selected = await showDatePicker(
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+
+    final picked = await showDatePicker(
       context: context,
       initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
-      helpText: 'Seleccionar fecha',
-      cancelText: 'Cancelar',
-      confirmText: 'Seleccionar',
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 5),
+      locale: const Locale('es', 'CR'),
     );
 
-    if (selected == null) return;
+    if (picked == null) return;
 
     setState(() {
-      _date = selected;
+      _date = picked;
     });
   }
 
-  Future<void> _save() async {
-    final valid = _formKey.currentState?.validate() ?? false;
+  void _submit() {
+    FocusScope.of(context).unfocus();
 
+    final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
 
-    final amount = _parseAmount(
-      _amountController.text,
-    );
+    final parsedAmount = _parseAmount(_amountController.text);
 
-    if (amount == null) return;
-
-    if (amount > _maximumAllowedExpense) {
-      await _showInsufficientBalanceDialog(
-        amount,
+    if (parsedAmount == null || parsedAmount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ingresá un monto válido mayor a 0.'),
+        ),
       );
       return;
     }
 
-    setState(() {
-      _saving = true;
-    });
+    if (!_validateBalance(parsedAmount)) {
+      _showInsufficientBalanceDialog(parsedAmount);
+      return;
+    }
 
-    final expense = MoneyTransaction(
-      id: widget.expense?.id ?? 'new',
+    final id =
+        widget.expense?.id ?? 'exp_${DateTime.now().microsecondsSinceEpoch}';
+
+    final created = MoneyTransaction(
+      id: id,
       type: 'expense',
       category: _category,
-      amount: amount,
+      amount: parsedAmount,
       description: _descriptionController.text.trim(),
       date: _date,
       recognized: _recognized,
     );
 
-    Navigator.of(context).pop(
-      expense,
-    );
+    Navigator.of(context).pop(created);
   }
 
   @override
   Widget build(BuildContext context) {
     final editing = widget.expense != null;
+    final isDark = AppTheme.isDarkMode(context);
+    final cardBg = AppTheme.cardBg(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final borderColor = AppTheme.borderColor(context);
+    final primaryColor = AppTheme.primaryColor(context);
 
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 24,
-      ),
+      backgroundColor: cardBg,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(color: borderColor, width: 1.15),
       ),
-      clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 520,
-        ),
+        constraints: const BoxConstraints(maxWidth: 480),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(22),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
@@ -333,32 +319,25 @@ class _ExpenseFormState extends State<ExpenseForm> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEAF3FF),
-                        borderRadius:
-                            BorderRadius.circular(13),
+                        color: AppTheme.tintPrimary(context),
+                        borderRadius: BorderRadius.circular(13),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.receipt_long_outlined,
-                        color: AppTheme.primary,
+                        color: primaryColor,
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            editing
-                                ? 'Editar gasto'
-                                : 'Agregar gasto',
-                            style: const TextStyle(
+                            editing ? 'Editar gasto' : 'Agregar gasto',
+                            style: TextStyle(
                               fontSize: 20,
-                              fontWeight:
-                                  FontWeight.w900,
-                              color: AppTheme.text,
+                              fontWeight: FontWeight.w900,
+                              color: textColor,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -366,310 +345,188 @@ class _ExpenseFormState extends State<ExpenseForm> {
                             editing
                                 ? 'Actualizá la información del movimiento.'
                                 : 'Registrá un nuevo movimiento.',
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              color: AppTheme.muted,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: mutedColor,
                             ),
                           ),
                         ],
                       ),
                     ),
-
                     IconButton(
                       tooltip: 'Cerrar',
-                      onPressed: _saving
-                          ? null
-                          : () {
-                              Navigator.pop(context);
-                            },
-                      icon: const Icon(
-                        Icons.close_rounded,
-                      ),
+                      onPressed: _saving ? null : () => Navigator.pop(context),
+                      icon: Icon(Icons.close_rounded, color: textColor),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 24),
-
-                const _FieldLabel(
-                  text: 'Monto',
-                  requiredField: true,
-                ),
-
+                const SizedBox(height: 22),
+                const _FieldLabel(text: 'Monto', requiredField: true),
                 const SizedBox(height: 7),
-
                 TextFormField(
                   controller: _amountController,
-                  autofocus: !editing,
                   keyboardType:
-                      const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                      const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(
-                      RegExp(r'[0-9.,]'),
-                    ),
+                        RegExp(r'^\d+[\.,]?\d{0,2}')),
                   ],
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: textColor),
                   decoration: const InputDecoration(
-                    hintText: 'Ej. 4500',
                     prefixText: '₡ ',
-                    prefixIcon: Icon(
-                      Icons.payments_outlined,
-                    ),
+                    hintText: '0',
                   ),
                   validator: (value) {
-                    if (value == null ||
-                        value.trim().isEmpty) {
-                      return 'Ingresá el monto del gasto';
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Ingresá el monto del gasto.';
                     }
-
-                    final amount = _parseAmount(value);
-
-                    if (amount == null) {
-                      return 'Ingresá un monto válido';
+                    final parsed = _parseAmount(value);
+                    if (parsed == null || parsed <= 0) {
+                      return 'El monto debe ser mayor a 0.';
                     }
-
-                    if (amount <= 0) {
-                      return 'El monto debe ser mayor a ₡0';
-                    }
-
-                    if (amount > 999999999) {
-                      return 'El monto ingresado es demasiado alto';
-                    }
-
                     return null;
                   },
                 ),
-
-                const SizedBox(height: 10),
-
+                const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 13,
-                    vertical: 11,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0FFF6),
-                    borderRadius: BorderRadius.circular(13),
+                    color: AppTheme.tintSuccess(context),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: const Color(0xFFBCEBCD),
+                      color: isDark
+                          ? const Color(0xFF166534)
+                          : const Color(0xFF9DEBC2),
                     ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.account_balance_wallet_outlined,
                         size: 19,
-                        color: AppTheme.success,
+                        color: AppTheme.successColor(context),
                       ),
                       const SizedBox(width: 9),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Máximo disponible para este gasto',
                           style: TextStyle(
-                            fontSize: 10.5,
-                            color: AppTheme.muted,
+                            fontSize: 12,
+                            color: mutedColor,
                           ),
                         ),
                       ),
                       Text(
                         money(_maximumAllowedExpense),
-                        style: const TextStyle(
-                          fontSize: 12.5,
+                        style: TextStyle(
+                          fontSize: 13.5,
                           fontWeight: FontWeight.w900,
-                          color: AppTheme.successDark,
+                          color: AppTheme.successColor(context),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
-                const _FieldLabel(
-                  text: 'Categoría',
-                  requiredField: true,
-                ),
-
+                const _FieldLabel(text: 'Categoría', requiredField: true),
                 const SizedBox(height: 7),
-
                 DropdownButtonFormField<String>(
                   value: _category,
                   isExpanded: true,
+                  dropdownColor: cardBg,
                   decoration: const InputDecoration(
-                    prefixIcon: Icon(
-                      Icons.category_outlined,
-                    ),
+                    prefixIcon: Icon(Icons.category_outlined),
                   ),
-                  items: _categories.map(
-                    (category) {
-                      return DropdownMenuItem(
-                        value: category,
-                        child: Row(
-                          children: [
-                            Icon(
-                              _categoryIcon(category),
-                              size: 20,
-                              color: AppTheme.primary,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(category),
-                          ],
-                        ),
-                      );
-                    },
-                  ).toList(),
-                  onChanged: _saving
-                      ? null
-                      : (value) {
-                          if (value == null) return;
-
-                          setState(() {
-                            _category = value;
-                          });
-                        },
+                  items: _categories.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Row(
+                        children: [
+                          Icon(
+                            _categoryIcon(category),
+                            size: 20,
+                            color: primaryColor,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(category,
+                              style: TextStyle(color: textColor, fontSize: 14)),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() => _category = value);
+                  },
                 ),
-
                 const SizedBox(height: 18),
-
-                const _FieldLabel(
-                  text: 'Descripción',
-                ),
-
+                const _FieldLabel(text: 'Fecha', requiredField: true),
                 const SizedBox(height: 7),
-
-                TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 3,
-                  maxLength: 120,
-                  decoration: const InputDecoration(
-                    hintText:
-                        'Ej. Almuerzo, supermercado, gasolina...',
-                    alignLabelWithHint: true,
-                    prefixIcon: Padding(
-                      padding: EdgeInsets.only(
-                        bottom: 55,
-                      ),
-                      child: Icon(
-                        Icons.notes_rounded,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                const _FieldLabel(
-                  text: 'Fecha',
-                  requiredField: true,
-                ),
-
-                const SizedBox(height: 7),
-
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
-                  onTap: _saving
-                      ? null
-                      : _selectDate,
+                  onTap: _pickDate,
                   child: InputDecorator(
                     decoration: const InputDecoration(
-                      prefixIcon: Icon(
-                        Icons.calendar_month_outlined,
-                      ),
-                      suffixIcon: Icon(
-                        Icons.chevron_right_rounded,
-                      ),
+                      prefixIcon: Icon(Icons.calendar_today_outlined),
+                      suffixIcon: Icon(Icons.arrow_drop_down_rounded),
                     ),
                     child: Text(
-                      shortDate(_date),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      '${_date.day.toString().padLeft(2, '0')}/'
+                      '${_date.month.toString().padLeft(2, '0')}/'
+                      '${_date.year}',
+                      style: TextStyle(color: textColor, fontSize: 14),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FBFF),
-                    borderRadius:
-                        BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppTheme.border,
-                    ),
-                  ),
-                  child: SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    value: _recognized,
-                    activeColor: AppTheme.primary,
-                    title: const Text(
-                      'Reconozco este movimiento',
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight:
-                            FontWeight.w800,
-                      ),
-                    ),
-                    subtitle: Text(
-                      _recognized
-                          ? 'Este gasto fue identificado correctamente.'
-                          : 'Se marcará para revisarlo después.',
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        color: AppTheme.muted,
-                      ),
-                    ),
-                    onChanged: _saving
-                        ? null
-                        : (value) {
-                            setState(() {
-                              _recognized = value;
-                            });
-                          },
+                const _FieldLabel(text: 'Descripción opcional'),
+                const SizedBox(height: 7),
+                TextFormField(
+                  controller: _descriptionController,
+                  maxLines: 2,
+                  style: TextStyle(color: textColor, fontSize: 14),
+                  decoration: const InputDecoration(
+                    hintText: 'Ej. Almuerzo con amigos',
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _saving
-                            ? null
-                            : () {
-                                Navigator.pop(context);
-                              },
-                        child: const Text(
-                          'Cancelar',
+                const SizedBox(height: 14),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _recognized,
+                        activeColor: primaryColor,
+                        onChanged: (val) {
+                          setState(() => _recognized = val ?? true);
+                        },
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Reconozco este movimiento',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
+                          ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed:
-                            _saving ? null : _save,
-                        icon: const Icon(
-                          Icons.save_outlined,
-                          size: 19,
-                        ),
-                        label: Text(
-                          editing
-                              ? 'Guardar cambios'
-                              : 'Agregar gasto',
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                FilledButton(
+                  onPressed: _saving ? null : _submit,
+                  child: Text(editing ? 'Guardar cambios' : 'Registrar gasto'),
                 ),
               ],
             ),
@@ -679,34 +536,24 @@ class _ExpenseFormState extends State<ExpenseForm> {
     );
   }
 
-  static IconData _categoryIcon(
-    String category,
-  ) {
+  IconData _categoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'comida':
         return Icons.restaurant_rounded;
-
       case 'transporte':
         return Icons.directions_bus_rounded;
-
       case 'compras':
         return Icons.shopping_bag_outlined;
-
       case 'ocio':
         return Icons.sports_esports_outlined;
-
       case 'servicios':
         return Icons.receipt_long_outlined;
-
       case 'salud':
-        return Icons.favorite_outline_rounded;
-
+        return Icons.medical_services_outlined;
       case 'educación':
-      case 'educacion':
         return Icons.school_outlined;
-
       default:
-        return Icons.more_horiz_rounded;
+        return Icons.payments_outlined;
     }
   }
 }
@@ -724,21 +571,23 @@ class _AmountDialogRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mutedColor = AppTheme.mutedColor(context);
+
     return Row(
       children: [
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              fontSize: 10.5,
-              color: AppTheme.muted,
+            style: TextStyle(
+              fontSize: 13,
+              color: mutedColor,
             ),
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w900,
             color: valueColor,
           ),
@@ -759,14 +608,16 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = AppTheme.textColor(context);
+
     return Row(
       children: [
         Text(
           text,
-          style: const TextStyle(
-            fontSize: 12.5,
+          style: TextStyle(
+            fontSize: 13.5,
             fontWeight: FontWeight.w800,
-            color: AppTheme.text,
+            color: textColor,
           ),
         ),
         if (requiredField)

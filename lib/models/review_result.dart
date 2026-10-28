@@ -75,19 +75,14 @@ class ReviewResult {
       end: DateTime.parse(
         json['end'].toString(),
       ),
-      periodTitle:
-          json['periodTitle']?.toString() ?? '',
-      periodSubtitle:
-          json['periodSubtitle']?.toString() ?? '',
-      transactionIds:
-          (json['transactionIds'] as List? ?? [])
-              .map(
-                (item) => item.toString(),
-              )
-              .toList(),
-      decision:
-          json['decision']?.toString() ??
-          'Mantener mi plan',
+      periodTitle: json['periodTitle']?.toString() ?? '',
+      periodSubtitle: json['periodSubtitle']?.toString() ?? '',
+      transactionIds: (json['transactionIds'] as List? ?? [])
+          .map(
+            (item) => item.toString(),
+          )
+          .toList(),
+      decision: json['decision']?.toString() ?? 'Mantener mi plan',
       decisionDetails: details,
       createdAt: DateTime.parse(
         json['createdAt'].toString(),

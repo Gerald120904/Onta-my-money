@@ -42,7 +42,8 @@ class MockApiForProfile extends ApiClient {
       throw ApiException('Sin conexión', 0, isNetworkError: true);
     }
     if (path == '/api/sync/push') {
-      final ops = (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>();
+      final ops =
+          (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>();
       final results = <Map<String, dynamic>>[];
       for (final op in ops) {
         pushedOperations.add(op);
@@ -55,7 +56,10 @@ class MockApiForProfile extends ApiClient {
       return {'processed': results, 'conflicts': []};
     }
     if (path == '/api/me/change-password') {
-      return {'status': 'password_updated', 'message': 'Contraseña actualizada'};
+      return {
+        'status': 'password_updated',
+        'message': 'Contraseña actualizada'
+      };
     }
     return {};
   }
@@ -134,7 +138,9 @@ void main() {
   }
 
   group('1. NAVEGACIÓN Y APERTURA DE PANTALLAS (MoreScreen)', () {
-    testWidgets('1.1 Mi perfil, Notificaciones y Configuración abren sus pantallas', (tester) async {
+    testWidgets(
+        '1.1 Mi perfil, Notificaciones y Configuración abren sus pantallas',
+        (tester) async {
       await tester.pumpWidget(buildTestApp(MoreScreen(state: appState)));
       await tester.pumpAndSettle();
 
@@ -171,7 +177,9 @@ void main() {
       expect(find.text('Apariencia y tema'), findsOneWidget);
     });
 
-    testWidgets('1.2 ProfileScreen muestra los datos reales de la sesión autenticada', (tester) async {
+    testWidgets(
+        '1.2 ProfileScreen muestra los datos reales de la sesión autenticada',
+        (tester) async {
       await tester.pumpWidget(buildTestApp(ProfileScreen(state: appState)));
       await tester.pumpAndSettle();
 
@@ -182,7 +190,9 @@ void main() {
       expect(find.text('Actualizar contraseña'), findsOneWidget);
     });
 
-    testWidgets('1.3 Dinero comprometido y Ahorro abren sus pantallas desde MoreScreen', (tester) async {
+    testWidgets(
+        '1.3 Dinero comprometido y Ahorro abren sus pantallas desde MoreScreen',
+        (tester) async {
       await tester.pumpWidget(buildTestApp(MoreScreen(state: appState)));
       await tester.pumpAndSettle();
 
@@ -203,12 +213,15 @@ void main() {
       await tester.tap(find.text('Ahorro'));
       await tester.pumpAndSettle();
       expect(find.byType(GoalsScreen), findsOneWidget);
-      expect(find.text('Separá dinero para tus metas antes de gastarlo.'), findsOneWidget);
+      expect(find.text('Separá dinero para tus metas antes de gastarlo.'),
+          findsOneWidget);
     });
   });
 
   group('2. PERFIL: EDICIÓN OFFLINE-FIRST Y PERSISTENCIA TRAS REINICIO', () {
-    test('2.1 Modificar nombre sin conexión guarda localmente y encola operación', () async {
+    test(
+        '2.1 Modificar nombre sin conexión guarda localmente y encola operación',
+        () async {
       appState.api.token = null; // Sin conexión o token ausente
 
       await appState.updateUserName('Derek Offline Master');
@@ -231,7 +244,9 @@ void main() {
       expect(payload['name'], 'Derek Offline Master');
     });
 
-    test('2.2 El nombre editado offline persiste tras simular reinicio de aplicación', () async {
+    test(
+        '2.2 El nombre editado offline persiste tras simular reinicio de aplicación',
+        () async {
       await appState.updateUserName('Derek Persistente');
 
       // Simular reinicio de la aplicación leyendo de base de datos y SharedPreferences
@@ -246,7 +261,8 @@ void main() {
       expect(prefs.getString('current_user_name'), 'Derek Persistente');
     });
 
-    test('2.3 Cambiar contraseña requiere conexión y autenticación válida', () async {
+    test('2.3 Cambiar contraseña requiere conexión y autenticación válida',
+        () async {
       appState.api.token = null; // Sin autenticación online
 
       expect(
@@ -261,7 +277,8 @@ void main() {
   });
 
   group('3. NOTIFICACIONES: RECORDATORIOS DE COMPROMISOS Y DESDOPLICACIÓN', () {
-    test('3.1 Genera avisos para compromisos vencidos, 7d, 3d, 1d y hoy', () async {
+    test('3.1 Genera avisos para compromisos vencidos, 7d, 3d, 1d y hoy',
+        () async {
       final notifService = NotificationService(db);
       final now = DateTime(2026, 10, 23);
 
@@ -325,7 +342,9 @@ void main() {
       expect(types.contains('reminder_due'), isTrue);
     });
 
-    test('3.2 Idempotencia: recalcular múltiples veces no duplica notificaciones', () async {
+    test(
+        '3.2 Idempotencia: recalcular múltiples veces no duplica notificaciones',
+        () async {
       final notifService = NotificationService(db);
       final now = DateTime(2026, 10, 23);
 
@@ -345,7 +364,8 @@ void main() {
         commitments: commitments,
         nowOverride: now,
       );
-      final initialCount = (await notifService.getNotifications(testUserId)).length;
+      final initialCount =
+          (await notifService.getNotifications(testUserId)).length;
 
       // Recalcular 3 veces más simulando reinicios sucesivos de la app
       await notifService.recalculateCommitmentReminders(
@@ -359,11 +379,13 @@ void main() {
         nowOverride: now,
       );
 
-      final afterCount = (await notifService.getNotifications(testUserId)).length;
+      final afterCount =
+          (await notifService.getNotifications(testUserId)).length;
       expect(afterCount, equals(initialCount));
     });
 
-    test('3.3 Los avisos se retiran cuando el compromiso se marca como pagado', () async {
+    test('3.3 Los avisos se retiran cuando el compromiso se marca como pagado',
+        () async {
       final notifService = NotificationService(db);
       final now = DateTime(2026, 10, 23);
 
@@ -404,7 +426,8 @@ void main() {
       expect(notifs.any((n) => n.relatedEntityId == 'c_to_pay'), isFalse);
     });
 
-    test('3.4 Marcar como leída y descartar actualizan el estado persistente', () async {
+    test('3.4 Marcar como leída y descartar actualizan el estado persistente',
+        () async {
       final notifService = NotificationService(db);
       final now = DateTime(2026, 10, 23);
 
@@ -435,10 +458,12 @@ void main() {
 
       // Descartar
       await notifService.dismissNotification(firstId);
-      final activeNotifs = await notifService.getNotifications(testUserId, includeDismissed: false);
+      final activeNotifs = await notifService.getNotifications(testUserId,
+          includeDismissed: false);
       expect(activeNotifs.any((n) => n.id == firstId), isFalse);
 
-      final allNotifs = await notifService.getNotifications(testUserId, includeDismissed: true);
+      final allNotifs = await notifService.getNotifications(testUserId,
+          includeDismissed: true);
       expect(allNotifs.any((n) => n.id == firstId), isTrue);
     });
 
@@ -478,7 +503,9 @@ void main() {
       expect(AppTheme.dark.scaffoldBackgroundColor, const Color(0xFF0B132B));
     });
 
-    test('4.2 Desactivar auto-sync conserva operaciones pendientes para sincronización manual', () async {
+    test(
+        '4.2 Desactivar auto-sync conserva operaciones pendientes para sincronización manual',
+        () async {
       expect(appState.autoSyncEnabled, isTrue);
 
       await appState.setAutoSyncEnabled(false);
@@ -503,11 +530,14 @@ void main() {
       );
 
       // Sigue en la cola de pendientes sin sincronizar automáticamente
-      final pendingCount = await financeRepo.getPendingOperationsCount(testUserId);
+      final pendingCount =
+          await financeRepo.getPendingOperationsCount(testUserId);
       expect(pendingCount, greaterThanOrEqualTo(1));
     });
 
-    test('4.3 Limpieza de caché segura: NO toca transacciones, compromisos ni cola pendiente', () async {
+    test(
+        '4.3 Limpieza de caché segura: NO toca transacciones, compromisos ni cola pendiente',
+        () async {
       // 1. Crear datos financieros
       final tx = MoneyTransaction(
         id: 'tx_safe_cache',
@@ -538,8 +568,10 @@ void main() {
         isNew: true,
       );
 
-      final txCountBefore = (await financeRepo.getTransactions(testUserId)).length;
-      final pendingBefore = await financeRepo.getPendingOperationsCount(testUserId);
+      final txCountBefore =
+          (await financeRepo.getTransactions(testUserId)).length;
+      final pendingBefore =
+          await financeRepo.getPendingOperationsCount(testUserId);
       expect(txCountBefore, greaterThan(0));
       expect(pendingBefore, greaterThan(0));
 
@@ -550,8 +582,10 @@ void main() {
       await prefs.remove('cached_chart_series');
 
       // 3. Confirmar que ninguna tabla financiera o pendiente fue borrada
-      final txCountAfter = (await financeRepo.getTransactions(testUserId)).length;
-      final pendingAfter = await financeRepo.getPendingOperationsCount(testUserId);
+      final txCountAfter =
+          (await financeRepo.getTransactions(testUserId)).length;
+      final pendingAfter =
+          await financeRepo.getPendingOperationsCount(testUserId);
       expect(txCountAfter, equals(txCountBefore));
       expect(pendingAfter, equals(pendingBefore));
     });

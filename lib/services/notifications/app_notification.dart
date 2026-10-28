@@ -1,7 +1,8 @@
 class AppNotification {
   final String id;
   final String userId;
-  final String type; // 'reminder_7d', 'reminder_3d', 'reminder_1d', 'reminder_due', 'overdue', 'weekly_review'
+  final String
+      type; // 'reminder_7d', 'reminder_3d', 'reminder_1d', 'reminder_due', 'overdue', 'weekly_review'
   final String title;
   final String body;
   final String? relatedEntityType; // 'commitment', 'review'

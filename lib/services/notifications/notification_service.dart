@@ -56,7 +56,9 @@ class NotificationService {
       if (row.relatedEntityType == 'commitment' &&
           row.relatedEntityId != null &&
           !activePendingMap.containsKey(row.relatedEntityId)) {
-        await (db.delete(db.localNotifications)..where((n) => n.id.equals(row.id))).go();
+        await (db.delete(db.localNotifications)
+              ..where((n) => n.id.equals(row.id)))
+            .go();
       }
     }
 
@@ -64,7 +66,8 @@ class NotificationService {
     for (final c in activePendingMap.values) {
       final dueDateNorm = _normalize(c.dueDate);
       final daysDiff = dueDateNorm.difference(today).inDays;
-      final dateKey = '${c.dueDate.year}-${c.dueDate.month.toString().padLeft(2, '0')}-${c.dueDate.day.toString().padLeft(2, '0')}';
+      final dateKey =
+          '${c.dueDate.year}-${c.dueDate.month.toString().padLeft(2, '0')}-${c.dueDate.day.toString().padLeft(2, '0')}';
       final formattedAmount = formatAmount(c.amount);
 
       // A. Check if overdue
@@ -104,7 +107,8 @@ class NotificationService {
               userId: Value(userId),
               type: const Value('reminder_7d'),
               title: Value('Compromiso en 7 días: ${c.title}'),
-              body: Value('Recordá reservar $formattedAmount para este compromiso que vence la próxima semana.'),
+              body: Value(
+                  'Recordá reservar $formattedAmount para este compromiso que vence la próxima semana.'),
               relatedEntityType: const Value('commitment'),
               relatedEntityId: Value(c.id),
               amount: Value(c.amount),
@@ -127,7 +131,8 @@ class NotificationService {
               userId: Value(userId),
               type: const Value('reminder_3d'),
               title: Value('Compromiso en 3 días: ${c.title}'),
-              body: Value('Faltan 3 días para pagar $formattedAmount de ${c.title}. Comprobá tu disponible real.'),
+              body: Value(
+                  'Faltan 3 días para pagar $formattedAmount de ${c.title}. Comprobá tu disponible real.'),
               relatedEntityType: const Value('commitment'),
               relatedEntityId: Value(c.id),
               amount: Value(c.amount),
@@ -150,7 +155,8 @@ class NotificationService {
               userId: Value(userId),
               type: const Value('reminder_1d'),
               title: Value('Compromiso mañana: ${c.title}'),
-              body: Value('Mañana vence el pago de $formattedAmount para ${c.title}.'),
+              body: Value(
+                  'Mañana vence el pago de $formattedAmount para ${c.title}.'),
               relatedEntityType: const Value('commitment'),
               relatedEntityId: Value(c.id),
               amount: Value(c.amount),
@@ -173,7 +179,8 @@ class NotificationService {
               userId: Value(userId),
               type: const Value('reminder_due'),
               title: Value('¡Hoy vence! ${c.title}'),
-              body: Value('Hoy corresponde pagar $formattedAmount de ${c.title}. Marcá el compromiso como pagado una vez realizado.'),
+              body: Value(
+                  'Hoy corresponde pagar $formattedAmount de ${c.title}. Marcá el compromiso como pagado una vez realizado.'),
               relatedEntityType: const Value('commitment'),
               relatedEntityId: Value(c.id),
               amount: Value(c.amount),
@@ -190,8 +197,10 @@ class NotificationService {
     // 4. Weekly financial review reminder
     if (prefs.reminderWeeklyReview) {
       // Calculate current calendar week identifier (e.g. 2026-W42)
-      final weekOfYear = ((today.difference(DateTime(today.year, 1, 1)).inDays) / 7).ceil();
-      final weeklyReviewId = 'weekly_review_${userId}_${today.year}_W$weekOfYear';
+      final weekOfYear =
+          ((today.difference(DateTime(today.year, 1, 1)).inDays) / 7).ceil();
+      final weeklyReviewId =
+          'weekly_review_${userId}_${today.year}_W$weekOfYear';
       if (!existingMap.containsKey(weeklyReviewId)) {
         await _insertNotification(
           LocalNotificationsCompanion(
@@ -199,7 +208,8 @@ class NotificationService {
             userId: Value(userId),
             type: const Value('weekly_review'),
             title: const Value('Revisión semanal de tu dinero'),
-            body: const Value('Tomate 5 minutos para revisar tus movimientos, confirmar gastos y verificar tu disponible real.'),
+            body: const Value(
+                'Tomate 5 minutos para revisar tus movimientos, confirmar gastos y verificar tu disponible real.'),
             relatedEntityType: const Value('review'),
             scheduledDate: Value(now),
             isRead: const Value(false),
@@ -211,7 +221,8 @@ class NotificationService {
     }
   }
 
-  Future<void> _insertNotification(LocalNotificationsCompanion companion) async {
+  Future<void> _insertNotification(
+      LocalNotificationsCompanion companion) async {
     await db.into(db.localNotifications).insertOnConflictUpdate(companion);
   }
 
@@ -231,33 +242,40 @@ class NotificationService {
       ..orderBy([(n) => OrderingTerm.desc(n.scheduledDate)]);
 
     final rows = await query.get();
-    return rows.map((r) => AppNotification(
-      id: r.id,
-      userId: r.userId,
-      type: r.type,
-      title: r.title,
-      body: r.body,
-      relatedEntityType: r.relatedEntityType,
-      relatedEntityId: r.relatedEntityId,
-      amount: r.amount,
-      scheduledDate: r.scheduledDate,
-      isRead: r.isRead,
-      isDismissed: r.isDismissed,
-      createdAt: r.createdAt,
-    )).toList();
+    return rows
+        .map((r) => AppNotification(
+              id: r.id,
+              userId: r.userId,
+              type: r.type,
+              title: r.title,
+              body: r.body,
+              relatedEntityType: r.relatedEntityType,
+              relatedEntityId: r.relatedEntityId,
+              amount: r.amount,
+              scheduledDate: r.scheduledDate,
+              isRead: r.isRead,
+              isDismissed: r.isDismissed,
+              createdAt: r.createdAt,
+            ))
+        .toList();
   }
 
   /// Counts unread and non-dismissed notifications
   Future<int> getUnreadCount(String userId) async {
     final query = db.select(db.localNotifications)
-      ..where((n) => n.userId.equals(userId) & n.isRead.equals(false) & n.isDismissed.equals(false));
+      ..where((n) =>
+          n.userId.equals(userId) &
+          n.isRead.equals(false) &
+          n.isDismissed.equals(false));
     final rows = await query.get();
     return rows.length;
   }
 
   /// Marks a single notification as read
   Future<void> markAsRead(String notificationId) async {
-    await (db.update(db.localNotifications)..where((n) => n.id.equals(notificationId))).write(
+    await (db.update(db.localNotifications)
+          ..where((n) => n.id.equals(notificationId)))
+        .write(
       const LocalNotificationsCompanion(isRead: Value(true)),
     );
   }
@@ -271,18 +289,24 @@ class NotificationService {
 
   /// Dismisses a notification (removes it from active view without losing history)
   Future<void> dismissNotification(String notificationId) async {
-    await (db.update(db.localNotifications)..where((n) => n.id.equals(notificationId))).write(
+    await (db.update(db.localNotifications)
+          ..where((n) => n.id.equals(notificationId)))
+        .write(
       const LocalNotificationsCompanion(isDismissed: Value(true)),
     );
   }
 
   /// Deletes a notification completely
   Future<void> deleteNotification(String notificationId) async {
-    await (db.delete(db.localNotifications)..where((n) => n.id.equals(notificationId))).go();
+    await (db.delete(db.localNotifications)
+          ..where((n) => n.id.equals(notificationId)))
+        .go();
   }
 
   /// Deletes all notifications for a given user
   Future<void> clearAll(String userId) async {
-    await (db.delete(db.localNotifications)..where((n) => n.userId.equals(userId))).go();
+    await (db.delete(db.localNotifications)
+          ..where((n) => n.userId.equals(userId)))
+        .go();
   }
 }

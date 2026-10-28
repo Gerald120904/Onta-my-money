@@ -78,10 +78,13 @@ class NotificationPreferences {
     }
   }
 
-  static Future<void> save(String userId, NotificationPreferences preferences) async {
+  static Future<void> save(
+      String userId, NotificationPreferences preferences) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('notif_prefs_$userId', jsonEncode(preferences.toMap()));
+    await prefs.setString(
+        'notif_prefs_$userId', jsonEncode(preferences.toMap()));
   }
 
-  Future<void> saveForUser(String userId) => NotificationPreferences.save(userId, this);
+  Future<void> saveForUser(String userId) =>
+      NotificationPreferences.save(userId, this);
 }

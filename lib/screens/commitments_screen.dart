@@ -38,16 +38,18 @@ class CommitmentsScreen extends StatelessWidget {
               AppField(
                 controller: title,
                 label: 'Nombre',
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Campo obligatorio' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Campo obligatorio'
+                    : null,
               ),
               AppField(
                 controller: amount,
                 label: 'Monto',
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                validator: (v) =>
-                    (double.tryParse(v ?? '') ?? 0) <= 0 ? 'Monto inválido' : null,
+                validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0
+                    ? 'Monto inválido'
+                    : null,
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -125,12 +127,11 @@ class CommitmentsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.backgroundDark : AppTheme.background,
+      backgroundColor: AppTheme.bg(context),
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back_rounded, color: textColor),
@@ -143,7 +144,7 @@ class CommitmentsScreen extends StatelessWidget {
             color: textColor,
           ),
         ),
-        backgroundColor: isDark ? AppTheme.surfaceDark : AppTheme.background,
+        backgroundColor: AppTheme.cardBg(context),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
@@ -159,7 +160,8 @@ class CommitmentsScreen extends StatelessWidget {
                 children: [
                   PageHeader(
                     title: 'Compromisos',
-                    subtitle: 'Pagos que no deberías tocar del dinero disponible.',
+                    subtitle:
+                        'Pagos que no deberías tocar del dinero disponible.',
                     action: FilledButton.icon(
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(0, 44),
@@ -180,31 +182,26 @@ class CommitmentsScreen extends StatelessWidget {
                       (x) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Card(
-                          color: isDark ? AppTheme.surfaceDark : Colors.white,
+                          color: AppTheme.cardBg(context),
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                             side: BorderSide(
-                              color: isDark ? AppTheme.borderDark : AppTheme.border,
+                              color: AppTheme.borderColor(context),
                             ),
                           ),
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor: x.status == 'paid'
-                                  ? (isDark
-                                      ? const Color(0xFF14532D)
-                                      : const Color(0xFFE3FBEF))
-                                  : (isDark
-                                      ? const Color(0xFF1E3A8A)
-                                      : const Color(0xFFEDF4FF)),
+                                  ? AppTheme.tintSuccess(context)
+                                  : AppTheme.tintPrimary(context),
                               child: Icon(
-                                x.status == 'paid' ? Icons.check : Icons.schedule,
+                                x.status == 'paid'
+                                    ? Icons.check
+                                    : Icons.schedule,
                                 color: x.status == 'paid'
-                                    ? (isDark
-                                        ? const Color(0xFF4ADE80)
-                                        : AppTheme.success)
-                                    : (isDark
-                                        ? const Color(0xFF60A5FA)
-                                        : AppTheme.primary),
+                                    ? AppTheme.successColor(context)
+                                    : AppTheme.primaryColor(context),
                               ),
                             ),
                             title: Text(
@@ -250,9 +247,11 @@ class CommitmentsScreen extends StatelessWidget {
                                     }
                                   },
                                   itemBuilder: (_) => const [
-                                    PopupMenuItem(value: 'edit', child: Text('Editar')),
                                     PopupMenuItem(
-                                        value: 'delete', child: Text('Eliminar')),
+                                        value: 'edit', child: Text('Editar')),
+                                    PopupMenuItem(
+                                        value: 'delete',
+                                        child: Text('Eliminar')),
                                   ],
                                 ),
                               ],

@@ -24,8 +24,7 @@ class ReviewScreen extends StatefulWidget {
   });
 
   @override
-  State<ReviewScreen> createState() =>
-      _ReviewScreenState();
+  State<ReviewScreen> createState() => _ReviewScreenState();
 }
 
 class _ReviewScreenState extends State<ReviewScreen> {
@@ -45,8 +44,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   String? reduceCategory;
 
-  final TextEditingController reduceAmountController =
-      TextEditingController();
+  final TextEditingController reduceAmountController = TextEditingController();
 
   String reducePeriodType = 'weeks';
 
@@ -68,8 +66,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   // POSPONER COMPRA
   // =========================================================
 
-  final TextEditingController purchaseNameController =
-      TextEditingController();
+  final TextEditingController purchaseNameController = TextEditingController();
 
   final TextEditingController purchaseAmountController =
       TextEditingController();
@@ -80,11 +77,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
   // AJUSTAR META
   // =========================================================
 
-  final TextEditingController goalNameController =
-      TextEditingController();
+  final TextEditingController goalNameController = TextEditingController();
 
-  final TextEditingController goalAmountController =
-      TextEditingController();
+  final TextEditingController goalAmountController = TextEditingController();
 
   String goalPeriodType = 'months';
 
@@ -149,8 +144,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   List<MoneyTransaction> get _selectedExpenses {
     return _selectedTransactions.where(
       (transaction) {
-        return transaction.type.toLowerCase() ==
-            'expense';
+        return transaction.type.toLowerCase() == 'expense';
       },
     ).toList();
   }
@@ -158,8 +152,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   List<MoneyTransaction> get _selectedIncomes {
     return _selectedTransactions.where(
       (transaction) {
-        return transaction.type.toLowerCase() ==
-            'income';
+        return transaction.type.toLowerCase() == 'income';
       },
     ).toList();
   }
@@ -168,12 +161,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
     DateTime date,
   ) {
     final afterStart =
-        date.isAtSameMomentAs(period.start) ||
-            date.isAfter(period.start);
+        date.isAtSameMomentAs(period.start) || date.isAfter(period.start);
 
     final beforeEnd =
-        date.isAtSameMomentAs(period.end) ||
-            date.isBefore(period.end);
+        date.isAtSameMomentAs(period.end) || date.isBefore(period.end);
 
     return afterStart && beforeEnd;
   }
@@ -235,8 +226,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
     for (final expense in _selectedExpenses) {
       result[expense.category] =
-          (result[expense.category] ?? 0) +
-              expense.amount;
+          (result[expense.category] ?? 0) + expense.amount;
     }
 
     final entries = result.entries.toList()
@@ -245,8 +235,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       );
 
     return {
-      for (final entry in entries)
-        entry.key: entry.value,
+      for (final entry in entries) entry.key: entry.value,
     };
   }
 
@@ -298,8 +287,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     selectedIds.clear();
 
     for (final transaction in _periodTransactions) {
-      final isIncome =
-          transaction.type.toLowerCase() == 'income';
+      final isIncome = transaction.type.toLowerCase() == 'income';
 
       if (isIncome || transaction.recognized) {
         selectedIds.add(
@@ -314,8 +302,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   // =========================================================
 
   Future<void> _addTransaction() async {
-    final type =
-        await showModalBottomSheet<String>(
+    final type = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
       builder: (
@@ -339,25 +326,21 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 ListTile(
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  tileColor:
-                      const Color(0xFFEAF3FF),
-                  leading: const Icon(
-                    Icons
-                        .remove_circle_outline_rounded,
-                    color: AppTheme.primary,
+                  tileColor: AppTheme.tintPrimary(context),
+                  leading: Icon(
+                    Icons.remove_circle_outline_rounded,
+                    color: AppTheme.primaryColor(context),
                   ),
-                  title: const Text(
+                  title: Text(
                     'Agregar gasto',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
+                      color: AppTheme.textColor(context),
                     ),
                   ),
                   onTap: () {
@@ -367,25 +350,21 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     );
                   },
                 ),
-
                 const SizedBox(height: 10),
-
                 ListTile(
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  tileColor:
-                      const Color(0xFFE9FFF2),
-                  leading: const Icon(
-                    Icons
-                        .add_circle_outline_rounded,
-                    color: AppTheme.success,
+                  tileColor: AppTheme.tintSuccess(context),
+                  leading: Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: AppTheme.successColor(context),
                   ),
-                  title: const Text(
+                  title: Text(
                     'Agregar ingreso',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
+                      color: AppTheme.textColor(context),
                     ),
                   ),
                   onTap: () {
@@ -426,19 +405,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
       MoneyTransaction? savedTransaction;
 
-      for (final item
-          in widget.state.transactions.reversed) {
-        final sameDate =
-            item.date.year == result.date.year &&
-                item.date.month ==
-                    result.date.month &&
-                item.date.day == result.date.day;
+      for (final item in widget.state.transactions.reversed) {
+        final sameDate = item.date.year == result.date.year &&
+            item.date.month == result.date.month &&
+            item.date.day == result.date.day;
 
-        final sameTransaction =
-            item.type == result.type &&
-                item.category == result.category &&
-                item.amount == result.amount &&
-                sameDate;
+        final sameTransaction = item.type == result.type &&
+            item.category == result.category &&
+            item.amount == result.amount &&
+            sameDate;
 
         if (sameTransaction) {
           savedTransaction = item;
@@ -447,8 +422,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       }
 
       setState(() {
-        if (savedTransaction != null &&
-            _insidePeriod(savedTransaction.date)) {
+        if (savedTransaction != null && _insidePeriod(savedTransaction.date)) {
           selectedIds.add(
             savedTransaction.id,
           );
@@ -486,8 +460,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       selectedIds.clear();
 
       for (final transaction in _periodTransactions) {
-        final isIncome =
-            transaction.type.toLowerCase() == 'income';
+        final isIncome = transaction.type.toLowerCase() == 'income';
 
         if (isIncome || transaction.recognized) {
           selectedIds.add(
@@ -542,10 +515,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
     }
 
     if (step == 2) {
-      if (reduceCategory == null &&
-          _expensesByCategory.isNotEmpty) {
-        reduceCategory =
-            _expensesByCategory.keys.first;
+      if (reduceCategory == null && _expensesByCategory.isNotEmpty) {
+        reduceCategory = _expensesByCategory.keys.first;
       }
 
       setState(() {
@@ -580,13 +551,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
     return showDatePicker(
       context: context,
-      initialDate:
-          initialDate ??
-              now.add(
-                const Duration(
-                  days: 7,
-                ),
-              ),
+      initialDate: initialDate ??
+          now.add(
+            const Duration(
+              days: 7,
+            ),
+          ),
       firstDate: now,
       lastDate: DateTime(
         now.year + 5,
@@ -621,8 +591,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       periodSubtitle: period.subtitle,
       transactionIds: selectedIds.toList(),
       decision: decision,
-      decisionDetails:
-          _buildDecisionDetails(),
+      decisionDetails: _buildDecisionDetails(),
       createdAt: DateTime.now(),
     );
 
@@ -636,8 +605,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   bool _validateDecision() {
     switch (decision) {
       case 'Mantener mi plan':
-        if (maintainPeriodType == 'date' &&
-            maintainTargetDate == null) {
+        if (maintainPeriodType == 'date' && maintainTargetDate == null) {
           _showDecisionError(
             'Seleccioná una fecha para revisar nuevamente tu plan.',
           );
@@ -668,8 +636,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           return false;
         }
 
-        if (reducePeriodType == 'date' &&
-            reduceTargetDate == null) {
+        if (reducePeriodType == 'date' && reduceTargetDate == null) {
           _showDecisionError(
             'Seleccioná la fecha límite para tu objetivo.',
           );
@@ -680,9 +647,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         return true;
 
       case 'Posponer una compra':
-        if (purchaseNameController.text
-            .trim()
-            .isEmpty) {
+        if (purchaseNameController.text.trim().isEmpty) {
           _showDecisionError(
             'Escribí cuál compra querés posponer.',
           );
@@ -712,9 +677,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         return true;
 
       case 'Ajustar mi meta':
-        if (goalNameController.text
-            .trim()
-            .isEmpty) {
+        if (goalNameController.text.trim().isEmpty) {
           _showDecisionError(
             'Escribí cuál meta querés ajustar.',
           );
@@ -733,8 +696,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           return false;
         }
 
-        if (goalPeriodType == 'date' &&
-            goalTargetDate == null) {
+        if (goalPeriodType == 'date' && goalTargetDate == null) {
           _showDecisionError(
             'Seleccioná la fecha límite de tu meta.',
           );
@@ -767,17 +729,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
     });
   }
 
-  Map<String, dynamic>
-      _buildDecisionDetails() {
+  Map<String, dynamic> _buildDecisionDetails() {
     switch (decision) {
       case 'Mantener mi plan':
         return {
           'periodType': maintainPeriodType,
-          if (maintainPeriodType != 'date')
-            'periodValue': maintainPeriodValue,
+          if (maintainPeriodType != 'date') 'periodValue': maintainPeriodValue,
           if (maintainTargetDate != null)
-            'targetDate': maintainTargetDate!
-                .toIso8601String(),
+            'targetDate': maintainTargetDate!.toIso8601String(),
         };
 
       case 'Reducir gasto':
@@ -787,37 +746,30 @@ class _ReviewScreenState extends State<ReviewScreen> {
             reduceAmountController.text,
           ),
           'periodType': reducePeriodType,
-          if (reducePeriodType != 'date')
-            'periodValue': reducePeriodValue,
+          if (reducePeriodType != 'date') 'periodValue': reducePeriodValue,
           if (reduceTargetDate != null)
-            'targetDate': reduceTargetDate!
-                .toIso8601String(),
+            'targetDate': reduceTargetDate!.toIso8601String(),
         };
 
       case 'Posponer una compra':
         return {
-          'purchaseName':
-              purchaseNameController.text.trim(),
+          'purchaseName': purchaseNameController.text.trim(),
           'purchaseAmount': _parseAmount(
             purchaseAmountController.text,
           ),
-          'targetDate': purchaseTargetDate
-              ?.toIso8601String(),
+          'targetDate': purchaseTargetDate?.toIso8601String(),
         };
 
       case 'Ajustar mi meta':
         return {
-          'goalName':
-              goalNameController.text.trim(),
+          'goalName': goalNameController.text.trim(),
           'targetAmount': _parseAmount(
             goalAmountController.text,
           ),
           'periodType': goalPeriodType,
-          if (goalPeriodType != 'date')
-            'periodValue': goalPeriodValue,
+          if (goalPeriodType != 'date') 'periodValue': goalPeriodValue,
           if (goalTargetDate != null)
-            'targetDate':
-                goalTargetDate!.toIso8601String(),
+            'targetDate': goalTargetDate!.toIso8601String(),
         };
 
       default:
@@ -851,7 +803,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     BuildContext context,
   ) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bg(context),
       body: SafeArea(
         child: Column(
           children: [
@@ -859,7 +811,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
               step: step,
               onBack: _back,
             ),
-
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(
@@ -909,101 +860,73 @@ class _ReviewScreenState extends State<ReviewScreen> {
         30,
       ),
       children: [
-        const Text(
+        Text(
           'Elegir periodo',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w900,
-            color: AppTheme.text,
+            color: AppTheme.textColor(context),
           ),
         ),
-
         const SizedBox(height: 6),
-
-        const Text(
+        Text(
           'Seleccioná los movimientos que querés revisar.',
           style: TextStyle(
-            fontSize: 11.5,
-            color: AppTheme.muted,
+            fontSize: 13.5,
+            color: AppTheme.mutedColor(context),
           ),
         ),
-
         const SizedBox(height: 22),
-
         _PeriodOption(
           title: 'Hoy',
-          subtitle:
-              ReportPeriod.today().subtitle,
+          subtitle: ReportPeriod.today().subtitle,
           icon: Icons.today_outlined,
-          selected:
-              period.type ==
-                  ReportPeriodType.today,
+          selected: period.type == ReportPeriodType.today,
           onTap: () {
             _setPeriod(
               ReportPeriod.today(),
             );
           },
         ),
-
         const SizedBox(height: 10),
-
         _PeriodOption(
           title: 'Esta semana',
-          subtitle:
-              ReportPeriod.week().subtitle,
+          subtitle: ReportPeriod.week().subtitle,
           icon: Icons.date_range_outlined,
-          selected:
-              period.type ==
-                  ReportPeriodType.week,
+          selected: period.type == ReportPeriodType.week,
           onTap: () {
             _setPeriod(
               ReportPeriod.week(),
             );
           },
         ),
-
         const SizedBox(height: 10),
-
         _PeriodOption(
           title: 'Este mes',
-          subtitle:
-              ReportPeriod.month().subtitle,
-          icon:
-              Icons.calendar_month_outlined,
-          selected:
-              period.type ==
-                  ReportPeriodType.month,
+          subtitle: ReportPeriod.month().subtitle,
+          icon: Icons.calendar_month_outlined,
+          selected: period.type == ReportPeriodType.month,
           onTap: () {
             _setPeriod(
               ReportPeriod.month(),
             );
           },
         ),
-
         const SizedBox(height: 10),
-
         _PeriodOption(
           title: 'Rango de fechas',
-          subtitle:
-              period.type ==
-                      ReportPeriodType.custom
-                  ? period.subtitle
-                  : 'Elegí una fecha inicial y final',
-          icon:
-              Icons.calendar_today_outlined,
-          selected:
-              period.type ==
-                  ReportPeriodType.custom,
+          subtitle: period.type == ReportPeriodType.custom
+              ? period.subtitle
+              : 'Elegí una fecha inicial y final',
+          icon: Icons.calendar_today_outlined,
+          selected: period.type == ReportPeriodType.custom,
           onTap: _selectCustomPeriod,
         ),
-
         const SizedBox(height: 28),
-
         FilledButton(
           onPressed: _continue,
           child: const Row(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text('Continuar'),
               SizedBox(width: 7),
@@ -1033,22 +956,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
         30,
       ),
       children: [
-        const Text(
+        Text(
           'Confirmar movimientos',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w900,
-            color: AppTheme.text,
+            color: AppTheme.textColor(context),
           ),
         ),
 
         const SizedBox(height: 6),
 
-        const Text(
+        Text(
           'Marcá los movimientos que reconocés y querés incluir en el reporte.',
           style: TextStyle(
-            fontSize: 11.5,
-            color: AppTheme.muted,
+            fontSize: 13.5,
+            color: AppTheme.mutedColor(context),
           ),
         ),
 
@@ -1056,9 +979,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
         Text(
           period.subtitle,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppTheme.primary,
+          style: TextStyle(
+            fontSize: 13,
+            color: AppTheme.primaryColor(context),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -1073,13 +996,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
             label: Text(
               'Confirmar reconocidos (${movements.where((transaction) {
-                final isIncome =
-                    transaction.type.toLowerCase() == 'income';
+                final isIncome = transaction.type.toLowerCase() == 'income';
                 return isIncome || transaction.recognized;
               }).length})',
             ),
           ),
-
           const SizedBox(height: 14),
         ],
 
@@ -1100,8 +1021,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
           ...movements.map(
             (transaction) {
-              final selected =
-                  selectedIds.contains(
+              final selected = selectedIds.contains(
                 transaction.id,
               );
 
@@ -1168,49 +1088,44 @@ class _ReviewScreenState extends State<ReviewScreen> {
         30,
       ),
       children: [
-        const Text(
+        Text(
           '¿Dónde se fue?',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w900,
-            color: AppTheme.text,
+            color: AppTheme.textColor(context),
           ),
         ),
-
         const SizedBox(height: 5),
-
         Text(
           '${_selectedTransactions.length} movimientos confirmados',
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppTheme.muted,
+          style: TextStyle(
+            fontSize: 13,
+            color: AppTheme.mutedColor(context),
           ),
         ),
-
         const SizedBox(height: 20),
-
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius:
-                BorderRadius.circular(18),
+            color: AppTheme.cardBg(context),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: AppTheme.border,
+              color: AppTheme.borderColor(context),
             ),
           ),
           child: Column(
             children: [
               if (_selectedExpenses.isEmpty)
-                const Padding(
-                  padding:
-                      EdgeInsets.symmetric(
+                Padding(
+                  padding: const EdgeInsets.symmetric(
                     vertical: 28,
                   ),
                   child: Text(
                     'No seleccionaste gastos para analizar.',
                     style: TextStyle(
-                      color: AppTheme.muted,
+                      color: AppTheme.mutedColor(context),
+                      fontSize: 13.5,
                     ),
                   ),
                 )
@@ -1219,61 +1134,43 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   values: _expensesByCategory,
                   total: _totalExpenses,
                 ),
-
                 const SizedBox(height: 22),
-
                 ..._buildCategoryRows(),
               ],
             ],
           ),
         ),
-
         const SizedBox(height: 14),
-
         _MoneyInfoCard(
           title: 'Saldo actual',
-          subtitle:
-              'Saldo después de tus movimientos confirmados',
+          subtitle: 'Saldo después de tus movimientos confirmados',
           value: _currentMoney,
-          icon: Icons
-              .account_balance_wallet_outlined,
+          icon: Icons.account_balance_wallet_outlined,
           emphasized: true,
         ),
-
         const SizedBox(height: 10),
-
         _MoneyInfoCard(
           title: 'Dinero comprometido',
-          subtitle:
-              'Pagos y gastos que ya tenés previstos',
+          subtitle: 'Pagos y gastos que ya tenés previstos',
           value: _committed,
           icon: Icons.wallet_outlined,
         ),
-
         const SizedBox(height: 10),
-
         _MoneyInfoCard(
           title: 'Ahorro reservado',
-          subtitle:
-              'Dinero separado para tus metas',
+          subtitle: 'Dinero separado para tus metas',
           value: _saved,
           icon: Icons.savings_outlined,
         ),
-
         const SizedBox(height: 10),
-
         _MoneyInfoCard(
           title: 'Disponible real',
-          subtitle:
-              'Lo que realmente podés utilizar',
+          subtitle: 'Lo que realmente podés utilizar',
           value: _available,
-          icon: Icons
-              .account_balance_wallet_outlined,
+          icon: Icons.account_balance_wallet_outlined,
           success: true,
         ),
-
         const SizedBox(height: 20),
-
         FilledButton(
           onPressed: _continue,
           child: const Text(
@@ -1285,8 +1182,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   List<Widget> _buildCategoryRows() {
-    final entries =
-        _expensesByCategory.entries.toList();
+    final entries = _expensesByCategory.entries.toList();
 
     return List.generate(
       entries.length,
@@ -1296,11 +1192,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         final entry = entries[index];
 
         final percentage =
-            _totalExpenses == 0
-                ? 0.0
-                : entry.value /
-                    _totalExpenses *
-                    100;
+            _totalExpenses == 0 ? 0.0 : entry.value / _totalExpenses * 100;
 
         return Padding(
           padding: const EdgeInsets.only(
@@ -1310,8 +1202,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             name: entry.key,
             amount: entry.value,
             percentage: percentage,
-            color: _reviewColors[
-                index % _reviewColors.length],
+            color: _reviewColors[index % _reviewColors.length],
           ),
         );
       },
@@ -1331,227 +1222,171 @@ class _ReviewScreenState extends State<ReviewScreen> {
         30,
       ),
       children: [
-        const Text(
+        Text(
           'Tomar una decisión',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w900,
-            color: AppTheme.text,
+            color: AppTheme.textColor(context),
           ),
         ),
-
         const SizedBox(height: 6),
-
-        const Text(
+        Text(
           'Convertí el análisis en una acción concreta.',
           style: TextStyle(
-            fontSize: 11.5,
-            color: AppTheme.muted,
+            fontSize: 13.5,
+            color: AppTheme.mutedColor(context),
           ),
         ),
-
         const SizedBox(height: 18),
-
         Container(
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color:
-                const Color(0xFFEAF3FF),
-            borderRadius:
-                BorderRadius.circular(16),
+            color: AppTheme.tintPrimary(context),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppTheme.primary,
+              color: AppTheme.primaryColor(context),
             ),
           ),
-          child: const Row(
+          child: Row(
             children: [
               Icon(
                 Icons.assessment_outlined,
-                color: AppTheme.primary,
+                color: AppTheme.primaryColor(context),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Con esta información, ¿qué querés hacer?',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    color: AppTheme.text,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
               ),
             ],
           ),
         ),
-
         const SizedBox(height: 16),
-
         _DecisionOption(
           title: 'Mantener mi plan',
-          subtitle:
-              'Todo sigue en orden',
+          subtitle: 'Todo sigue en orden',
           icon: Icons.check_rounded,
-          selected:
-              decision == 'Mantener mi plan',
+          selected: decision == 'Mantener mi plan',
           success: true,
           onTap: () {
             setState(() {
-              decision =
-                  'Mantener mi plan';
+              decision = 'Mantener mi plan';
               _decisionError = null;
             });
           },
         ),
-
         const SizedBox(height: 10),
-
         _DecisionOption(
           title: 'Reducir gasto',
-          subtitle:
-              'Definí cuánto querés reducir y en qué plazo',
-          icon:
-              Icons.arrow_downward_rounded,
-          selected:
-              decision == 'Reducir gasto',
+          subtitle: 'Definí cuánto querés reducir y en qué plazo',
+          icon: Icons.arrow_downward_rounded,
+          selected: decision == 'Reducir gasto',
           onTap: () {
             setState(() {
-              decision =
-                  'Reducir gasto';
+              decision = 'Reducir gasto';
               _decisionError = null;
 
-              reduceCategory ??=
-                  _expensesByCategory.isNotEmpty
-                      ? _expensesByCategory
-                          .keys
-                          .first
-                      : _expenseCategories
-                          .first;
+              reduceCategory ??= _expensesByCategory.isNotEmpty
+                  ? _expensesByCategory.keys.first
+                  : _expenseCategories.first;
             });
           },
         ),
-
         const SizedBox(height: 10),
-
         _DecisionOption(
-          title:
-              'Posponer una compra',
-          subtitle:
-              'Esperá hasta una fecha más conveniente',
+          title: 'Posponer una compra',
+          subtitle: 'Esperá hasta una fecha más conveniente',
           icon: Icons.schedule_rounded,
-          selected:
-              decision ==
-                  'Posponer una compra',
+          selected: decision == 'Posponer una compra',
           onTap: () {
             setState(() {
-              decision =
-                  'Posponer una compra';
+              decision = 'Posponer una compra';
               _decisionError = null;
             });
           },
         ),
-
         const SizedBox(height: 10),
-
         _DecisionOption(
           title: 'Ajustar mi meta',
-          subtitle:
-              'Establecé un nuevo monto o plazo',
-          icon:
-              Icons.track_changes_rounded,
-          selected:
-              decision == 'Ajustar mi meta',
+          subtitle: 'Establecé un nuevo monto o plazo',
+          icon: Icons.track_changes_rounded,
+          selected: decision == 'Ajustar mi meta',
           onTap: () {
             setState(() {
-              decision =
-                  'Ajustar mi meta';
+              decision = 'Ajustar mi meta';
               _decisionError = null;
             });
           },
         ),
-
         const SizedBox(height: 18),
-
         AnimatedSwitcher(
           duration: const Duration(
             milliseconds: 180,
           ),
-          child:
-              _decisionDetailsForm(),
+          child: _decisionDetailsForm(),
         ),
-
         const SizedBox(height: 18),
-
         _DecisionSummaryCard(
-          text:
-              _decisionSummaryText(),
+          text: _decisionSummaryText(),
         ),
-
         if (_decisionError != null) ...[
           const SizedBox(height: 16),
-
           Semantics(
             container: true,
             liveRegion: true,
-            label:
-                'Error al guardar la decisión. $_decisionError',
+            label: 'Error al guardar la decisión. $_decisionError',
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF1F1),
-                borderRadius:
-                    BorderRadius.circular(14),
+                color: AppTheme.tintError(context),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: Colors.red.shade700,
+                  color: AppTheme.errorColor(context),
                   width: 1.5,
                 ),
               ),
               child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
                     Icons.error_outline_rounded,
-                    color: Colors.red.shade700,
+                    color: AppTheme.errorColor(context),
                     size: 22,
                   ),
-
                   const SizedBox(width: 10),
-
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'No se puede guardar la decisión',
                           style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight:
-                                FontWeight.w900,
-                            color:
-                                Colors.red.shade900,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.errorColor(context),
                           ),
                         ),
-
                         const SizedBox(height: 4),
-
                         Text(
                           _decisionError!,
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12.5,
                             height: 1.4,
-                            fontWeight:
-                                FontWeight.w600,
-                            color:
-                                Colors.red.shade900,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.errorColor(context),
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(width: 6),
-
                   IconButton(
                     tooltip: 'Cerrar mensaje',
                     onPressed: _clearDecisionError,
@@ -1565,14 +1400,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
           ),
         ],
-
         const SizedBox(height: 24),
-
         FilledButton.icon(
           onPressed: _continue,
           icon: const Icon(
-            Icons
-                .check_circle_outline_rounded,
+            Icons.check_circle_outline_rounded,
           ),
           label: const Text(
             'Guardar decisión',
@@ -1609,85 +1441,63 @@ class _ReviewScreenState extends State<ReviewScreen> {
         'maintain',
       ),
       title: 'Próxima revisión',
-      subtitle:
-          'Elegí cuándo querés revisar nuevamente cómo van tus finanzas.',
+      subtitle: 'Elegí cuándo querés revisar nuevamente cómo van tus finanzas.',
       children: [
         _PlanPeriodSelector(
-          value:
-              maintainPeriodType,
+          value: maintainPeriodType,
           onChanged: (
             value,
           ) {
             setState(() {
-              maintainPeriodType =
-                  value;
+              maintainPeriodType = value;
               _decisionError = null;
             });
           },
         ),
-
         const SizedBox(height: 14),
-
-        if (maintainPeriodType ==
-            'weeks')
+        if (maintainPeriodType == 'weeks')
           _PeriodQuantitySelector(
-            label:
-                'Cantidad de semanas',
-            value:
-                maintainPeriodValue,
+            label: 'Cantidad de semanas',
+            value: maintainPeriodValue,
             max: 12,
             suffix: 'semanas',
             onChanged: (
               value,
             ) {
               setState(() {
-                maintainPeriodValue =
-                    value;
+                maintainPeriodValue = value;
               });
             },
           ),
-
-        if (maintainPeriodType ==
-            'months')
+        if (maintainPeriodType == 'months')
           _PeriodQuantitySelector(
-            label:
-                'Cantidad de meses',
-            value:
-                maintainPeriodValue,
+            label: 'Cantidad de meses',
+            value: maintainPeriodValue,
             max: 12,
             suffix: 'meses',
             onChanged: (
               value,
             ) {
               setState(() {
-                maintainPeriodValue =
-                    value;
+                maintainPeriodValue = value;
               });
             },
           ),
-
-        if (maintainPeriodType ==
-            'date')
+        if (maintainPeriodType == 'date')
           _DateSelector(
-            value:
-                maintainTargetDate,
-            label:
-                'Fecha de próxima revisión',
+            value: maintainTargetDate,
+            label: 'Fecha de próxima revisión',
             onTap: () async {
-              final date =
-                  await _pickTargetDate(
-                initialDate:
-                    maintainTargetDate,
+              final date = await _pickTargetDate(
+                initialDate: maintainTargetDate,
               );
 
-              if (date == null ||
-                  !mounted) {
+              if (date == null || !mounted) {
                 return;
               }
 
               setState(() {
-                maintainTargetDate =
-                    date;
+                maintainTargetDate = date;
                 _decisionError = null;
               });
             },
@@ -1701,27 +1511,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
       key: const ValueKey(
         'reduce',
       ),
-      title:
-          'Objetivo de reducción',
-      subtitle:
-          'Definí exactamente qué querés reducir.',
+      title: 'Objetivo de reducción',
+      subtitle: 'Definí exactamente qué querés reducir.',
       children: [
         DropdownButtonFormField<String>(
           value: reduceCategory,
-          decoration:
-              const InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Categoría',
             prefixIcon: Icon(
               Icons.category_outlined,
             ),
           ),
-          items:
-              _expenseCategories.map(
+          items: _expenseCategories.map(
             (
               category,
             ) {
-              return DropdownMenuItem<
-                  String>(
+              return DropdownMenuItem<String>(
                 value: category,
                 child: Text(
                   category,
@@ -1733,28 +1538,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
             value,
           ) {
             setState(() {
-              reduceCategory =
-                  value;
+              reduceCategory = value;
               _decisionError = null;
             });
           },
         ),
-
         const SizedBox(height: 14),
-
         TextField(
-          controller:
-              reduceAmountController,
-          keyboardType:
-              TextInputType.number,
+          controller: reduceAmountController,
+          keyboardType: TextInputType.number,
           inputFormatters: [
-            FilteringTextInputFormatter
-                .digitsOnly,
+            FilteringTextInputFormatter.digitsOnly,
           ],
-          decoration:
-              const InputDecoration(
-            labelText:
-                'Monto que querés reducir',
+          decoration: const InputDecoration(
+            labelText: 'Monto que querés reducir',
             hintText: '15000',
             prefixText: '₡ ',
             prefixIcon: Icon(
@@ -1767,95 +1564,71 @@ class _ReviewScreenState extends State<ReviewScreen> {
             });
           },
         ),
-
         const SizedBox(height: 16),
-
-        const Text(
+        Text(
           'Plazo',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w900,
-            color: AppTheme.text,
+            color: AppTheme.textColor(context),
           ),
         ),
-
         const SizedBox(height: 8),
-
         _PlanPeriodSelector(
-          value:
-              reducePeriodType,
+          value: reducePeriodType,
           onChanged: (
             value,
           ) {
             setState(() {
-              reducePeriodType =
-                  value;
+              reducePeriodType = value;
               _decisionError = null;
             });
           },
         ),
-
         const SizedBox(height: 14),
-
-        if (reducePeriodType ==
-            'weeks')
+        if (reducePeriodType == 'weeks')
           _PeriodQuantitySelector(
-            label:
-                'Cantidad de semanas',
-            value:
-                reducePeriodValue,
+            label: 'Cantidad de semanas',
+            value: reducePeriodValue,
             max: 12,
             suffix: 'semanas',
             onChanged: (
               value,
             ) {
               setState(() {
-                reducePeriodValue =
-                    value;
+                reducePeriodValue = value;
               });
             },
           ),
-
-        if (reducePeriodType ==
-            'months')
+        if (reducePeriodType == 'months')
           _PeriodQuantitySelector(
-            label:
-                'Cantidad de meses',
-            value:
-                reducePeriodValue,
+            label: 'Cantidad de meses',
+            value: reducePeriodValue,
             max: 12,
             suffix: 'meses',
             onChanged: (
               value,
             ) {
               setState(() {
-                reducePeriodValue =
-                    value;
+                reducePeriodValue = value;
               });
             },
           ),
-
-        if (reducePeriodType ==
-            'date')
+        if (reducePeriodType == 'date')
           _DateSelector(
-            value:
-                reduceTargetDate,
+            value: reduceTargetDate,
             label: 'Fecha límite',
             onTap: () async {
-              final date =
-                  await _pickTargetDate(
-                initialDate:
-                    reduceTargetDate,
+              final date = await _pickTargetDate(
+                initialDate: reduceTargetDate,
               );
 
-              if (date == null ||
-                  !mounted) {
+              if (date == null || !mounted) {
                 return;
               }
 
               setState(() {
-                reduceTargetDate =
-                    date;
+                reduceTargetDate = date;
                 _decisionError = null;
               });
             },
@@ -1870,16 +1643,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
         'purchase',
       ),
       title: 'Compra a posponer',
-      subtitle:
-          'Registrá qué compra querés esperar antes de realizar.',
+      subtitle: 'Registrá qué compra querés esperar antes de realizar.',
       children: [
         TextField(
-          controller:
-              purchaseNameController,
-          decoration:
-              const InputDecoration(
-            labelText:
-                '¿Qué querés comprar?',
+          controller: purchaseNameController,
+          decoration: const InputDecoration(
+            labelText: '¿Qué querés comprar?',
             hintText: 'Ej. Audífonos',
             prefixIcon: Icon(
               Icons.shopping_bag_outlined,
@@ -1891,22 +1660,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
             });
           },
         ),
-
         const SizedBox(height: 14),
-
         TextField(
-          controller:
-              purchaseAmountController,
-          keyboardType:
-              TextInputType.number,
+          controller: purchaseAmountController,
+          keyboardType: TextInputType.number,
           inputFormatters: [
-            FilteringTextInputFormatter
-                .digitsOnly,
+            FilteringTextInputFormatter.digitsOnly,
           ],
-          decoration:
-              const InputDecoration(
-            labelText:
-                'Costo aproximado',
+          decoration: const InputDecoration(
+            labelText: 'Costo aproximado',
             hintText: '45000',
             prefixText: '₡ ',
             prefixIcon: Icon(
@@ -1919,28 +1681,21 @@ class _ReviewScreenState extends State<ReviewScreen> {
             });
           },
         ),
-
         const SizedBox(height: 14),
-
         _DateSelector(
-          value:
-              purchaseTargetDate,
+          value: purchaseTargetDate,
           label: 'Posponer hasta',
           onTap: () async {
-            final date =
-                await _pickTargetDate(
-              initialDate:
-                  purchaseTargetDate,
+            final date = await _pickTargetDate(
+              initialDate: purchaseTargetDate,
             );
 
-            if (date == null ||
-                !mounted) {
+            if (date == null || !mounted) {
               return;
             }
 
             setState(() {
-              purchaseTargetDate =
-                  date;
+              purchaseTargetDate = date;
               _decisionError = null;
             });
           },
@@ -1955,18 +1710,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
         'goal',
       ),
       title: 'Nuevo objetivo',
-      subtitle:
-          'Definí el monto y el plazo de la meta que querés ajustar.',
+      subtitle: 'Definí el monto y el plazo de la meta que querés ajustar.',
       children: [
         TextField(
-          controller:
-              goalNameController,
-          decoration:
-              const InputDecoration(
-            labelText:
-                'Nombre de la meta',
-            hintText:
-                'Ej. Fondo de emergencia',
+          controller: goalNameController,
+          decoration: const InputDecoration(
+            labelText: 'Nombre de la meta',
+            hintText: 'Ej. Fondo de emergencia',
             prefixIcon: Icon(
               Icons.flag_outlined,
             ),
@@ -1977,22 +1727,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
             });
           },
         ),
-
         const SizedBox(height: 14),
-
         TextField(
-          controller:
-              goalAmountController,
-          keyboardType:
-              TextInputType.number,
+          controller: goalAmountController,
+          keyboardType: TextInputType.number,
           inputFormatters: [
-            FilteringTextInputFormatter
-                .digitsOnly,
+            FilteringTextInputFormatter.digitsOnly,
           ],
-          decoration:
-              const InputDecoration(
-            labelText:
-                'Nuevo monto objetivo',
+          decoration: const InputDecoration(
+            labelText: 'Nuevo monto objetivo',
             hintText: '300000',
             prefixText: '₡ ',
             prefixIcon: Icon(
@@ -2005,92 +1748,71 @@ class _ReviewScreenState extends State<ReviewScreen> {
             });
           },
         ),
-
         const SizedBox(height: 16),
-
-        const Text(
+        Text(
           'Plazo',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w900,
+            color: AppTheme.textColor(context),
           ),
         ),
-
         const SizedBox(height: 8),
-
         _PlanPeriodSelector(
           value: goalPeriodType,
           onChanged: (
             value,
           ) {
             setState(() {
-              goalPeriodType =
-                  value;
+              goalPeriodType = value;
               _decisionError = null;
             });
           },
         ),
-
         const SizedBox(height: 14),
-
-        if (goalPeriodType ==
-            'weeks')
+        if (goalPeriodType == 'weeks')
           _PeriodQuantitySelector(
-            label:
-                'Cantidad de semanas',
-            value:
-                goalPeriodValue,
+            label: 'Cantidad de semanas',
+            value: goalPeriodValue,
             max: 12,
             suffix: 'semanas',
             onChanged: (
               value,
             ) {
               setState(() {
-                goalPeriodValue =
-                    value;
+                goalPeriodValue = value;
               });
             },
           ),
-
-        if (goalPeriodType ==
-            'months')
+        if (goalPeriodType == 'months')
           _PeriodQuantitySelector(
-            label:
-                'Cantidad de meses',
-            value:
-                goalPeriodValue,
+            label: 'Cantidad de meses',
+            value: goalPeriodValue,
             max: 24,
             suffix: 'meses',
             onChanged: (
               value,
             ) {
               setState(() {
-                goalPeriodValue =
-                    value;
+                goalPeriodValue = value;
               });
             },
           ),
-
-        if (goalPeriodType ==
-            'date')
+        if (goalPeriodType == 'date')
           _DateSelector(
             value: goalTargetDate,
             label: 'Fecha límite',
             onTap: () async {
-              final date =
-                  await _pickTargetDate(
-                initialDate:
-                    goalTargetDate,
+              final date = await _pickTargetDate(
+                initialDate: goalTargetDate,
               );
 
-              if (date == null ||
-                  !mounted) {
+              if (date == null || !mounted) {
                 return;
               }
 
               setState(() {
-                goalTargetDate =
-                    date;
+                goalTargetDate = date;
                 _decisionError = null;
               });
             },
@@ -2117,8 +1839,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           reduceAmountController.text,
         );
 
-        if (reduceCategory == null ||
-            amount <= 0) {
+        if (reduceCategory == null || amount <= 0) {
           return 'Completá la categoría, el monto y el plazo para crear tu objetivo.';
         }
 
@@ -2129,16 +1850,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
         )}.';
 
       case 'Posponer una compra':
-        final name =
-            purchaseNameController.text.trim();
+        final name = purchaseNameController.text.trim();
 
         final amount = _parseAmount(
           purchaseAmountController.text,
         );
 
-        if (name.isEmpty ||
-            amount <= 0 ||
-            purchaseTargetDate == null) {
+        if (name.isEmpty || amount <= 0 || purchaseTargetDate == null) {
           return 'Indicá la compra, su precio aproximado y hasta cuándo querés posponerla.';
         }
 
@@ -2147,15 +1865,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
         )}.';
 
       case 'Ajustar mi meta':
-        final name =
-            goalNameController.text.trim();
+        final name = goalNameController.text.trim();
 
         final amount = _parseAmount(
           goalAmountController.text,
         );
 
-        if (name.isEmpty ||
-            amount <= 0) {
+        if (name.isEmpty || amount <= 0) {
           return 'Indicá la meta, el nuevo monto objetivo y el plazo.';
         }
 
@@ -2177,14 +1893,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
   ) {
     switch (type) {
       case 'weeks':
-        return value == 1
-            ? 'durante 1 semana'
-            : 'durante $value semanas';
+        return value == 1 ? 'durante 1 semana' : 'durante $value semanas';
 
       case 'months':
-        return value == 1
-            ? 'durante 1 mes'
-            : 'durante $value meses';
+        return value == 1 ? 'durante 1 mes' : 'durante $value meses';
 
       case 'date':
         if (date == null) {
@@ -2201,16 +1913,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
   String _formatDate(
     DateTime date,
   ) {
-    final day = date.day
-        .toString()
-        .padLeft(
+    final day = date.day.toString().padLeft(
           2,
           '0',
         );
 
-    final month = date.month
-        .toString()
-        .padLeft(
+    final month = date.month.toString().padLeft(
           2,
           '0',
         );
@@ -2251,24 +1959,20 @@ class _ReviewHeader extends StatelessWidget {
               Icons.arrow_back_rounded,
             ),
           ),
-
           Expanded(
             child: LinearProgressIndicator(
               value: (step + 1) / 4,
               minHeight: 6,
-              backgroundColor:
-                  AppTheme.border,
+              backgroundColor: AppTheme.borderColor(context),
             ),
           ),
-
           const SizedBox(width: 12),
-
           Text(
             '${step + 1}/4',
-            style: const TextStyle(
-              fontSize: 11,
+            style: TextStyle(
+              fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: AppTheme.muted,
+              color: AppTheme.mutedColor(context),
             ),
           ),
         ],
@@ -2297,8 +2001,7 @@ class _PeriodOption extends StatefulWidget {
   });
 
   @override
-  State<_PeriodOption> createState() =>
-      _PeriodOptionState();
+  State<_PeriodOption> createState() => _PeriodOptionState();
 }
 
 class _PeriodOptionState extends State<_PeriodOption> {
@@ -2315,10 +2018,9 @@ class _PeriodOptionState extends State<_PeriodOption> {
           '${widget.title}. ${widget.subtitle}${widget.selected ? '. Seleccionado' : ''}',
       child: Material(
         color: widget.selected
-            ? const Color(0xFFEAF3FF)
-            : Colors.white,
-        borderRadius:
-            BorderRadius.circular(15),
+            ? AppTheme.tintPrimary(context)
+            : AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(15),
         child: InkWell(
           onTap: widget.onTap,
           onFocusChange: (focused) {
@@ -2327,18 +2029,13 @@ class _PeriodOptionState extends State<_PeriodOption> {
             });
           },
           canRequestFocus: true,
-          focusColor:
-              AppTheme.primary.withOpacity(.12),
-          borderRadius:
-              BorderRadius.circular(15),
+          focusColor: AppTheme.tintPrimary(context),
+          borderRadius: BorderRadius.circular(15),
           child: AnimatedContainer(
-            duration:
-                const Duration(milliseconds: 120),
-            padding:
-                const EdgeInsets.all(14),
+            duration: const Duration(milliseconds: 120),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(
                 width: _focused
                     ? 3
@@ -2346,16 +2043,15 @@ class _PeriodOptionState extends State<_PeriodOption> {
                         ? 1.6
                         : 1,
                 color: _focused
-                    ? AppTheme.primaryDark
+                    ? AppTheme.focusRingColor(context)
                     : widget.selected
-                        ? AppTheme.primary
-                        : AppTheme.border,
+                        ? AppTheme.primaryColor(context)
+                        : AppTheme.borderColor(context),
               ),
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: AppTheme.primary
-                            .withOpacity(.18),
+                        color: AppTheme.primaryColor(context).withOpacity(.18),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -2366,44 +2062,40 @@ class _PeriodOptionState extends State<_PeriodOption> {
               children: [
                 Icon(
                   widget.icon,
-                  color: AppTheme.primary,
+                  color: widget.selected
+                      ? AppTheme.primaryColor(context)
+                      : AppTheme.primaryColor(context),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         widget.title,
-                        style: const TextStyle(
-                          fontWeight:
-                              FontWeight.w900,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textColor(context),
                         ),
                       ),
                       Text(
                         widget.subtitle,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color:
-                              AppTheme.muted,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppTheme.mutedColor(context),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 Icon(
                   widget.selected
-                      ? Icons
-                          .radio_button_checked_rounded
-                      : Icons
-                          .radio_button_off_rounded,
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_off_rounded,
                   color: widget.selected
-                      ? AppTheme.primary
-                      : AppTheme.muted,
+                      ? AppTheme.primaryColor(context)
+                      : AppTheme.mutedColor(context),
                 ),
               ],
             ),
@@ -2430,8 +2122,7 @@ class _MovementCard extends StatefulWidget {
   });
 
   @override
-  State<_MovementCard> createState() =>
-      _MovementCardState();
+  State<_MovementCard> createState() => _MovementCardState();
 }
 
 class _MovementCardState extends State<_MovementCard> {
@@ -2443,29 +2134,24 @@ class _MovementCardState extends State<_MovementCard> {
   ) {
     final transaction = widget.transaction;
 
-    final income =
-        transaction.type.toLowerCase() ==
-            'income';
+    final income = transaction.type.toLowerCase() == 'income';
 
-    final typeLabel =
-        income ? 'Ingreso' : 'Gasto';
+    final typeLabel = income ? 'Ingreso' : 'Gasto';
 
     final color = income
-        ? AppTheme.success
-        : AppTheme.primary;
+        ? AppTheme.successColor(context)
+        : AppTheme.primaryColor(context);
 
     return Semantics(
       button: true,
       selected: widget.selected,
-      label:
-          '$typeLabel. ${transaction.category}. ${money(transaction.amount)}'
+      label: '$typeLabel. ${transaction.category}. ${money(transaction.amount)}'
           '${transaction.description.trim().isNotEmpty ? '. ${transaction.description}' : ''}'
           '${!income && !transaction.recognized ? '. Movimiento no reconocido' : ''}'
           '${widget.selected ? '. Seleccionado' : '. No seleccionado'}',
       child: Material(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(14),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
           onTap: widget.onTap,
           onFocusChange: (focused) {
@@ -2474,18 +2160,13 @@ class _MovementCardState extends State<_MovementCard> {
             });
           },
           canRequestFocus: true,
-          focusColor:
-              AppTheme.primary.withOpacity(.12),
-          borderRadius:
-              BorderRadius.circular(14),
+          focusColor: AppTheme.tintPrimary(context),
+          borderRadius: BorderRadius.circular(14),
           child: AnimatedContainer(
-            duration:
-                const Duration(milliseconds: 120),
-            padding:
-                const EdgeInsets.all(12),
+            duration: const Duration(milliseconds: 120),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 width: _focused
                     ? 3
@@ -2493,16 +2174,15 @@ class _MovementCardState extends State<_MovementCard> {
                         ? 1.5
                         : 1,
                 color: _focused
-                    ? AppTheme.primaryDark
+                    ? AppTheme.focusRingColor(context)
                     : widget.selected
                         ? color
-                        : AppTheme.border,
+                        : AppTheme.borderColor(context),
               ),
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: AppTheme.primary
-                            .withOpacity(.18),
+                        color: color.withOpacity(.18),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -2515,10 +2195,8 @@ class _MovementCardState extends State<_MovementCard> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color:
-                        color.withOpacity(0.10),
-                    borderRadius:
-                        BorderRadius.circular(10),
+                    color: color.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     income
@@ -2530,30 +2208,21 @@ class _MovementCardState extends State<_MovementCard> {
                     size: 20,
                   ),
                 ),
-
                 const SizedBox(width: 11),
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding:
-                                const EdgeInsets
-                                    .symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
-                            decoration:
-                                BoxDecoration(
-                              color: color
-                                  .withOpacity(.10),
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(20),
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(.10),
+                              borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: color,
                               ),
@@ -2561,78 +2230,59 @@ class _MovementCardState extends State<_MovementCard> {
                             child: Text(
                               typeLabel.toUpperCase(),
                               style: TextStyle(
-                                fontSize: 8.5,
-                                fontWeight:
-                                    FontWeight.w900,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
                                 color: color,
                               ),
                             ),
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 4),
-
                       Text(
                         transaction.category,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight:
-                              FontWeight.w900,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textColor(context),
                         ),
                       ),
-
-                      if (transaction.description
-                          .trim()
-                          .isNotEmpty)
+                      if (transaction.description.trim().isNotEmpty)
                         Text(
                           transaction.description,
                           maxLines: 1,
-                          overflow:
-                              TextOverflow.ellipsis,
-                          style:
-                              const TextStyle(
-                            fontSize: 10,
-                            color:
-                                AppTheme.muted,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: AppTheme.mutedColor(context),
                           ),
                         ),
-
-                      if (!income &&
-                          !transaction.recognized)
-                        const Text(
+                      if (!income && !transaction.recognized)
+                        Text(
                           'MOVIMIENTO NO RECONOCIDO',
                           style: TextStyle(
-                            fontSize: 9.5,
-                            color: Colors.orange,
-                            fontWeight:
-                                FontWeight.w900,
+                            fontSize: 11,
+                            color: AppTheme.warningColor(context),
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                     ],
                   ),
                 ),
-
                 Text(
                   '${income ? '+' : '-'}${money(transaction.amount)}',
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
                     color: color,
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 Icon(
                   widget.selected
                       ? Icons.check_box_rounded
-                      : Icons
-                          .check_box_outline_blank_rounded,
-                  color: widget.selected
-                      ? color
-                      : AppTheme.muted,
+                      : Icons.check_box_outline_blank_rounded,
+                  color: widget.selected ? color : AppTheme.mutedColor(context),
                 ),
               ],
             ),
@@ -2665,8 +2315,7 @@ class _DecisionOption extends StatefulWidget {
   });
 
   @override
-  State<_DecisionOption> createState() =>
-      _DecisionOptionState();
+  State<_DecisionOption> createState() => _DecisionOptionState();
 }
 
 class _DecisionOptionState extends State<_DecisionOption> {
@@ -2677,8 +2326,8 @@ class _DecisionOptionState extends State<_DecisionOption> {
     BuildContext context,
   ) {
     final color = widget.success
-        ? AppTheme.success
-        : AppTheme.primary;
+        ? AppTheme.successColor(context)
+        : AppTheme.primaryColor(context);
 
     return Semantics(
       button: true,
@@ -2686,9 +2335,12 @@ class _DecisionOptionState extends State<_DecisionOption> {
       label:
           '${widget.title}. ${widget.subtitle}${widget.selected ? '. Seleccionado' : ''}',
       child: Material(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(15),
+        color: widget.selected
+            ? (widget.success
+                ? AppTheme.tintSuccess(context)
+                : AppTheme.tintPrimary(context))
+            : AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(15),
         child: InkWell(
           onTap: widget.onTap,
           onFocusChange: (focused) {
@@ -2697,18 +2349,15 @@ class _DecisionOptionState extends State<_DecisionOption> {
             });
           },
           canRequestFocus: true,
-          focusColor:
-              AppTheme.primary.withOpacity(.12),
-          borderRadius:
-              BorderRadius.circular(15),
+          focusColor: widget.success
+              ? AppTheme.tintSuccess(context)
+              : AppTheme.tintPrimary(context),
+          borderRadius: BorderRadius.circular(15),
           child: AnimatedContainer(
-            duration:
-                const Duration(milliseconds: 120),
-            padding:
-                const EdgeInsets.all(14),
+            duration: const Duration(milliseconds: 120),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(
                 width: _focused
                     ? 3
@@ -2716,16 +2365,15 @@ class _DecisionOptionState extends State<_DecisionOption> {
                         ? 1.5
                         : 1,
                 color: _focused
-                    ? AppTheme.primaryDark
+                    ? AppTheme.focusRingColor(context)
                     : widget.selected
                         ? color
-                        : AppTheme.border,
+                        : AppTheme.borderColor(context),
               ),
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: AppTheme.primary
-                            .withOpacity(.20),
+                        color: color.withOpacity(.20),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -2738,8 +2386,7 @@ class _DecisionOptionState extends State<_DecisionOption> {
                   width: 39,
                   height: 39,
                   decoration: BoxDecoration(
-                    color:
-                        color.withOpacity(0.10),
+                    color: color.withOpacity(0.10),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -2747,43 +2394,35 @@ class _DecisionOptionState extends State<_DecisionOption> {
                     color: color,
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         widget.title,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight:
-                              FontWeight.w900,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textColor(context),
                         ),
                       ),
-
                       Text(
                         widget.subtitle,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color:
-                              AppTheme.muted,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppTheme.mutedColor(context),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 Icon(
                   widget.selected
                       ? Icons.check_circle_rounded
-                      : Icons
-                          .chevron_right_rounded,
-                  color: widget.selected
-                      ? color
-                      : AppTheme.primary,
+                      : Icons.chevron_right_rounded,
+                  color:
+                      widget.selected ? color : AppTheme.primaryColor(context),
                 ),
               ],
             ),
@@ -2817,38 +2456,32 @@ class _DecisionFormCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: 14.5,
               fontWeight: FontWeight.w900,
-              color: AppTheme.text,
+              color: AppTheme.textColor(context),
             ),
           ),
-
           const SizedBox(height: 4),
-
           Text(
             subtitle,
-            style: const TextStyle(
-              fontSize: 10.5,
-              color: AppTheme.muted,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: AppTheme.mutedColor(context),
             ),
           ),
-
           const SizedBox(height: 16),
-
           ...children,
         ],
       ),
@@ -2860,8 +2493,7 @@ class _DecisionFormCard extends StatelessWidget {
 // SEMANAS / MESES / FECHA
 // =============================================================
 
-class _PlanPeriodSelector
-    extends StatelessWidget {
+class _PlanPeriodSelector extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
 
@@ -2904,8 +2536,7 @@ class _PlanPeriodSelector
   }
 }
 
-class _PeriodChoiceChip
-    extends StatefulWidget {
+class _PeriodChoiceChip extends StatefulWidget {
   final String title;
   final bool selected;
   final VoidCallback onTap;
@@ -2917,12 +2548,10 @@ class _PeriodChoiceChip
   });
 
   @override
-  State<_PeriodChoiceChip> createState() =>
-      _PeriodChoiceChipState();
+  State<_PeriodChoiceChip> createState() => _PeriodChoiceChipState();
 }
 
-class _PeriodChoiceChipState
-    extends State<_PeriodChoiceChip> {
+class _PeriodChoiceChipState extends State<_PeriodChoiceChip> {
   bool _focused = false;
 
   @override
@@ -2932,8 +2561,7 @@ class _PeriodChoiceChipState
     return Semantics(
       button: true,
       selected: widget.selected,
-      label:
-          '${widget.title}${widget.selected ? '. Seleccionado' : ''}',
+      label: '${widget.title}${widget.selected ? '. Seleccionado' : ''}',
       child: InkWell(
         onTap: widget.onTap,
         onFocusChange: (focused) {
@@ -2942,37 +2570,31 @@ class _PeriodChoiceChipState
           });
         },
         canRequestFocus: true,
-        focusColor:
-            AppTheme.primary.withOpacity(.14),
-        borderRadius:
-            BorderRadius.circular(20),
+        focusColor: AppTheme.tintPrimary(context),
+        borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
-          duration:
-              const Duration(milliseconds: 120),
-          padding:
-              const EdgeInsets.symmetric(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(
             horizontal: 15,
             vertical: 9,
           ),
           decoration: BoxDecoration(
             color: widget.selected
-                ? const Color(0xFFEAF3FF)
-                : Colors.white,
-            borderRadius:
-                BorderRadius.circular(20),
+                ? AppTheme.tintPrimary(context)
+                : AppTheme.cardBg(context),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               width: _focused ? 3 : 1,
               color: _focused
-                  ? AppTheme.primaryDark
+                  ? AppTheme.focusRingColor(context)
                   : widget.selected
-                      ? AppTheme.primary
-                      : AppTheme.border,
+                      ? AppTheme.primaryColor(context)
+                      : AppTheme.borderColor(context),
             ),
             boxShadow: _focused
                 ? [
                     BoxShadow(
-                      color: AppTheme.primary
-                          .withOpacity(.20),
+                      color: AppTheme.primaryColor(context).withOpacity(.20),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
@@ -2983,22 +2605,21 @@ class _PeriodChoiceChipState
             mainAxisSize: MainAxisSize.min,
             children: [
               if (widget.selected) ...[
-                const Icon(
+                Icon(
                   Icons.check_rounded,
                   size: 14,
-                  color: AppTheme.primary,
+                  color: AppTheme.primaryColor(context),
                 ),
                 const SizedBox(width: 4),
               ],
               Text(
                 widget.title,
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight:
-                      FontWeight.w800,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
                   color: widget.selected
-                      ? AppTheme.primary
-                      : AppTheme.text,
+                      ? AppTheme.primaryColor(context)
+                      : AppTheme.textColor(context),
                 ),
               ),
             ],
@@ -3013,8 +2634,7 @@ class _PeriodChoiceChipState
 // CANTIDAD
 // =============================================================
 
-class _PeriodQuantitySelector
-    extends StatelessWidget {
+class _PeriodQuantitySelector extends StatelessWidget {
   final String label;
   final int value;
   final int max;
@@ -3083,8 +2703,7 @@ class _DateSelector extends StatefulWidget {
   });
 
   @override
-  State<_DateSelector> createState() =>
-      _DateSelectorState();
+  State<_DateSelector> createState() => _DateSelectorState();
 }
 
 class _DateSelectorState extends State<_DateSelector> {
@@ -3093,13 +2712,9 @@ class _DateSelectorState extends State<_DateSelector> {
   String _formatDate(
     DateTime date,
   ) {
-    final day = date.day
-        .toString()
-        .padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
 
-    final month = date.month
-        .toString()
-        .padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
 
     return '$day/$month/${date.year}';
   }
@@ -3108,9 +2723,8 @@ class _DateSelectorState extends State<_DateSelector> {
   Widget build(
     BuildContext context,
   ) {
-    final valueText = widget.value == null
-        ? 'Seleccionar fecha'
-        : _formatDate(widget.value!);
+    final valueText =
+        widget.value == null ? 'Seleccionar fecha' : _formatDate(widget.value!);
 
     return Semantics(
       button: true,
@@ -3123,17 +2737,13 @@ class _DateSelectorState extends State<_DateSelector> {
           });
         },
         canRequestFocus: true,
-        focusColor:
-            AppTheme.primary.withOpacity(.14),
-        borderRadius:
-            BorderRadius.circular(14),
+        focusColor: AppTheme.primary.withOpacity(.14),
+        borderRadius: BorderRadius.circular(14),
         child: AnimatedContainer(
-          duration:
-              const Duration(milliseconds: 120),
+          duration: const Duration(milliseconds: 120),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               width: _focused
                   ? 3
@@ -3149,8 +2759,7 @@ class _DateSelectorState extends State<_DateSelector> {
             boxShadow: _focused
                 ? [
                     BoxShadow(
-                      color: AppTheme.primary
-                          .withOpacity(.20),
+                      color: AppTheme.primary.withOpacity(.20),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
@@ -3163,40 +2772,33 @@ class _DateSelectorState extends State<_DateSelector> {
                 Icons.calendar_today_outlined,
                 color: AppTheme.primary,
               ),
-
               const SizedBox(width: 12),
-
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       widget.label,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color:
-                            AppTheme.muted,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.mutedColor(context),
                       ),
                     ),
-
                     const SizedBox(height: 2),
-
                     Text(
                       valueText,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight:
-                            FontWeight.w900,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textColor(context),
                       ),
                     ),
                   ],
                 ),
               ),
-
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppTheme.primary,
+                color: AppTheme.primaryColor(context),
               ),
             ],
           ),
@@ -3210,8 +2812,7 @@ class _DateSelectorState extends State<_DateSelector> {
 // RESUMEN DECISIÓN
 // =============================================================
 
-class _DecisionSummaryCard
-    extends StatelessWidget {
+class _DecisionSummaryCard extends StatelessWidget {
   final String text;
 
   const _DecisionSummaryCard({
@@ -3226,52 +2827,40 @@ class _DecisionSummaryCard
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:
-            const Color(0xFFF0FFF6),
-        borderRadius:
-            BorderRadius.circular(15),
+        color: AppTheme.tintSuccess(context),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color:
-              const Color(0xFF9EEAC1),
+          color: AppTheme.successColor(context).withOpacity(0.4),
         ),
       ),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.flag_outlined,
-            color: AppTheme.success,
+            color: AppTheme.successColor(context),
           ),
-
           const SizedBox(width: 10),
-
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Tu decisión',
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight:
-                        FontWeight.w900,
-                    color:
-                        AppTheme.successDark,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.successColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   text,
-                  style: const TextStyle(
-                    fontSize: 11,
+                  style: TextStyle(
+                    fontSize: 13.5,
                     height: 1.4,
-                    fontWeight:
-                        FontWeight.w700,
-                    color: AppTheme.text,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
               ],
@@ -3309,37 +2898,30 @@ class _MoneyInfoCard extends StatelessWidget {
     BuildContext context,
   ) {
     final color = success
-        ? AppTheme.success
-        : AppTheme.primary;
+        ? AppTheme.successColor(context)
+        : AppTheme.primaryColor(context);
 
-    Color backgroundColor =
-        Colors.white;
+    Color backgroundColor = AppTheme.cardBg(context);
 
-    Color borderColor =
-        AppTheme.border;
+    Color borderColor = AppTheme.borderColor(context);
 
     if (success) {
-      backgroundColor =
-          const Color(0xFFF0FFF6);
+      backgroundColor = AppTheme.tintSuccess(context);
 
-      borderColor =
-          const Color(0xFF9EEAC1);
+      borderColor = AppTheme.successColor(context).withOpacity(0.4);
     }
 
     if (emphasized) {
-      backgroundColor =
-          const Color(0xFFEAF3FF);
+      backgroundColor = AppTheme.tintPrimary(context);
 
-      borderColor =
-          const Color(0xFFB8D3FF);
+      borderColor = AppTheme.primaryColor(context).withOpacity(0.4);
     }
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius:
-            BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: borderColor,
         ),
@@ -3350,10 +2932,8 @@ class _MoneyInfoCard extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color:
-                  color.withOpacity(0.10),
-              borderRadius:
-                  BorderRadius.circular(10),
+              color: color.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
@@ -3361,34 +2941,29 @@ class _MoneyInfoCard extends StatelessWidget {
               size: 20,
             ),
           ),
-
           const SizedBox(width: 11),
-
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight:
-                        FontWeight.w800,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
-
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 9.5,
-                    color: AppTheme.muted,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.mutedColor(context),
                   ),
                 ),
               ],
             ),
           ),
-
           Text(
             money(value),
             style: TextStyle(
@@ -3407,8 +2982,7 @@ class _MoneyInfoCard extends StatelessWidget {
 // VACÍO
 // =============================================================
 
-class _EmptyMovements
-    extends StatelessWidget {
+class _EmptyMovements extends StatelessWidget {
   final VoidCallback onAdd;
 
   const _EmptyMovements({
@@ -3422,43 +2996,38 @@ class _EmptyMovements
     return Container(
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.receipt_long_outlined,
             size: 48,
-            color: AppTheme.border,
+            color: AppTheme.mutedColor(context),
           ),
-
           const SizedBox(height: 12),
-
-          const Text(
+          Text(
             'No encontramos movimientos',
             style: TextStyle(
               fontWeight: FontWeight.w900,
+              fontSize: 16,
+              color: AppTheme.textColor(context),
             ),
           ),
-
           const SizedBox(height: 5),
-
-          const Text(
+          Text(
             'Podés agregar manualmente un movimiento que recordés.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 10.5,
-              color: AppTheme.muted,
+              fontSize: 13,
+              color: AppTheme.mutedColor(context),
             ),
           ),
-
           const SizedBox(height: 15),
-
           OutlinedButton.icon(
             onPressed: onAdd,
             icon: const Icon(
@@ -3514,29 +3083,25 @@ class _ReviewDonut extends StatelessWidget {
               185,
             ),
             painter: _ReviewDonutPainter(
-              values:
-                  values.values.toList(),
+              values: values.values.toList(),
             ),
           ),
-
           Column(
-            mainAxisSize:
-                MainAxisSize.min,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Gastos',
                 style: TextStyle(
-                  fontSize: 10,
-                  color: AppTheme.muted,
+                  fontSize: 12.5,
+                  color: AppTheme.mutedColor(context),
                 ),
               ),
-
               Text(
                 money(total),
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight:
-                      FontWeight.w900,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.textColor(context),
                 ),
               ),
             ],
@@ -3547,8 +3112,7 @@ class _ReviewDonut extends StatelessWidget {
   }
 }
 
-class _ReviewDonutPainter
-    extends CustomPainter {
+class _ReviewDonutPainter extends CustomPainter {
   final List<double> values;
 
   _ReviewDonutPainter({
@@ -3586,21 +3150,13 @@ class _ReviewDonutPainter
 
     const strokeWidth = 27.0;
 
-    double startAngle =
-        -math.pi / 2;
+    double startAngle = -math.pi / 2;
 
-    for (var i = 0;
-        i < values.length;
-        i++) {
-      final sweep =
-          values[i] /
-              total *
-              math.pi *
-              2;
+    for (var i = 0; i < values.length; i++) {
+      final sweep = values[i] / total * math.pi * 2;
 
       final paint = Paint()
-        ..color = _reviewColors[
-            i % _reviewColors.length]
+        ..color = _reviewColors[i % _reviewColors.length]
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.butt;
@@ -3608,8 +3164,7 @@ class _ReviewDonutPainter
       canvas.drawArc(
         Rect.fromCircle(
           center: center,
-          radius:
-              radius - strokeWidth / 2,
+          radius: radius - strokeWidth / 2,
         ),
         startAngle,
         sweep,
@@ -3623,8 +3178,7 @@ class _ReviewDonutPainter
 
   @override
   bool shouldRepaint(
-    covariant _ReviewDonutPainter
-        oldDelegate,
+    covariant _ReviewDonutPainter oldDelegate,
   ) {
     return true;
   }
@@ -3661,34 +3215,31 @@ class _CategoryRow extends StatelessWidget {
             shape: BoxShape.circle,
           ),
         ),
-
         const SizedBox(width: 8),
-
         Expanded(
           child: Text(
             name,
-            style: const TextStyle(
-              fontSize: 11.5,
+            style: TextStyle(
+              fontSize: 13.5,
               fontWeight: FontWeight.w800,
+              color: AppTheme.textColor(context),
             ),
           ),
         ),
-
         Text(
           '${percentage.toStringAsFixed(0)}%',
-          style: const TextStyle(
-            fontSize: 10.5,
-            color: AppTheme.muted,
+          style: TextStyle(
+            fontSize: 12.5,
+            color: AppTheme.mutedColor(context),
           ),
         ),
-
         const SizedBox(width: 12),
-
         Text(
           money(amount),
-          style: const TextStyle(
-            fontSize: 11.5,
+          style: TextStyle(
+            fontSize: 13.5,
             fontWeight: FontWeight.w900,
+            color: AppTheme.textColor(context),
           ),
         ),
       ],

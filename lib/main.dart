@@ -34,7 +34,9 @@ class PlataApp extends StatelessWidget {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: state.themeMode,
-        home: state.isAuthenticated ? HomeShell(state: state) : LoginScreen(state: state),
+        home: state.isAuthenticated
+            ? HomeShell(state: state)
+            : LoginScreen(state: state),
       ),
     );
   }

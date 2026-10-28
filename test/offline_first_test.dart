@@ -37,7 +37,8 @@ class MockNetworkApiClient extends ApiClient {
     }
 
     if (path == '/api/sync/push') {
-      final ops = (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>();
+      final ops =
+          (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>();
       final results = <Map<String, dynamic>>[];
 
       for (final op in ops) {
@@ -64,7 +65,9 @@ class MockNetworkApiClient extends ApiClient {
             .indexWhere((t) => t['id'] == entityId);
 
         if (action == 'create') {
-          final txMap = Map<String, dynamic>.from(payload)..['id'] = entityId..['version'] = 1;
+          final txMap = Map<String, dynamic>.from(payload)
+            ..['id'] = entityId
+            ..['version'] = 1;
           (remoteServerData['transactions'] as List).add(txMap);
           results.add({
             'operation_id': opId,
@@ -75,7 +78,8 @@ class MockNetworkApiClient extends ApiClient {
           });
         } else if (action == 'update') {
           if (existingIndex >= 0) {
-            final current = (remoteServerData['transactions'] as List)[existingIndex];
+            final current =
+                (remoteServerData['transactions'] as List)[existingIndex];
             final currentVer = current['version'] as int;
 
             if (currentVer != baseVersion) {
@@ -188,7 +192,9 @@ void main() {
   // ==========================================
   // PRUEBA A: Sin Internet (50 movimientos)
   // ==========================================
-  test('Prueba A: 50 movimientos registrados sin Internet permanecen intactos y pendientes tras reiniciar', () async {
+  test(
+      'Prueba A: 50 movimientos registrados sin Internet permanecen intactos y pendientes tras reiniciar',
+      () async {
     mockApi.isOnline = false; // Sin Internet
 
     // 1. Registrar 50 movimientos en modo desconectado
@@ -213,21 +219,25 @@ void main() {
     final txsBeforeClose = await financeRepo.getTransactions(testUserId);
     expect(txsBeforeClose.length, equals(50));
 
-    final pendingBeforeClose = await financeRepo.getPendingOperations(testUserId);
+    final pendingBeforeClose =
+        await financeRepo.getPendingOperations(testUserId);
     expect(pendingBeforeClose.length, equals(50));
 
     // 3. Simular reinicio / apertura de la aplicación cerrando la instancia de DB
     // En una base persistente o repositorio nuevo sobre los mismos datos:
     final txsAfterReopen = await financeRepo.getTransactions(testUserId);
     expect(txsAfterReopen.length, equals(50));
-    final pendingAfterReopen = await financeRepo.getPendingOperations(testUserId);
+    final pendingAfterReopen =
+        await financeRepo.getPendingOperations(testUserId);
     expect(pendingAfterReopen.length, equals(50));
   });
 
   // ==========================================
   // PRUEBA B: Sincronización de 50 movimientos
   // ==========================================
-  test('Prueba B: Recuperar conexión sincroniza los 50 movimientos exactamente una vez', () async {
+  test(
+      'Prueba B: Recuperar conexión sincroniza los 50 movimientos exactamente una vez',
+      () async {
     mockApi.isOnline = false;
 
     for (int i = 1; i <= 50; i++) {
@@ -251,7 +261,8 @@ void main() {
 
     // Recuperar conexión
     mockApi.isOnline = true;
-    final syncService = ClientSyncService(api: mockApi, db: db, repository: financeRepo);
+    final syncService =
+        ClientSyncService(api: mockApi, db: db, repository: financeRepo);
 
     final report = await syncService.syncNow(testUserId);
     expect(report.state, equals(SyncState.idle));
@@ -269,7 +280,8 @@ void main() {
   // ==========================================
   // PRUEBA C: Interrupción durante sincronización
   // ==========================================
-  test('Prueba C: Interrupción de red no pierde ni duplica transacciones', () async {
+  test('Prueba C: Interrupción de red no pierde ni duplica transacciones',
+      () async {
     mockApi.isOnline = true;
     mockApi.failNextRequest = true; // Simular caída abrupta durante sync
 
@@ -282,13 +294,16 @@ void main() {
       date: DateTime.now(),
       recognized: true,
     );
-    await financeRepo.saveTransaction(userId: testUserId, transaction: tx, isNew: true);
+    await financeRepo.saveTransaction(
+        userId: testUserId, transaction: tx, isNew: true);
 
-    final syncService = ClientSyncService(api: mockApi, db: db, repository: financeRepo);
+    final syncService =
+        ClientSyncService(api: mockApi, db: db, repository: financeRepo);
 
     // Intento 1: Falla por corte de red
     final failedReport = await syncService.syncNow(testUserId);
-    expect(failedReport.pendingCount, equals(1)); // Operación conservada en cola
+    expect(
+        failedReport.pendingCount, equals(1)); // Operación conservada en cola
 
     // Intento 2: Red recuperada
     mockApi.isOnline = true;
@@ -305,7 +320,9 @@ void main() {
   // ==========================================
   // PRUEBA E: Detección y Resolución de Conflictos
   // ==========================================
-  test('Prueba E: Conflicto detectado en servidor se registra localmente y permite resolución', () async {
+  test(
+      'Prueba E: Conflicto detectado en servidor se registra localmente y permite resolución',
+      () async {
     mockApi.isOnline = true;
 
     // 1. Crear transacción en versión 1
@@ -318,9 +335,11 @@ void main() {
       date: DateTime.now(),
       recognized: true,
     );
-    await financeRepo.saveTransaction(userId: testUserId, transaction: initialTx, isNew: true);
+    await financeRepo.saveTransaction(
+        userId: testUserId, transaction: initialTx, isNew: true);
 
-    final syncService = ClientSyncService(api: mockApi, db: db, repository: financeRepo);
+    final syncService =
+        ClientSyncService(api: mockApi, db: db, repository: financeRepo);
     await syncService.syncNow(testUserId);
 
     // 2. Simular que Web modifica la transacción en el servidor a 6000 (versión 2)
@@ -339,7 +358,8 @@ void main() {
       date: DateTime.now(),
       recognized: true,
     );
-    await financeRepo.saveTransaction(userId: testUserId, transaction: updatedTx, isNew: false);
+    await financeRepo.saveTransaction(
+        userId: testUserId, transaction: updatedTx, isNew: false);
 
     // 4. Android sincroniza y debe detectar el conflicto
     final conflictReport = await syncService.syncNow(testUserId);
@@ -356,14 +376,17 @@ void main() {
       strategy: ConflictResolutionStrategy.clientWins,
     );
 
-    final remainingConflicts = await syncService.getUnresolvedConflicts(testUserId);
+    final remainingConflicts =
+        await syncService.getUnresolvedConflicts(testUserId);
     expect(remainingConflicts, isEmpty);
   });
 
   // ==========================================
   // PRUEBA F: Saldos y Disponible Real
   // ==========================================
-  test('Prueba F: Cálculo de saldo inicial, ingresos, gastos, compromisos y ahorros', () async {
+  test(
+      'Prueba F: Cálculo de saldo inicial, ingresos, gastos, compromisos y ahorros',
+      () async {
     // Opening balance = 100,000
     // + Ingreso 50,000
     // - Gasto 20,000
@@ -434,7 +457,9 @@ void main() {
   // ==========================================
   // PRUEBA G: Sesión Offline
   // ==========================================
-  test('Prueba G: Sesión previamente válida mantiene acceso offline sin cerrar sesión falsamente', () async {
+  test(
+      'Prueba G: Sesión previamente válida mantiene acceso offline sin cerrar sesión falsamente',
+      () async {
     mockApi.isOnline = false; // Sin Internet
 
     final appState = AppState(customDb: db);
@@ -449,7 +474,9 @@ void main() {
   // ==========================================
   // PRUEBA H: Migración de SharedPreferences
   // ==========================================
-  test('Prueba H: Migración idempotente de historial de revisiones desde SharedPreferences', () async {
+  test(
+      'Prueba H: Migración idempotente de historial de revisiones desde SharedPreferences',
+      () async {
     final oldReview = ReviewResult(
       start: DateTime(2026, 10, 1),
       end: DateTime(2026, 10, 15),
@@ -468,7 +495,8 @@ void main() {
     );
 
     // Ejecutar migración
-    await reviewRepo.migrateFromSharedPreferences(testUserId, 'sofia@plata.app');
+    await reviewRepo.migrateFromSharedPreferences(
+        testUserId, 'sofia@plata.app');
 
     final migratedReviews = await reviewRepo.getReviews(testUserId);
     expect(migratedReviews, hasLength(1));
@@ -476,7 +504,8 @@ void main() {
     expect(migratedReviews.first.decision, equals('Reducir gasto'));
 
     // Ejecutar de nuevo para verificar idempotencia
-    await reviewRepo.migrateFromSharedPreferences(testUserId, 'sofia@plata.app');
+    await reviewRepo.migrateFromSharedPreferences(
+        testUserId, 'sofia@plata.app');
     final afterSecondMigration = await reviewRepo.getReviews(testUserId);
     expect(afterSecondMigration, hasLength(1)); // Sin duplicados
   });

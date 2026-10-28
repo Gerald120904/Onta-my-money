@@ -189,13 +189,13 @@ class _TransactionFormState extends State<TransactionForm> {
     double attemptedAmount,
   ) async {
     final available = _maximumAllowedExpense;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
-    final surfaceColor = isDark ? AppTheme.surfaceDark : Colors.white;
-    final cardColor = isDark ? const Color(0xFF1E2D4A) : const Color(0xFFF8FAFD);
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
-    final iconBg = isDark ? const Color(0xFF3B1818) : const Color(0xFFFFECEC);
+    final isDark = AppTheme.isDarkMode(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final surfaceColor = AppTheme.cardBg(context);
+    final cardColor = AppTheme.tintPrimary(context);
+    final borderColor = AppTheme.borderColor(context);
+    final iconBg = AppTheme.tintError(context);
 
     await showDialog<void>(
       context: context,
@@ -228,7 +228,8 @@ class _TransactionFormState extends State<TransactionForm> {
                   ),
                   child: Icon(
                     Icons.account_balance_wallet_outlined,
-                    color: isDark ? const Color(0xFFEF4444) : Colors.red.shade700,
+                    color:
+                        isDark ? const Color(0xFFEF4444) : Colors.red.shade700,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -273,14 +274,18 @@ class _TransactionFormState extends State<TransactionForm> {
                       _AmountDialogRow(
                         label: 'Saldo disponible',
                         value: _format(available),
-                        valueColor: isDark ? const Color(0xFF34D399) : AppTheme.successDark,
+                        valueColor: isDark
+                            ? const Color(0xFF34D399)
+                            : AppTheme.successDark,
                         labelColor: mutedColor,
                       ),
                       const SizedBox(height: 10),
                       _AmountDialogRow(
                         label: 'Monto intentado',
                         value: _format(attemptedAmount),
-                        valueColor: isDark ? const Color(0xFFF87171) : Colors.red.shade700,
+                        valueColor: isDark
+                            ? const Color(0xFFF87171)
+                            : Colors.red.shade700,
                         labelColor: mutedColor,
                       ),
                     ],
@@ -359,16 +364,16 @@ class _TransactionFormState extends State<TransactionForm> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
-    final surfaceColor = isDark ? AppTheme.surfaceDark : Colors.white;
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
+    final isDark = AppTheme.isDarkMode(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final surfaceColor = AppTheme.cardBg(context);
+    final borderColor = AppTheme.borderColor(context);
     final editing = widget.transaction != null;
 
     final accent = isIncome
-        ? (isDark ? const Color(0xFF10B981) : AppTheme.success)
-        : (isDark ? AppTheme.primaryDarkTheme : AppTheme.primary);
+        ? AppTheme.successColor(context)
+        : AppTheme.primaryColor(context);
 
     final currencySymbol = CurrencyFormatter.symbolFor(widget.currency);
 
@@ -402,8 +407,12 @@ class _TransactionFormState extends State<TransactionForm> {
                       height: 44,
                       decoration: BoxDecoration(
                         color: isIncome
-                            ? (isDark ? const Color(0xFF143825) : const Color(0xFFE9FFF1))
-                            : (isDark ? const Color(0xFF162A45) : const Color(0xFFEAF3FF)),
+                            ? (isDark
+                                ? const Color(0xFF143825)
+                                : const Color(0xFFE9FFF1))
+                            : (isDark
+                                ? const Color(0xFF162A45)
+                                : const Color(0xFFEAF3FF)),
                         borderRadius: BorderRadius.circular(13),
                       ),
                       child: Icon(
@@ -481,7 +490,8 @@ class _TransactionFormState extends State<TransactionForm> {
                       fontWeight: FontWeight.w700,
                       color: textColor,
                     ),
-                    hintText: widget.currency == 'CRC' ? 'Ej. 85000' : 'Ej. 150',
+                    hintText:
+                        widget.currency == 'CRC' ? 'Ej. 85000' : 'Ej. 150',
                     prefixIcon: const Icon(
                       Icons.payments_outlined,
                     ),
@@ -524,13 +534,21 @@ class _TransactionFormState extends State<TransactionForm> {
                       ),
                       decoration: BoxDecoration(
                         color: _expenseExceedsBalance
-                            ? (isDark ? const Color(0xFF3B1818) : const Color(0xFFFFF1F1))
-                            : (isDark ? const Color(0xFF143021) : const Color(0xFFF0FFF6)),
+                            ? (isDark
+                                ? const Color(0xFF3B1818)
+                                : const Color(0xFFFFF1F1))
+                            : (isDark
+                                ? const Color(0xFF143021)
+                                : const Color(0xFFF0FFF6)),
                         borderRadius: BorderRadius.circular(13),
                         border: Border.all(
                           color: _expenseExceedsBalance
-                              ? (isDark ? const Color(0xFFEF4444) : Colors.red.shade400)
-                              : (isDark ? const Color(0xFF10B981) : const Color(0xFFBCEBCD)),
+                              ? (isDark
+                                  ? const Color(0xFFEF4444)
+                                  : Colors.red.shade400)
+                              : (isDark
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFBCEBCD)),
                         ),
                       ),
                       child: Row(
@@ -542,8 +560,12 @@ class _TransactionFormState extends State<TransactionForm> {
                                 : Icons.account_balance_wallet_outlined,
                             size: 19,
                             color: _expenseExceedsBalance
-                                ? (isDark ? const Color(0xFFF87171) : Colors.red.shade700)
-                                : (isDark ? const Color(0xFF34D399) : AppTheme.success),
+                                ? (isDark
+                                    ? const Color(0xFFF87171)
+                                    : Colors.red.shade700)
+                                : (isDark
+                                    ? const Color(0xFF34D399)
+                                    : AppTheme.success),
                           ),
                           const SizedBox(width: 9),
                           Expanded(
@@ -558,7 +580,9 @@ class _TransactionFormState extends State<TransactionForm> {
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: _expenseExceedsBalance
-                                        ? (isDark ? const Color(0xFFFCA5A5) : Colors.red.shade800)
+                                        ? (isDark
+                                            ? const Color(0xFFFCA5A5)
+                                            : Colors.red.shade800)
                                         : mutedColor,
                                   ),
                                 ),
@@ -569,7 +593,9 @@ class _TransactionFormState extends State<TransactionForm> {
                                     style: TextStyle(
                                       fontSize: 10,
                                       height: 1.3,
-                                      color: isDark ? const Color(0xFFFCA5A5) : Colors.red.shade800,
+                                      color: isDark
+                                          ? const Color(0xFFFCA5A5)
+                                          : Colors.red.shade800,
                                     ),
                                   ),
                                 ],
@@ -583,8 +609,12 @@ class _TransactionFormState extends State<TransactionForm> {
                               fontSize: 12.5,
                               fontWeight: FontWeight.w900,
                               color: _expenseExceedsBalance
-                                  ? (isDark ? const Color(0xFFF87171) : Colors.red.shade700)
-                                  : (isDark ? const Color(0xFF34D399) : AppTheme.successDark),
+                                  ? (isDark
+                                      ? const Color(0xFFF87171)
+                                      : Colors.red.shade700)
+                                  : (isDark
+                                      ? const Color(0xFF34D399)
+                                      : AppTheme.successDark),
                             ),
                           ),
                         ],
@@ -685,7 +715,9 @@ class _TransactionFormState extends State<TransactionForm> {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF16233B) : const Color(0xFFF8FBFF),
+                      color: isDark
+                          ? const Color(0xFF16233B)
+                          : const Color(0xFFF8FBFF),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: borderColor,
@@ -781,15 +813,15 @@ class _AmountDialogRow extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 11,
-              color: labelColor ?? AppTheme.muted,
+              fontSize: 13,
+              color: labelColor ?? AppTheme.mutedColor(context),
             ),
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 12.5,
+            fontSize: 13.5,
             fontWeight: FontWeight.w900,
             color: valueColor,
           ),

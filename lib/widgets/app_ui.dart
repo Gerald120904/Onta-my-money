@@ -1,22 +1,39 @@
 import 'package:flutter/material.dart';
 
-class AppAlerts {
-  static void success(BuildContext c, String m) => _show(c, m, Icons.check_circle_outline, Colors.green);
-  static void error(BuildContext c, String m) => _show(c, m, Icons.error_outline, Colors.red);
-  static void info(BuildContext c, String m) => _show(c, m, Icons.info_outline, Colors.blue);
+import '../core/theme/app_theme.dart';
 
-  static void _show(BuildContext context, String message, IconData icon, Color color) {
+class AppAlerts {
+  static void success(BuildContext c, String m) =>
+      _show(c, m, Icons.check_circle_outline, AppTheme.successColor(c));
+  static void error(BuildContext c, String m) =>
+      _show(c, m, Icons.error_outline, AppTheme.errorColor(c));
+  static void info(BuildContext c, String m) =>
+      _show(c, m, Icons.info_outline, AppTheme.primaryColor(c));
+
+  static void _show(
+      BuildContext context, String message, IconData icon, Color color) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: color,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           content: Row(
             children: [
-              Icon(icon, color: Colors.white),
-              const SizedBox(width: 10),
-              Expanded(child: Text(message)),
+              Icon(icon, color: Colors.white, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -30,24 +47,55 @@ class AppDialogs {
     required String title,
     required String message,
     String confirmText = 'Eliminar',
+    bool isDestructive = true,
   }) async =>
       await showDialog<bool>(
         context: context,
         builder: (context) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
-          final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
-          final textColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
+          final cardBg = AppTheme.cardBg(context);
+          final textColor = AppTheme.textColor(context);
+          final mutedColor = AppTheme.mutedColor(context);
+          final confirmBg = isDestructive
+              ? AppTheme.errorColor(context)
+              : AppTheme.primaryColor(context);
 
           return AlertDialog(
             backgroundColor: cardBg,
-            title: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w800)),
-            content: Text(message, style: TextStyle(color: textColor)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side:
+                  BorderSide(color: AppTheme.borderColor(context), width: 1.15),
+            ),
+            title: Text(
+              title,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+              ),
+            ),
+            content: Text(
+              message,
+              style: TextStyle(
+                color: mutedColor,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
+                child: Text(
+                  'Cancelar',
+                  style:
+                      TextStyle(color: mutedColor, fontWeight: FontWeight.w700),
+                ),
               ),
               FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: confirmBg,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(confirmText),
               ),
@@ -65,13 +113,17 @@ class AppDialogs {
       showDialog<T>(
         context: context,
         builder: (context) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
-          final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
-          final textColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
+          final cardBg = AppTheme.cardBg(context);
+          final textColor = AppTheme.textColor(context);
 
           return Dialog(
             backgroundColor: cardBg,
             insetPadding: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side:
+                  BorderSide(color: AppTheme.borderColor(context), width: 1.15),
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Padding(
@@ -82,10 +134,11 @@ class AppDialogs {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: textColor,
-                          ),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                        color: textColor,
+                      ),
                     ),
                     const SizedBox(height: 18),
                     ConstrainedBox(
@@ -123,8 +176,7 @@ class AppField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
+    final textColor = AppTheme.textColor(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -134,7 +186,7 @@ class AppField extends StatelessWidget {
         validator: validator,
         obscureText: obscureText,
         maxLines: maxLines,
-        style: TextStyle(color: textColor),
+        style: TextStyle(color: textColor, fontSize: 15),
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
@@ -157,9 +209,8 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
-    final subtitleColor = isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600;
+    final textColor = AppTheme.textColor(context);
+    final subtitleColor = AppTheme.mutedColor(context);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,15 +221,20 @@ class PageHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: textColor,
-                    ),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: textColor,
+                ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Text(
                 subtitle,
-                style: TextStyle(color: subtitleColor),
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: subtitleColor,
+                  height: 1.35,
+                ),
               ),
             ],
           ),
@@ -203,25 +259,42 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : const Color(0xFF07152F);
-    final subtitleColor = isDark ? const Color(0xFF94A3B8) : Colors.grey.shade600;
+    final textColor = AppTheme.textColor(context);
+    final subtitleColor = AppTheme.mutedColor(context);
+    final primaryColor = AppTheme.primaryColor(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 48),
+      padding: const EdgeInsets.symmetric(vertical: 44),
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.inbox_outlined, size: 48, color: isDark ? const Color(0xFF64748B) : Colors.grey.shade400),
-            const SizedBox(height: 12),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppTheme.tintPrimary(context),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.inbox_outlined, size: 32, color: primaryColor),
+            ),
+            const SizedBox(height: 14),
             Text(
               title,
-              style: TextStyle(fontWeight: FontWeight.w800, color: textColor),
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: textColor,
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               message,
-              style: TextStyle(color: subtitleColor),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: subtitleColor,
+                height: 1.35,
+              ),
             ),
           ],
         ),

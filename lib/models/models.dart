@@ -36,7 +36,9 @@ class DashboardSummary {
         committed: (j['committed'] as num).toDouble(),
         saved: (j['saved'] as num).toDouble(),
         available: (j['available'] as num).toDouble(),
-        byCategory: (j['byCategory'] as List? ?? []).map((e) => CategoryTotal.fromJson(Map<String, dynamic>.from(e))).toList(),
+        byCategory: (j['byCategory'] as List? ?? [])
+            .map((e) => CategoryTotal.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
       );
 }
 
@@ -44,7 +46,8 @@ class CategoryTotal {
   final String category;
   final double total;
   CategoryTotal(this.category, this.total);
-  factory CategoryTotal.fromJson(Map<String, dynamic> j) => CategoryTotal(j['category'].toString(), (j['total'] as num).toDouble());
+  factory CategoryTotal.fromJson(Map<String, dynamic> j) =>
+      CategoryTotal(j['category'].toString(), (j['total'] as num).toDouble());
 }
 
 class Account {
@@ -85,16 +88,32 @@ class Account {
         userId: (j['user_id'] ?? j['userId'] ?? '').toString(),
         name: (j['name'] ?? 'Cuenta').toString(),
         currency: (j['currency'] ?? 'CRC').toString().toUpperCase(),
-        initialBalance: (j['initial_balance'] ?? j['initialBalance'] ?? j['opening_balance'] ?? 0.0 as num).toDouble(),
-        currentBalance: (j['current_balance'] ?? j['currentBalance'] ?? j['initial_balance'] ?? 0.0 as num).toDouble(),
+        initialBalance: (j['initial_balance'] ??
+                j['initialBalance'] ??
+                j['opening_balance'] ??
+                0.0 as num)
+            .toDouble(),
+        currentBalance: (j['current_balance'] ??
+                j['currentBalance'] ??
+                j['initial_balance'] ??
+                0.0 as num)
+            .toDouble(),
         color: j['color']?.toString(),
         icon: j['icon']?.toString(),
-        isDefault: (j['is_default'] == true || j['is_default'] == 1 || j['isDefault'] == true),
-        isArchived: (j['is_archived'] == true || j['is_archived'] == 1 || j['isArchived'] == true),
+        isDefault: (j['is_default'] == true ||
+            j['is_default'] == 1 ||
+            j['isDefault'] == true),
+        isArchived: (j['is_archived'] == true ||
+            j['is_archived'] == 1 ||
+            j['isArchived'] == true),
         version: (j['version'] as num?)?.toInt() ?? 1,
         syncStatus: j['sync_status']?.toString() ?? 'synced',
-        createdAt: j['created_at'] != null ? DateTime.tryParse(j['created_at'].toString()) : null,
-        updatedAt: j['updated_at'] != null ? DateTime.tryParse(j['updated_at'].toString()) : null,
+        createdAt: j['created_at'] != null
+            ? DateTime.tryParse(j['created_at'].toString())
+            : null,
+        updatedAt: j['updated_at'] != null
+            ? DateTime.tryParse(j['updated_at'].toString())
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -236,7 +255,9 @@ class Commitment {
         id: j['id'].toString(),
         title: j['title'].toString(),
         amount: (j['amount'] as num).toDouble(),
-        dueDate: DateTime.tryParse((j['due_date'] ?? j['dueDate'])?.toString() ?? '') ?? DateTime.now(),
+        dueDate: DateTime.tryParse(
+                (j['due_date'] ?? j['dueDate'])?.toString() ?? '') ??
+            DateTime.now(),
         status: j['status'].toString(),
         accountId: (j['account_id'] ?? j['accountId'])?.toString(),
         syncStatus: j['sync_status']?.toString() ?? 'synced',
@@ -294,7 +315,8 @@ class SavingsGoal {
   factory SavingsGoal.fromJson(Map<String, dynamic> j) => SavingsGoal(
         id: j['id'].toString(),
         title: j['title'].toString(),
-        targetAmount: (j['target_amount'] ?? j['targetAmount'] as num).toDouble(),
+        targetAmount:
+            (j['target_amount'] ?? j['targetAmount'] as num).toDouble(),
         savedAmount: (j['saved_amount'] ?? j['savedAmount'] as num).toDouble(),
         accountId: (j['account_id'] ?? j['accountId'])?.toString(),
         syncStatus: j['sync_status']?.toString() ?? 'synced',

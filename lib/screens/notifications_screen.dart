@@ -153,7 +153,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
       );
-    } else if (notif.relatedEntityType == 'commitment' && notif.relatedEntityId != null) {
+    } else if (notif.relatedEntityType == 'commitment' &&
+        notif.relatedEntityId != null) {
       // Find commitment
       final commitment = widget.state.commitments.firstWhere(
         (c) => c.id == notif.relatedEntityId,
@@ -169,7 +170,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(commitment.title),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -177,7 +179,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               Text(
                 'Monto: ${NotificationService.formatAmount(commitment.amount)}',
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
               ),
               const SizedBox(height: 8),
               Text(
@@ -187,7 +190,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Text(
                 'Estado: ${commitment.status == 'paid' ? 'Pagado' : 'Pendiente'}',
                 style: TextStyle(
-                  color: commitment.status == 'paid' ? AppTheme.success : Colors.orange.shade800,
+                  color: commitment.status == 'paid'
+                      ? AppTheme.success
+                      : Colors.orange.shade800,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -215,7 +220,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Compromiso marcado como pagado. Se retiraron sus recordatorios.'),
+                        content: Text(
+                            'Compromiso marcado como pagado. Se retiraron sus recordatorios.'),
                         backgroundColor: AppTheme.success,
                       ),
                     );
@@ -245,8 +251,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('Preferencias de avisos', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: const Text('Preferencias de avisos',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
               content: SizedBox(
                 width: double.maxFinite,
                 child: ListView(
@@ -254,55 +262,73 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   children: [
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Avisar 7 días antes', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      title: const Text('Avisar 7 días antes',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
                       value: prefs.reminder7d,
                       onChanged: (v) async {
-                        setModalState(() => prefs = prefs.copyWith(reminder7d: v));
+                        setModalState(
+                            () => prefs = prefs.copyWith(reminder7d: v));
                         await NotificationPreferences.save(userId, prefs);
                       },
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Avisar 3 días antes', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      title: const Text('Avisar 3 días antes',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
                       value: prefs.reminder3d,
                       onChanged: (v) async {
-                        setModalState(() => prefs = prefs.copyWith(reminder3d: v));
+                        setModalState(
+                            () => prefs = prefs.copyWith(reminder3d: v));
                         await NotificationPreferences.save(userId, prefs);
                       },
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Avisar 1 día antes', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      title: const Text('Avisar 1 día antes',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
                       value: prefs.reminder1d,
                       onChanged: (v) async {
-                        setModalState(() => prefs = prefs.copyWith(reminder1d: v));
+                        setModalState(
+                            () => prefs = prefs.copyWith(reminder1d: v));
                         await NotificationPreferences.save(userId, prefs);
                       },
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Avisar el día del vencimiento', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      title: const Text('Avisar el día del vencimiento',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
                       value: prefs.reminderDueDay,
                       onChanged: (v) async {
-                        setModalState(() => prefs = prefs.copyWith(reminderDueDay: v));
+                        setModalState(
+                            () => prefs = prefs.copyWith(reminderDueDay: v));
                         await NotificationPreferences.save(userId, prefs);
                       },
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Avisar pagos vencidos', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      title: const Text('Avisar pagos vencidos',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
                       value: prefs.reminderOverdue,
                       onChanged: (v) async {
-                        setModalState(() => prefs = prefs.copyWith(reminderOverdue: v));
+                        setModalState(
+                            () => prefs = prefs.copyWith(reminderOverdue: v));
                         await NotificationPreferences.save(userId, prefs);
                       },
                     ),
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Recordatorio semanal de revisión', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      title: const Text('Recordatorio semanal de revisión',
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
                       value: prefs.reminderWeeklyReview,
                       onChanged: (v) async {
-                        setModalState(() => prefs = prefs.copyWith(reminderWeeklyReview: v));
+                        setModalState(() =>
+                            prefs = prefs.copyWith(reminderWeeklyReview: v));
                         await NotificationPreferences.save(userId, prefs);
                       },
                     ),
@@ -327,11 +353,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final mutedColor = isDark ? AppTheme.mutedDark : AppTheme.muted;
-    final cardBg = isDark ? AppTheme.surfaceDark : Colors.white;
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
+    final cardBg = AppTheme.cardBg(context);
+    final borderColor = AppTheme.borderColor(context);
+    final isDark = AppTheme.isDarkMode(context);
 
     final allList = widget.state.notifications;
     final filteredList = allList.where((n) {
@@ -343,9 +369,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final unreadCount = widget.state.unreadNotificationsCount;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.backgroundDark : AppTheme.background,
+      backgroundColor: AppTheme.bg(context),
       appBar: AppBar(
-        backgroundColor: isDark ? AppTheme.surfaceDark : AppTheme.background,
+        backgroundColor: AppTheme.cardBg(context),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
@@ -376,10 +402,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: const Text('Limpiar notificaciones'),
-                    content: const Text('¿Deseas eliminar todas las notificaciones?'),
+                    content: const Text(
+                        '¿Deseas eliminar todas las notificaciones?'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                      FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Eliminar')),
+                      TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancelar')),
+                      FilledButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Eliminar')),
                     ],
                   ),
                 );
@@ -403,7 +434,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 value: 'clear_all',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_sweep_outlined, size: 18, color: Colors.red),
+                    Icon(Icons.delete_sweep_outlined,
+                        size: 18, color: Colors.red),
                     SizedBox(width: 8),
                     Text('Eliminar todas', style: TextStyle(color: Colors.red)),
                   ],
@@ -423,7 +455,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 // ==========================================
                 // BARRA DE FILTROS & ESTADO
                 // ==========================================
-                Padding(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.fromLTRB(18, 8, 18, 10),
                   child: Row(
                     children: [
@@ -468,11 +501,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           : ListView.separated(
                               padding: const EdgeInsets.fromLTRB(18, 6, 18, 24),
                               itemCount: filteredList.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 10),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
                               itemBuilder: (context, idx) {
                                 final notif = filteredList[idx];
                                 final iconData = _iconForType(notif.type);
-                                final iconColor = _colorForType(notif.type, isDark);
+                                final iconColor =
+                                    _colorForType(notif.type, isDark);
                                 final iconBg = _bgForType(notif.type, isDark);
 
                                 return Dismissible(
@@ -485,7 +520,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       color: Colors.red.shade700,
                                       borderRadius: BorderRadius.circular(14),
                                     ),
-                                    child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                                    child: const Icon(
+                                        Icons.delete_outline_rounded,
+                                        color: Colors.white),
                                   ),
                                   onDismissed: (_) {
                                     widget.state.dismissNotification(notif.id);
@@ -494,30 +531,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     color: Colors.transparent,
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(14),
-                                      onTap: () => _handleNotificationTap(notif),
+                                      onTap: () =>
+                                          _handleNotificationTap(notif),
                                       child: Container(
                                         padding: const EdgeInsets.all(14),
                                         decoration: BoxDecoration(
                                           color: cardBg,
-                                          borderRadius: BorderRadius.circular(14),
+                                          borderRadius:
+                                              BorderRadius.circular(14),
                                           border: Border.all(
                                             color: notif.isRead
                                                 ? borderColor
-                                                : (isDark ? AppTheme.primaryDarkTheme : AppTheme.primary).withOpacity(.5),
+                                                : (isDark
+                                                        ? AppTheme
+                                                            .primaryDarkTheme
+                                                        : AppTheme.primary)
+                                                    .withOpacity(.5),
                                             width: notif.isRead ? 1.0 : 1.5,
                                           ),
                                           boxShadow: notif.isRead
                                               ? null
                                               : [
                                                   BoxShadow(
-                                                    color: AppTheme.primary.withOpacity(.06),
+                                                    color: AppTheme.primary
+                                                        .withOpacity(.06),
                                                     blurRadius: 6,
                                                     offset: const Offset(0, 2),
                                                   ),
                                                 ],
                                         ),
                                         child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             // Icono temático
                                             Container(
@@ -525,16 +570,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                               height: 42,
                                               decoration: BoxDecoration(
                                                 color: iconBg,
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
-                                              child: Icon(iconData, color: iconColor, size: 22),
+                                              child: Icon(iconData,
+                                                  color: iconColor, size: 22),
                                             ),
                                             const SizedBox(width: 12),
 
                                             // Contenido
                                             Expanded(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Row(
                                                     children: [
@@ -543,7 +591,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                           notif.title,
                                                           style: TextStyle(
                                                             fontSize: 13.5,
-                                                            fontWeight: notif.isRead ? FontWeight.w700 : FontWeight.w900,
+                                                            fontWeight:
+                                                                notif.isRead
+                                                                    ? FontWeight
+                                                                        .w700
+                                                                    : FontWeight
+                                                                        .w900,
                                                             color: textColor,
                                                           ),
                                                         ),
@@ -552,10 +605,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                         Container(
                                                           width: 8,
                                                           height: 8,
-                                                          margin: const EdgeInsets.only(left: 6),
-                                                          decoration: BoxDecoration(
-                                                            color: isDark ? AppTheme.primaryDarkTheme : AppTheme.primary,
-                                                            shape: BoxShape.circle,
+                                                          margin:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  left: 6),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: isDark
+                                                                ? AppTheme
+                                                                    .primaryDarkTheme
+                                                                : AppTheme
+                                                                    .primary,
+                                                            shape:
+                                                                BoxShape.circle,
                                                           ),
                                                         ),
                                                     ],
@@ -566,7 +628,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                       height: 1.35,
-                                                      color: notif.isRead ? mutedColor : textColor.withOpacity(.85),
+                                                      color: notif.isRead
+                                                          ? mutedColor
+                                                          : textColor
+                                                              .withOpacity(.85),
                                                     ),
                                                   ),
                                                   const SizedBox(height: 8),
@@ -574,41 +639,87 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                   // Badge de monto y fecha
                                                   Row(
                                                     children: [
-                                                      if (notif.amount != null && notif.amount! > 0) ...[
+                                                      if (notif.amount !=
+                                                              null &&
+                                                          notif.amount! >
+                                                              0) ...[
                                                         Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                                          decoration: BoxDecoration(
-                                                            color: isDark ? const Color(0xFF1E2D4A) : const Color(0xFFEAF3FF),
-                                                            borderRadius: BorderRadius.circular(6),
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal: 7,
+                                                                  vertical: 2),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: isDark
+                                                                ? const Color(
+                                                                    0xFF1E2D4A)
+                                                                : const Color(
+                                                                    0xFFEAF3FF),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        6),
                                                           ),
                                                           child: Text(
-                                                            NotificationService.formatAmount(notif.amount!),
+                                                            NotificationService
+                                                                .formatAmount(
+                                                                    notif
+                                                                        .amount!),
                                                             style: TextStyle(
                                                               fontSize: 11,
-                                                              fontWeight: FontWeight.w800,
-                                                              color: isDark ? AppTheme.primaryDarkTheme : AppTheme.primary,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800,
+                                                              color: isDark
+                                                                  ? AppTheme
+                                                                      .primaryDarkTheme
+                                                                  : AppTheme
+                                                                      .primary,
                                                             ),
                                                           ),
                                                         ),
-                                                        const SizedBox(width: 8),
+                                                        const SizedBox(
+                                                            width: 8),
                                                       ],
                                                       Text(
-                                                        _formatNotificationDate(notif.scheduledDate),
-                                                        style: TextStyle(fontSize: 10.5, color: mutedColor),
+                                                        _formatNotificationDate(
+                                                            notif
+                                                                .scheduledDate),
+                                                        style: TextStyle(
+                                                            fontSize: 10.5,
+                                                            color: mutedColor),
                                                       ),
                                                       const Spacer(),
                                                       if (!notif.isRead)
                                                         InkWell(
-                                                          borderRadius: BorderRadius.circular(4),
-                                                          onTap: () => widget.state.markNotificationAsRead(notif.id),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(4),
+                                                          onTap: () => widget
+                                                              .state
+                                                              .markNotificationAsRead(
+                                                                  notif.id),
                                                           child: Padding(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal:
+                                                                        4,
+                                                                    vertical:
+                                                                        2),
                                                             child: Text(
                                                               'Marcar leída',
                                                               style: TextStyle(
                                                                 fontSize: 11,
-                                                                fontWeight: FontWeight.w700,
-                                                                color: isDark ? AppTheme.primaryDarkTheme : AppTheme.primary,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: isDark
+                                                                    ? AppTheme
+                                                                        .primaryDarkTheme
+                                                                    : AppTheme
+                                                                        .primary,
                                                               ),
                                                             ),
                                                           ),
@@ -653,11 +764,11 @@ class _FilterTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeBg = isDark ? const Color(0xFF1E3A8A) : AppTheme.primary;
-    final inactiveBg = isDark ? const Color(0xFF14213D) : Colors.white;
+    final activeBg = AppTheme.primaryColor(context);
+    final inactiveBg = AppTheme.cardBg(context);
     final activeText = Colors.white;
-    final inactiveText = isDark ? AppTheme.textDark : AppTheme.text;
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.border;
+    final inactiveText = AppTheme.textColor(context);
+    final borderColor = AppTheme.borderColor(context);
 
     return Material(
       color: Colors.transparent,
@@ -665,16 +776,17 @@ class _FilterTab extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: selected ? activeBg : inactiveBg,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: selected ? Colors.transparent : borderColor),
+            border:
+                Border.all(color: selected ? Colors.transparent : borderColor),
           ),
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
               color: selected ? activeText : inactiveText,
             ),
@@ -717,7 +829,8 @@ class _EmptyNotificationsView extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E2D4A) : const Color(0xFFEAF3FF),
+                color:
+                    isDark ? const Color(0xFF1E2D4A) : const Color(0xFFEAF3FF),
                 shape: BoxShape.circle,
               ),
               child: Icon(

@@ -50,16 +50,18 @@ class GoalsScreen extends StatelessWidget {
               label: 'Monto objetivo',
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-              validator: (v) =>
-                  (double.tryParse(v ?? '') ?? 0) <= 0 ? 'Monto inválido' : null,
+              validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0
+                  ? 'Monto inválido'
+                  : null,
             ),
             AppField(
               controller: saved,
               label: 'Ahorro reservado',
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-              validator: (v) =>
-                  (double.tryParse(v ?? '') ?? -1) < 0 ? 'Monto inválido' : null,
+              validator: (v) => (double.tryParse(v ?? '') ?? -1) < 0
+                  ? 'Monto inválido'
+                  : null,
             ),
             const SizedBox(height: 16),
             Row(
@@ -111,7 +113,8 @@ class GoalsScreen extends StatelessWidget {
   Future<void> contribute(BuildContext context, SavingsGoal item) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppTheme.textDark : AppTheme.text;
-    final isCrc = (state.activeAccount?.currency ?? 'CRC').toUpperCase() == 'CRC';
+    final isCrc =
+        (state.activeAccount?.currency ?? 'CRC').toUpperCase() == 'CRC';
 
     final key = GlobalKey<FormState>();
     final amount = TextEditingController();
@@ -127,10 +130,10 @@ class GoalsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF132B5C) : const Color(0xFFE7F2FF),
+                color: AppTheme.tintPrimary(context),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF263859) : const Color(0xFFBAE6FD),
+                  color: AppTheme.primaryColor(context).withOpacity(.35),
                 ),
               ),
               child: Row(
@@ -138,14 +141,14 @@ class GoalsScreen extends StatelessWidget {
                   Icon(
                     Icons.account_balance_wallet_outlined,
                     size: 18,
-                    color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+                    color: AppTheme.primaryColor(context),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Disponible real: ${money(state.availableBalance)}',
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: textColor,
                       ),
@@ -188,7 +191,8 @@ class GoalsScreen extends StatelessWidget {
                   child: FilledButton(
                     onPressed: () async {
                       if (!key.currentState!.validate()) return;
-                      final val = double.parse(amount.text.trim().replaceAll(',', ''));
+                      final val =
+                          double.parse(amount.text.trim().replaceAll(',', ''));
                       try {
                         await state.contributeToGoal(item.id, val);
                         if (context.mounted) Navigator.pop(context, true);
@@ -257,12 +261,12 @@ class GoalsScreen extends StatelessWidget {
                     return SizedBox(
                       width: width,
                       child: Card(
-                        color: isDark ? AppTheme.surfaceDark : Colors.white,
+                        color: AppTheme.cardBg(context),
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                           side: BorderSide(
-                            color:
-                                isDark ? AppTheme.borderDark : AppTheme.border,
+                            color: AppTheme.borderColor(context),
                           ),
                         ),
                         child: Padding(
@@ -327,9 +331,7 @@ class GoalsScreen extends StatelessWidget {
                                     ? const Color(0xFF1E293B)
                                     : const Color(0xFFE2E8F0),
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  isDark
-                                      ? const Color(0xFF60A5FA)
-                                      : AppTheme.primary,
+                                  AppTheme.primaryColor(context),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -348,23 +350,18 @@ class GoalsScreen extends StatelessWidget {
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 8,
-                                        vertical: 2,
+                                        vertical: 3,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: (isDark
-                                                ? const Color(0xFF4ADE80)
-                                                : AppTheme.success)
-                                            .withOpacity(0.15),
+                                        color: AppTheme.tintSuccess(context),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
                                         '¡Meta alcanzada!',
                                         style: TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? const Color(0xFF4ADE80)
-                                              : AppTheme.success,
+                                          color: AppTheme.successColor(context),
                                         ),
                                       ),
                                     ),
@@ -381,13 +378,11 @@ class GoalsScreen extends StatelessWidget {
                                   ),
                                   label: const Text('+ Aportar'),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: isDark
-                                        ? const Color(0xFF60A5FA)
-                                        : AppTheme.primary,
+                                    minimumSize: const Size(0, 48),
+                                    foregroundColor:
+                                        AppTheme.primaryColor(context),
                                     side: BorderSide(
-                                      color: isDark
-                                          ? const Color(0xFF3B82F6)
-                                          : AppTheme.primary,
+                                      color: AppTheme.primaryColor(context),
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
@@ -409,7 +404,7 @@ class GoalsScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.backgroundDark : AppTheme.background,
+      backgroundColor: AppTheme.bg(context),
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back_rounded, color: textColor),
@@ -422,7 +417,7 @@ class GoalsScreen extends StatelessWidget {
             color: textColor,
           ),
         ),
-        backgroundColor: isDark ? AppTheme.surfaceDark : AppTheme.background,
+        backgroundColor: AppTheme.cardBg(context),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),

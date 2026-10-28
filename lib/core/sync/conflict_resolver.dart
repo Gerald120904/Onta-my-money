@@ -49,10 +49,12 @@ class EntityConflict {
     Map<String, dynamic> cPayload = {};
     Map<String, dynamic> sPayload = {};
     try {
-      cPayload = Map<String, dynamic>.from(jsonDecode(clientPayloadJson) as Map);
+      cPayload =
+          Map<String, dynamic>.from(jsonDecode(clientPayloadJson) as Map);
     } catch (_) {}
     try {
-      sPayload = Map<String, dynamic>.from(jsonDecode(serverPayloadJson) as Map);
+      sPayload =
+          Map<String, dynamic>.from(jsonDecode(serverPayloadJson) as Map);
     } catch (_) {}
 
     return EntityConflict(

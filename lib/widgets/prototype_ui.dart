@@ -20,28 +20,28 @@ class PrototypeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
+    final textColor = AppTheme.textColor(context);
+    final primaryColor = AppTheme.primaryColor(context);
 
     if (onBack != null) {
       return SizedBox(
-        height: 52,
+        height: 54,
         child: Row(
           children: [
             InkWell(
               borderRadius: BorderRadius.circular(50),
               onTap: onBack,
               child: SizedBox(
-                width: 42,
-                height: 42,
+                width: 48,
+                height: 48,
                 child: Icon(
                   Icons.arrow_back_rounded,
                   color: textColor,
-                  size: 27,
+                  size: 26,
                 ),
               ),
             ),
-            const SizedBox(width: 5),
+            const SizedBox(width: 4),
             Expanded(
               child: Text(
                 title,
@@ -58,7 +58,7 @@ class PrototypeHeader extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 62,
+      height: 64,
       child: Row(
         children: [
           const AppLogo(
@@ -71,7 +71,7 @@ class PrototypeHeader extends StatelessWidget {
               title,
               style: TextStyle(
                 fontSize: 21,
-                height: 1.05,
+                height: 1.1,
                 fontWeight: FontWeight.w900,
                 color: textColor,
               ),
@@ -82,8 +82,8 @@ class PrototypeHeader extends StatelessWidget {
               onPressed: () {},
               icon: Icon(
                 Icons.person_outline_rounded,
-                color: isDark ? const Color(0xFF93C5FD) : AppTheme.primaryDark,
-                size: 27,
+                color: primaryColor,
+                size: 26,
               ),
             ),
         ],
@@ -105,14 +105,13 @@ class PrototypePanel extends StatelessWidget {
     this.background,
     this.borderColor,
     this.padding = const EdgeInsets.all(14),
-    this.radius = 15,
+    this.radius = 16,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final defaultBorder = isDark ? const Color(0xFF263859) : AppTheme.border;
+    final defaultBg = AppTheme.cardBg(context);
+    final defaultBorder = AppTheme.borderColor(context);
 
     return Container(
       width: double.infinity,
@@ -155,40 +154,41 @@ class MoneyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accent = green
-        ? (isDark ? const Color(0xFF4ADE80) : AppTheme.success)
-        : (isDark ? const Color(0xFF60A5FA) : AppTheme.primary);
+    final isDark = AppTheme.isDarkMode(context);
+    final accent =
+        green ? AppTheme.successColor(context) : AppTheme.primaryColor(context);
 
     final background = green
-        ? (isDark ? const Color(0xFF0F3A2A) : const Color(0xFFF1FFF6))
+        ? AppTheme.tintSuccess(context)
         : blueFill
-            ? (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEAF3FF))
-            : (isDark ? const Color(0xFF14213D) : Colors.white);
+            ? AppTheme.tintPrimary(context)
+            : AppTheme.cardBg(context);
 
     final border = green
         ? (isDark ? const Color(0xFF166534) : const Color(0xFF9DEBC2))
-        : (isDark ? const Color(0xFF263859) : AppTheme.border);
+        : AppTheme.borderColor(context);
 
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
 
     final card = PrototypePanel(
       background: background,
       borderColor: border,
       padding: const EdgeInsets.symmetric(
-        horizontal: 13,
-        vertical: 12,
+        horizontal: 14,
+        vertical: 13,
       ),
       child: Row(
         children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: green
-                  ? (isDark ? const Color(0xFF14532D) : const Color(0xFFE3FBEF))
-                  : (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEDF4FF)),
+                  ? (isDark ? const Color(0xFF14532D) : const Color(0xFFD1FAE5))
+                  : (isDark
+                      ? const Color(0xFF1E3A8A)
+                      : const Color(0xFFDBEAFE)),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -197,7 +197,7 @@ class MoneyCard extends StatelessWidget {
               size: 22,
             ),
           ),
-          const SizedBox(width: 11),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,30 +205,28 @@ class MoneyCard extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: textColor,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   money(amount),
                   style: TextStyle(
                     fontSize: 19,
-                    height: 1,
+                    height: 1.1,
                     fontWeight: FontWeight.w900,
-                    color: green
-                        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF008943))
-                        : textColor,
+                    color: green ? accent : textColor,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 12,
                     color: mutedColor,
-                    height: 1.15,
+                    height: 1.25,
                   ),
                 ),
               ],
@@ -237,7 +235,7 @@ class MoneyCard extends StatelessWidget {
           if (showArrow)
             Icon(
               Icons.chevron_right_rounded,
-              color: isDark ? const Color(0xFF60A5FA) : AppTheme.primary,
+              color: accent,
               size: 24,
             ),
         ],
@@ -276,15 +274,14 @@ class ChoiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = selected
-        ? (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFF5F9FF))
-        : (isDark ? const Color(0xFF14213D) : Colors.white);
+    final isDark = AppTheme.isDarkMode(context);
+    final cardBg =
+        selected ? AppTheme.tintPrimary(context) : AppTheme.cardBg(context);
     final cardBorder = selected
-        ? (isDark ? const Color(0xFF60A5FA) : AppTheme.primary)
-        : (isDark ? const Color(0xFF263859) : AppTheme.border);
-    final primaryColor = isDark ? const Color(0xFF60A5FA) : AppTheme.primary;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
+        ? AppTheme.primaryColor(context)
+        : AppTheme.borderColor(context);
+    final primaryColor = AppTheme.primaryColor(context);
+    final textColor = AppTheme.textColor(context);
 
     return Material(
       color: Colors.transparent,
@@ -302,29 +299,31 @@ class ChoiceCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
               color: cardBorder,
-              width: selected ? 1.5 : 1.15,
+              width: selected ? 1.75 : 1.15,
             ),
           ),
           child: Row(
             children: [
               if (icon == null)
                 Container(
-                  width: 23,
-                  height: 23,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: selected
                           ? primaryColor
-                          : (isDark ? const Color(0xFF64748B) : const Color(0xFF345078)),
-                      width: 1.6,
+                          : (isDark
+                              ? const Color(0xFF64748B)
+                              : const Color(0xFF6B7280)),
+                      width: 1.8,
                     ),
                   ),
                   child: selected
                       ? Center(
                           child: Container(
-                            width: 11,
-                            height: 11,
+                            width: 12,
+                            height: 12,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: primaryColor,
@@ -336,21 +335,17 @@ class ChoiceCard extends StatelessWidget {
               else
                 Icon(
                   icon,
-                  color: isDark ? const Color(0xFF93C5FD) : AppTheme.primaryDark,
-                  size: 25,
+                  color: primaryColor,
+                  size: 24,
                 ),
-              const SizedBox(width: 15),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: selected
-                        ? FontWeight.w800
-                        : FontWeight.w600,
-                    color: selected
-                        ? primaryColor
-                        : textColor,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    color: selected ? primaryColor : textColor,
                   ),
                 ),
               ),
@@ -380,31 +375,32 @@ class MovementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
-    final cardBorder = isDark ? const Color(0xFF263859) : AppTheme.border;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final primaryColor = isDark ? const Color(0xFF60A5FA) : AppTheme.primary;
+    final isDark = AppTheme.isDarkMode(context);
+    final cardBg = AppTheme.cardBg(context);
+    final cardBorder = AppTheme.borderColor(context);
+    final textColor = AppTheme.textColor(context);
+    final primaryColor = AppTheme.primaryColor(context);
 
     return Container(
-      height: 58,
+      height: 60,
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
+        horizontal: 14,
       ),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(13),
         border: Border.all(
           color: cardBorder,
+          width: 1.15,
         ),
       ),
       child: Row(
         children: [
           Container(
-            width: 35,
-            height: 35,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE9F3FF),
+              color: AppTheme.tintPrimary(context),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -413,7 +409,7 @@ class MovementCard extends StatelessWidget {
               size: 21,
             ),
           ),
-          const SizedBox(width: 11),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
@@ -427,21 +423,22 @@ class MovementCard extends StatelessWidget {
           Text(
             money(amount),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: FontWeight.w900,
               color: textColor,
             ),
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 8),
           Transform.scale(
-            scale: .95,
+            scale: 1.0,
             child: Checkbox(
               value: checked,
               activeColor: primaryColor,
               checkColor: Colors.white,
               side: BorderSide(
-                color: isDark ? const Color(0xFF64748B) : const Color(0xFF7C9BC5),
-                width: 1.3,
+                color:
+                    isDark ? const Color(0xFF64748B) : const Color(0xFF6B7280),
+                width: 1.5,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
@@ -475,15 +472,14 @@ class DecisionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF14213D) : Colors.white;
+    final cardBg = AppTheme.cardBg(context);
     final cardBorder = selected
-        ? (isDark ? const Color(0xFF60A5FA) : AppTheme.primary)
-        : (isDark ? const Color(0xFF263859) : AppTheme.border);
-    final primaryColor = isDark ? const Color(0xFF60A5FA) : AppTheme.primary;
-    final successColor = isDark ? const Color(0xFF4ADE80) : AppTheme.success;
-    final textColor = isDark ? const Color(0xFFF8FAFC) : AppTheme.text;
-    final mutedColor = isDark ? const Color(0xFF94A3B8) : AppTheme.muted;
+        ? AppTheme.primaryColor(context)
+        : AppTheme.borderColor(context);
+    final primaryColor = AppTheme.primaryColor(context);
+    final successColor = AppTheme.successColor(context);
+    final textColor = AppTheme.textColor(context);
+    final mutedColor = AppTheme.mutedColor(context);
 
     return Material(
       color: Colors.transparent,
@@ -493,58 +489,54 @@ class DecisionCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(
-            horizontal: 13,
-            vertical: 12,
+            horizontal: 14,
+            vertical: 13,
           ),
           decoration: BoxDecoration(
             color: cardBg,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
               color: cardBorder,
-              width: selected ? 1.5 : 1.1,
+              width: selected ? 1.75 : 1.15,
             ),
           ),
           child: Row(
             children: [
               Container(
-                width: 39,
-                height: 39,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: selected
-                      ? (isDark ? const Color(0xFF14532D) : const Color(0xFFE9FFF2))
-                      : (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFE9F3FF)),
+                      ? AppTheme.tintSuccess(context)
+                      : AppTheme.tintPrimary(context),
                 ),
                 child: Icon(
-                  selected
-                      ? Icons.check_rounded
-                      : icon,
-                  color: selected
-                      ? successColor
-                      : primaryColor,
-                  size: 23,
+                  selected ? Icons.check_rounded : icon,
+                  color: selected ? successColor : primaryColor,
+                  size: 22,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 14.5,
                         fontWeight: FontWeight.w900,
                         color: textColor,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 12,
                         color: mutedColor,
+                        height: 1.25,
                       ),
                     ),
                   ],
@@ -552,7 +544,7 @@ class DecisionCard extends StatelessWidget {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: primaryColor,
+                color: selected ? successColor : primaryColor,
               ),
             ],
           ),
@@ -572,17 +564,23 @@ class DonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppTheme.isDarkMode(context);
+
     return SizedBox(
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _DonutPainter(),
+        painter: _DonutPainter(isDark: isDark),
       ),
     );
   }
 }
 
 class _DonutPainter extends CustomPainter {
+  final bool isDark;
+
+  const _DonutPainter({this.isDark = false});
+
   static const values = [
     34.0,
     18.0,
@@ -591,13 +589,21 @@ class _DonutPainter extends CustomPainter {
     18.0,
   ];
 
-  static const colors = [
-    Color(0xFF0755DC),
-    Color(0xFF1576F5),
-    Color(0xFF4094F5),
-    Color(0xFF6FB0FA),
-    Color(0xFFA9CDF7),
-  ];
+  List<Color> get colors => isDark
+      ? const [
+          Color(0xFF3B82F6),
+          Color(0xFF60A5FA),
+          Color(0xFF93C5FD),
+          Color(0xFF38BDF8),
+          Color(0xFF818CF8),
+        ]
+      : const [
+          Color(0xFF0755DC),
+          Color(0xFF1576F5),
+          Color(0xFF4094F5),
+          Color(0xFF6FB0FA),
+          Color(0xFFA9CDF7),
+        ];
 
   @override
   void paint(
@@ -623,11 +629,10 @@ class _DonutPainter extends CustomPainter {
 
     var start = -math.pi / 2;
 
+    final palette = colors;
     for (var i = 0; i < values.length; i++) {
-      final sweep =
-          values[i] / 100 * math.pi * 2;
-
-      paint.color = colors[i];
+      final sweep = values[i] / 100 * math.pi * 2;
+      paint.color = palette[i % palette.length];
 
       canvas.drawArc(
         rect,
@@ -642,8 +647,6 @@ class _DonutPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(
-    covariant CustomPainter oldDelegate,
-  ) =>
-      false;
+  bool shouldRepaint(covariant _DonutPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
 }

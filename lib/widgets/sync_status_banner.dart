@@ -31,7 +31,9 @@ class SyncStatusBanner extends StatelessWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Abre ${url.toString()} en tu navegador y luego pulsa sincronizar.')),
+        SnackBar(
+            content: Text(
+                'Abre ${url.toString()} en tu navegador y luego pulsa sincronizar.')),
       );
     }
   }
@@ -39,27 +41,35 @@ class SyncStatusBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final report = state.syncReport;
+    final isDark = AppTheme.isDarkMode(context);
 
     if (state.hasConflicts) {
+      final bg = isDark ? const Color(0xFF3F1218) : const Color(0xFFFEF2F2);
+      final border = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFF87171);
+      final iconColor =
+          isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626);
+      final textColor =
+          isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B);
+
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: const Color(0xFFFEF2F2),
+          color: bg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFF87171)),
+          border: Border.all(color: border),
         ),
         child: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 20),
+            Icon(Icons.warning_amber_rounded, color: iconColor, size: 21),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 '${report.conflictCount} conflicto(s) detectado(s).',
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF991B1B),
+                  color: textColor,
                 ),
               ),
             ),
@@ -71,9 +81,10 @@ class SyncStatusBanner extends StatelessWidget {
               },
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                foregroundColor: const Color(0xFFDC2626),
+                foregroundColor: iconColor,
               ),
-              child: const Text('Resolver'),
+              child: const Text('Resolver',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
             ),
           ],
         ),
@@ -81,29 +92,36 @@ class SyncStatusBanner extends StatelessWidget {
     }
 
     if (report.state == SyncState.syncing) {
+      final bg = isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF);
+      final border = isDark ? const Color(0xFF2563EB) : const Color(0xFF93C5FD);
+      final textColor =
+          isDark ? const Color(0xFFDBEAFE) : const Color(0xFF1E40AF);
+      final spinnerColor = isDark ? const Color(0xFF60A5FA) : AppTheme.primary;
+
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: const Color(0xFFEFF6FF),
+          color: bg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF93C5FD)),
+          border: Border.all(color: border),
         ),
-        child: const Row(
+        child: Row(
           children: [
             SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2.2, color: spinnerColor),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Sincronizando cambios con el servidor...',
                 style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryDark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
                 ),
               ),
             ),
@@ -113,38 +131,45 @@ class SyncStatusBanner extends StatelessWidget {
     }
 
     if (!report.isOnline || report.state == SyncState.offline) {
+      final bg = isDark ? const Color(0xFF3E2703) : const Color(0xFFFFFBEB);
+      final border = isDark ? const Color(0xFF78350F) : const Color(0xFFFCD34D);
+      final iconColor =
+          isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+      final textColor =
+          isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E);
+
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFBEB),
+          color: bg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFFCD34D)),
+          border: Border.all(color: border),
         ),
         child: Row(
           children: [
-            const Icon(Icons.cloud_off_rounded, color: Color(0xFFD97706), size: 18),
+            Icon(Icons.cloud_off_rounded, color: iconColor, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 report.pendingCount > 0
                     ? 'Modo sin conexión • ${report.pendingCount} cambio(s) pendiente(s)'
                     : 'Modo sin conexión • Datos guardados localmente',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF92400E),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
                 ),
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFFD97706)),
+              icon: Icon(Icons.open_in_new_rounded, size: 19, color: iconColor),
               tooltip: 'Activar servidor de blitz.cloud en el navegador',
               visualDensity: VisualDensity.compact,
               onPressed: () => _openWakePage(context),
             ),
             IconButton(
-              icon: const Icon(Icons.refresh_rounded, size: 18, color: Color(0xFFD97706)),
+              icon: Icon(Icons.refresh_rounded, size: 19, color: iconColor),
               tooltip: 'Sincronizar ahora',
               visualDensity: VisualDensity.compact,
               onPressed: () => state.syncNow(),
@@ -155,25 +180,32 @@ class SyncStatusBanner extends StatelessWidget {
     }
 
     if (report.pendingCount > 0) {
+      final bg = isDark ? const Color(0xFF0F3A2A) : const Color(0xFFF0FDF4);
+      final border = isDark ? const Color(0xFF14532D) : const Color(0xFF86EFAC);
+      final iconColor =
+          isDark ? const Color(0xFF34D399) : const Color(0xFF16A34A);
+      final textColor =
+          isDark ? const Color(0xFF86EFAC) : const Color(0xFF166534);
+
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFFF0FDF4),
+          color: bg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF86EFAC)),
+          border: Border.all(color: border),
         ),
         child: Row(
           children: [
-            const Icon(Icons.cloud_queue_rounded, color: Color(0xFF16A34A), size: 18),
+            Icon(Icons.cloud_queue_rounded, color: iconColor, size: 20),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 '${report.pendingCount} cambio(s) pendiente(s) de sincronizar',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF166534),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
                 ),
               ),
             ),
@@ -181,9 +213,10 @@ class SyncStatusBanner extends StatelessWidget {
               onPressed: () => state.syncNow(),
               style: TextButton.styleFrom(
                 visualDensity: VisualDensity.compact,
-                foregroundColor: const Color(0xFF16A34A),
+                foregroundColor: iconColor,
               ),
-              child: const Text('Sincronizar'),
+              child: const Text('Sincronizar',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
             ),
           ],
         ),

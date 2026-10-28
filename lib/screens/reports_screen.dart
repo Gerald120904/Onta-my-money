@@ -36,22 +36,22 @@ class ReportsScreen extends StatelessWidget {
             // ENCABEZADO
             // =================================================
 
-            const Text(
+            Text(
               'Reportes',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
-                color: AppTheme.text,
+                color: AppTheme.textColor(context),
               ),
             ),
 
             const SizedBox(height: 4),
 
-            const Text(
+            Text(
               'Revisá tus reportes anteriores y las decisiones que has tomado.',
               style: TextStyle(
-                fontSize: 11,
-                color: AppTheme.muted,
+                fontSize: 13.5,
+                color: AppTheme.mutedColor(context),
               ),
             ),
 
@@ -107,34 +107,31 @@ class ReportsScreen extends StatelessWidget {
 
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Historial de reportes',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
-                        color: AppTheme.text,
+                        color: AppTheme.textColor(context),
                       ),
                     ),
                   ),
-
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          const Color(0xFFEAF3FF),
-                      borderRadius:
-                          BorderRadius.circular(20),
+                      color: AppTheme.tintPrimary(context),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '${reports.length} ${reports.length == 1 ? 'reporte' : 'reportes'}',
-                      style: const TextStyle(
-                        fontSize: 10,
+                      style: TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.primary,
+                        color: AppTheme.primaryColor(context),
                       ),
                     ),
                   ),
@@ -143,11 +140,11 @@ class ReportsScreen extends StatelessWidget {
 
               const SizedBox(height: 5),
 
-              const Text(
+              Text(
                 'Tocá un reporte para revisar nuevamente sus movimientos y la decisión tomada.',
                 style: TextStyle(
-                  fontSize: 10.5,
-                  color: AppTheme.muted,
+                  fontSize: 13,
+                  color: AppTheme.mutedColor(context),
                 ),
               ),
 
@@ -197,13 +194,11 @@ class ReportsScreen extends StatelessWidget {
   }
 }
 
-
 // =============================================================
 // FOCO ACCESIBLE PARA CONTROLES PERSONALIZADOS
 // =============================================================
 
-class _AccessibleFocusAction
-    extends StatefulWidget {
+class _AccessibleFocusAction extends StatefulWidget {
   final Widget child;
   final VoidCallback onActivate;
   final String semanticLabel;
@@ -217,12 +212,10 @@ class _AccessibleFocusAction
   });
 
   @override
-  State<_AccessibleFocusAction> createState() =>
-      _AccessibleFocusActionState();
+  State<_AccessibleFocusAction> createState() => _AccessibleFocusActionState();
 }
 
-class _AccessibleFocusActionState
-    extends State<_AccessibleFocusAction> {
+class _AccessibleFocusActionState extends State<_AccessibleFocusAction> {
   bool _showFocus = false;
 
   @override
@@ -249,8 +242,7 @@ class _AccessibleFocusActionState
           ): ActivateIntent(),
         },
         actions: {
-          ActivateIntent:
-              CallbackAction<ActivateIntent>(
+          ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) {
               widget.onActivate();
               return null;
@@ -263,21 +255,19 @@ class _AccessibleFocusActionState
           ),
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(
+            borderRadius: BorderRadius.circular(
               widget.borderRadius,
             ),
             border: Border.all(
               color: _showFocus
-                  ? AppTheme.primaryDark
+                  ? AppTheme.focusRingColor(context)
                   : Colors.transparent,
               width: 3,
             ),
             boxShadow: _showFocus
                 ? [
                     BoxShadow(
-                      color: AppTheme.primary
-                          .withOpacity(.24),
+                      color: AppTheme.primaryColor(context).withOpacity(.24),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
@@ -308,114 +298,86 @@ class _DecisionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final reduce = reports
         .where(
-          (report) =>
-              report.decision ==
-              'Reducir gasto',
+          (report) => report.decision == 'Reducir gasto',
         )
         .toList();
 
     final postpone = reports
         .where(
-          (report) =>
-              report.decision ==
-              'Posponer una compra',
+          (report) => report.decision == 'Posponer una compra',
         )
         .toList();
 
     final goals = reports
         .where(
-          (report) =>
-              report.decision ==
-              'Ajustar mi meta',
+          (report) => report.decision == 'Ajustar mi meta',
         )
         .toList();
 
     final maintain = reports
         .where(
-          (report) =>
-              report.decision ==
-              'Mantener mi plan',
+          (report) => report.decision == 'Mantener mi plan',
         )
         .toList();
 
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Decisiones tomadas',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w900,
-            color: AppTheme.text,
+            color: AppTheme.textColor(context),
           ),
         ),
-
         const SizedBox(height: 5),
-
-        const Text(
+        Text(
           'Tus decisiones se organizan automáticamente según el tipo de acción.',
           style: TextStyle(
-            fontSize: 10.5,
-            color: AppTheme.muted,
+            fontSize: 13,
+            color: AppTheme.mutedColor(context),
           ),
         ),
-
         const SizedBox(height: 14),
-
         if (reduce.isNotEmpty)
           _DecisionGroup(
             title: 'Reducir gastos',
-            subtitle:
-                'Objetivos para gastar menos en determinadas categorías.',
-            icon:
-                Icons.trending_down_rounded,
-            color: AppTheme.primary,
+            subtitle: 'Objetivos para gastar menos en determinadas categorías.',
+            icon: Icons.trending_down_rounded,
+            color: AppTheme.primaryColor(context),
             reports: reduce,
             state: state,
           ),
-
         if (postpone.isNotEmpty) ...[
           const SizedBox(height: 10),
-
           _DecisionGroup(
             title: 'Compras pospuestas',
-            subtitle:
-                'Compras que decidiste dejar para más adelante.',
+            subtitle: 'Compras que decidiste dejar para más adelante.',
             icon: Icons.schedule_rounded,
-            color:
-                const Color(0xFFFF8A00),
+            color: const Color(0xFFFF8A00),
             reports: postpone,
             state: state,
           ),
         ],
-
         if (goals.isNotEmpty) ...[
           const SizedBox(height: 10),
-
           _DecisionGroup(
             title: 'Metas ajustadas',
-            subtitle:
-                'Objetivos financieros cuyo monto o plazo modificaste.',
-            icon:
-                Icons.track_changes_rounded,
-            color:
-                const Color(0xFF6C63FF),
+            subtitle: 'Objetivos financieros cuyo monto o plazo modificaste.',
+            icon: Icons.track_changes_rounded,
+            color: const Color(0xFF6C63FF),
             reports: goals,
             state: state,
           ),
         ],
-
         if (maintain.isNotEmpty) ...[
           const SizedBox(height: 10),
-
           _DecisionGroup(
             title: 'Mantener el plan',
-            subtitle:
-                'Revisiones donde decidiste continuar sin cambios.',
-            icon: Icons
-                .check_circle_outline_rounded,
-            color: AppTheme.success,
+            subtitle: 'Revisiones donde decidiste continuar sin cambios.',
+            icon: Icons.check_circle_outline_rounded,
+            color: AppTheme.successColor(context),
             reports: maintain,
             state: state,
           ),
@@ -449,12 +411,10 @@ class _DecisionGroup extends StatefulWidget {
   });
 
   @override
-  State<_DecisionGroup> createState() =>
-      _DecisionGroupState();
+  State<_DecisionGroup> createState() => _DecisionGroupState();
 }
 
-class _DecisionGroupState
-    extends State<_DecisionGroup> {
+class _DecisionGroupState extends State<_DecisionGroup> {
   bool _expanded = true;
 
   void _toggleExpanded() {
@@ -465,17 +425,15 @@ class _DecisionGroupState
 
   @override
   Widget build(BuildContext context) {
-    final countText =
-        '${widget.reports.length} '
+    final countText = '${widget.reports.length} '
         '${widget.reports.length == 1 ? 'decisión' : 'decisiones'}';
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Column(
@@ -485,23 +443,19 @@ class _DecisionGroupState
           // ===================================================
 
           _AccessibleFocusAction(
-            semanticLabel:
-                '${widget.title}. $countText. '
+            semanticLabel: '${widget.title}. $countText. '
                 '${_expanded ? 'Expandido' : 'Contraído'}.',
             onActivate: _toggleExpanded,
             borderRadius: 16,
             child: Material(
               color: Colors.transparent,
-              borderRadius:
-                  BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16),
               child: InkWell(
                 canRequestFocus: false,
                 onTap: _toggleExpanded,
-                borderRadius:
-                    BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 12,
                   ),
@@ -510,12 +464,9 @@ class _DecisionGroupState
                       Container(
                         width: 42,
                         height: 42,
-                        decoration:
-                            BoxDecoration(
-                          color: widget.color
-                              .withOpacity(0.10),
-                          borderRadius:
-                              BorderRadius.circular(
+                        decoration: BoxDecoration(
+                          color: widget.color.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(
                             11,
                           ),
                         ),
@@ -524,54 +475,38 @@ class _DecisionGroupState
                           color: widget.color,
                         ),
                       ),
-
                       const SizedBox(width: 12),
-
                       Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               widget.title,
-                              style:
-                                  const TextStyle(
-                                fontSize: 13,
-                                fontWeight:
-                                    FontWeight
-                                        .w900,
-                                color:
-                                    AppTheme.text,
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.textColor(context),
                               ),
                             ),
-
                             const SizedBox(
                               height: 2,
                             ),
-
                             Text(
                               countText,
-                              style:
-                                  const TextStyle(
-                                fontSize: 10,
-                                color:
-                                    AppTheme.muted,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: AppTheme.mutedColor(context),
                               ),
                             ),
                           ],
                         ),
                       ),
-
                       const SizedBox(width: 8),
-
                       Icon(
                         _expanded
-                            ? Icons
-                                .keyboard_arrow_up_rounded
-                            : Icons
-                                .keyboard_arrow_down_rounded,
-                        color: AppTheme.primary,
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        color: AppTheme.primaryColor(context),
                       ),
                     ],
                   ),
@@ -585,16 +520,14 @@ class _DecisionGroupState
           // ===================================================
 
           AnimatedCrossFade(
-            duration:
-                const Duration(
+            duration: const Duration(
               milliseconds: 180,
             ),
             crossFadeState: _expanded
                 ? CrossFadeState.showFirst
                 : CrossFadeState.showSecond,
             firstChild: Padding(
-              padding:
-                  const EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 12,
                 0,
                 12,
@@ -603,39 +536,31 @@ class _DecisionGroupState
               child: Column(
                 children: [
                   Align(
-                    alignment:
-                        Alignment.centerLeft,
+                    alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding:
-                          const EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                         left: 2,
                         right: 2,
                         bottom: 5,
                       ),
                       child: Text(
                         widget.subtitle,
-                        style:
-                            const TextStyle(
-                          fontSize: 9.5,
-                          color:
-                              AppTheme.muted,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppTheme.mutedColor(context),
                         ),
                       ),
                     ),
                   ),
-
                   ...widget.reports.map(
                     (report) {
                       return Padding(
-                        padding:
-                            const EdgeInsets.only(
+                        padding: const EdgeInsets.only(
                           top: 7,
                         ),
-                        child:
-                            _DecisionCard(
+                        child: _DecisionCard(
                           report: report,
-                          color:
-                              widget.color,
+                          color: widget.color,
                           onTap: () {
                             Navigator.of(
                               context,
@@ -643,10 +568,8 @@ class _DecisionGroupState
                               MaterialPageRoute(
                                 builder: (_) {
                                   return _ReportDetailScreen(
-                                    state:
-                                        widget.state,
-                                    report:
-                                        report,
+                                    state: widget.state,
+                                    report: report,
                                   );
                                 },
                               ),
@@ -659,8 +582,7 @@ class _DecisionGroupState
                 ],
               ),
             ),
-            secondChild:
-                const SizedBox(
+            secondChild: const SizedBox(
               width: double.infinity,
             ),
           ),
@@ -688,8 +610,7 @@ class _DecisionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _AccessibleFocusAction(
-      semanticLabel:
-          '${report.decision}. '
+      semanticLabel: '${report.decision}. '
           '${_decisionSummary(report)}. '
           'Abrir detalle de la decisión.',
       onActivate: onTap,
@@ -698,58 +619,43 @@ class _DecisionCard extends StatelessWidget {
         color: color.withOpacity(
           0.05,
         ),
-        borderRadius:
-            BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           canRequestFocus: false,
           onTap: onTap,
-          borderRadius:
-              BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding:
-                const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             child: Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         _decisionSummary(
                           report,
                         ),
-                        style:
-                            const TextStyle(
-                          fontSize: 11,
-                          fontWeight:
-                              FontWeight
-                                  .w800,
-                          color:
-                              AppTheme.text,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textColor(context),
                           height: 1.4,
                         ),
                       ),
-
                       const SizedBox(height: 5),
-
                       Text(
                         'Decisión tomada el ${_formatDate(report.createdAt)}',
-                        style:
-                            const TextStyle(
-                          fontSize: 9,
-                          color:
-                              AppTheme.muted,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.mutedColor(context),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(width: 8),
-
                 Icon(
                   Icons.chevron_right_rounded,
                   color: color,
@@ -767,8 +673,7 @@ class _DecisionCard extends StatelessWidget {
 // TARJETA DE HISTORIAL
 // =============================================================
 
-class _ReportHistoryCard
-    extends StatelessWidget {
+class _ReportHistoryCard extends StatelessWidget {
   final ReviewResult report;
   final VoidCallback onTap;
 
@@ -779,181 +684,129 @@ class _ReportHistoryCard
 
   @override
   Widget build(BuildContext context) {
-    final decisionColor =
-        _decisionColor(
+    final decisionColor = _decisionColor(
       report.decision,
     );
 
     return _AccessibleFocusAction(
-      semanticLabel:
-          'Reporte ${report.periodTitle}. '
+      semanticLabel: 'Reporte ${report.periodTitle}. '
           '${report.transactionIds.length} movimientos. '
           'Decisión: ${report.decision}. '
           'Abrir reporte completo.',
       onActivate: onTap,
       borderRadius: 18,
       child: Material(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
           canRequestFocus: false,
           onTap: onTap,
-          borderRadius:
-              BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding:
-                const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppTheme.border,
+                color: AppTheme.borderColor(context),
               ),
             ),
             child: Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: 46,
                   height: 46,
-                  decoration:
-                      BoxDecoration(
-                    color:
-                        const Color(
-                      0xFFEAF3FF,
-                    ),
-                    borderRadius:
-                        BorderRadius
-                            .circular(
+                  decoration: BoxDecoration(
+                    color: AppTheme.tintPrimary(context),
+                    borderRadius: BorderRadius.circular(
                       12,
                     ),
                   ),
-                  child: const Icon(
-                    Icons
-                        .insert_chart_outlined,
-                    color:
-                        AppTheme.primary,
+                  child: Icon(
+                    Icons.insert_chart_outlined,
+                    color: AppTheme.primaryColor(context),
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Expanded(
                             child: Text(
-                              report
-                                  .periodTitle,
-                              style:
-                                  const TextStyle(
-                                fontSize: 13,
-                                fontWeight:
-                                    FontWeight
-                                        .w900,
-                                color:
-                                    AppTheme
-                                        .text,
+                              report.periodTitle,
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.textColor(context),
                               ),
                             ),
                           ),
-
                           Text(
                             _formatDate(
                               report.createdAt,
                             ),
-                            style:
-                                const TextStyle(
-                              fontSize: 9,
-                              color: AppTheme
-                                  .muted,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.mutedColor(context),
                             ),
                           ),
                         ],
                       ),
-
                       const SizedBox(
                         height: 3,
                       ),
-
                       Text(
                         report.periodSubtitle,
-                        style:
-                            const TextStyle(
-                          fontSize: 9.5,
-                          color:
-                              AppTheme.muted,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppTheme.mutedColor(context),
                         ),
                       ),
-
                       const SizedBox(
                         height: 8,
                       ),
-
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
                         children: [
                           _SmallChip(
-                            text:
-                                '${report.transactionIds.length} movimientos',
-                            color:
-                                AppTheme.primary,
+                            text: '${report.transactionIds.length} movimientos',
+                            color: AppTheme.primaryColor(context),
                           ),
-
                           _SmallChip(
-                            text:
-                                report.decision,
-                            color:
-                                decisionColor,
+                            text: report.decision,
+                            color: decisionColor,
                           ),
                         ],
                       ),
-
                       const SizedBox(
                         height: 8,
                       ),
-
                       Text(
                         _decisionSummary(
                           report,
                         ),
                         maxLines: 2,
-                        overflow:
-                            TextOverflow
-                                .ellipsis,
-                        style:
-                            const TextStyle(
-                          fontSize: 10.5,
-                          fontWeight:
-                              FontWeight
-                                  .w700,
-                          color:
-                              AppTheme.text,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textColor(context),
                           height: 1.35,
                         ),
                       ),
-
                       const SizedBox(
                         height: 7,
                       ),
-
-                      const Text(
+                      Text(
                         'Ver reporte completo →',
-                        style:
-                            TextStyle(
-                          fontSize: 9.5,
-                          fontWeight:
-                              FontWeight
-                                  .w800,
-                          color: AppTheme
-                              .primary,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryColor(context),
                         ),
                       ),
                     ],
@@ -972,8 +825,7 @@ class _ReportHistoryCard
 // DETALLE DEL REPORTE
 // =============================================================
 
-class _ReportDetailScreen
-    extends StatelessWidget {
+class _ReportDetailScreen extends StatelessWidget {
   final AppState state;
   final ReviewResult report;
 
@@ -984,8 +836,7 @@ class _ReportDetailScreen
 
   @override
   Widget build(BuildContext context) {
-    final transactions =
-        state.transactions.where(
+    final transactions = state.transactions.where(
       (transaction) {
         return report.transactionIds.contains(
           transaction.id,
@@ -993,24 +844,19 @@ class _ReportDetailScreen
       },
     ).toList();
 
-    final incomes =
-        transactions.where(
+    final incomes = transactions.where(
       (transaction) {
-        return transaction.type.toLowerCase() ==
-            'income';
+        return transaction.type.toLowerCase() == 'income';
       },
     ).toList();
 
-    final expenses =
-        transactions.where(
+    final expenses = transactions.where(
       (transaction) {
-        return transaction.type.toLowerCase() ==
-            'expense';
+        return transaction.type.toLowerCase() == 'expense';
       },
     ).toList();
 
-    final totalIncome =
-        incomes.fold<double>(
+    final totalIncome = incomes.fold<double>(
       0,
       (
         total,
@@ -1020,8 +866,7 @@ class _ReportDetailScreen
       },
     );
 
-    final totalExpenses =
-        expenses.fold<double>(
+    final totalExpenses = expenses.fold<double>(
       0,
       (
         total,
@@ -1031,40 +876,33 @@ class _ReportDetailScreen
       },
     );
 
-    final balance =
-        totalIncome - totalExpenses;
+    final balance = totalIncome - totalExpenses;
 
-    final categories =
-        <String, double>{};
+    final categories = <String, double>{};
 
     for (final expense in expenses) {
       categories[expense.category] =
-          (categories[expense.category] ?? 0) +
-              expense.amount;
+          (categories[expense.category] ?? 0) + expense.amount;
     }
 
-    final categoryEntries =
-        categories.entries.toList()
-          ..sort(
-            (a, b) {
-              return b.value.compareTo(
-                a.value,
-              );
-            },
+    final categoryEntries = categories.entries.toList()
+      ..sort(
+        (a, b) {
+          return b.value.compareTo(
+            a.value,
           );
+        },
+      );
 
-    final decisionColor =
-        _decisionColor(
+    final decisionColor = _decisionColor(
       report.decision,
     );
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.bg(context),
       appBar: AppBar(
-        backgroundColor:
-            AppTheme.background,
-        surfaceTintColor:
-            Colors.transparent,
+        backgroundColor: AppTheme.bg(context),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'Detalle del reporte',
@@ -1077,13 +915,11 @@ class _ReportDetailScreen
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(
+            constraints: const BoxConstraints(
               maxWidth: 760,
             ),
             child: ListView(
-              padding:
-                  const EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 18,
                 10,
                 18,
@@ -1092,80 +928,60 @@ class _ReportDetailScreen
               children: [
                 Text(
                   report.periodTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: AppTheme.text,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   report.periodSubtitle,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.muted,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.mutedColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   'Reporte creado el ${_formatDateTime(report.createdAt)}',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppTheme.muted,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.mutedColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                const Text(
+                Text(
                   'Resumen',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: AppTheme.text,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 Row(
                   children: [
                     Expanded(
                       child: _SummaryCard(
                         title: 'Ingresos',
-                        value:
-                            money(totalIncome),
-                        color:
-                            AppTheme.success,
-                        icon: Icons
-                            .arrow_upward_rounded,
+                        value: money(totalIncome),
+                        color: AppTheme.successColor(context),
+                        icon: Icons.arrow_upward_rounded,
                       ),
                     ),
-
                     const SizedBox(width: 10),
-
                     Expanded(
                       child: _SummaryCard(
                         title: 'Gastos',
-                        value:
-                            money(totalExpenses),
-                        color:
-                            AppTheme.primary,
-                        icon: Icons
-                            .arrow_downward_rounded,
+                        value: money(totalExpenses),
+                        color: AppTheme.primaryColor(context),
+                        icon: Icons.arrow_downward_rounded,
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 10),
-
                 Row(
                   children: [
                     Expanded(
@@ -1173,142 +989,107 @@ class _ReportDetailScreen
                         title: 'Balance',
                         value: money(balance),
                         color: balance >= 0
-                            ? AppTheme.success
-                            : Colors.red,
-                        icon: Icons
-                            .account_balance_wallet_outlined,
+                            ? AppTheme.successColor(context)
+                            : AppTheme.errorColor(context),
+                        icon: Icons.account_balance_wallet_outlined,
                       ),
                     ),
-
                     const SizedBox(width: 10),
-
                     Expanded(
                       child: _SummaryCard(
                         title: 'Movimientos',
-                        value:
-                            '${report.transactionIds.length}',
-                        color:
-                            AppTheme.primary,
-                        icon: Icons
-                            .receipt_long_outlined,
+                        value: '${report.transactionIds.length}',
+                        color: AppTheme.primaryColor(context),
+                        icon: Icons.receipt_long_outlined,
                       ),
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 26),
-
-                const Text(
+                Text(
                   'Gastos por categoría',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: AppTheme.text,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 if (categoryEntries.isEmpty)
                   const _InfoCard(
-                    text:
-                        'Este reporte no contiene gastos.',
+                    text: 'Este reporte no contiene gastos.',
                   )
                 else
                   Container(
-                    padding:
-                        const EdgeInsets.all(
+                    padding: const EdgeInsets.all(
                       15,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                          BorderRadius.circular(
+                      color: AppTheme.cardBg(context),
+                      borderRadius: BorderRadius.circular(
                         16,
                       ),
                       border: Border.all(
-                        color: AppTheme.border,
+                        color: AppTheme.borderColor(context),
                       ),
                     ),
                     child: Column(
-                      children:
-                          categoryEntries.map(
+                      children: categoryEntries.map(
                         (entry) {
-                          final percentage =
-                              totalExpenses == 0
-                                  ? 0.0
-                                  : entry.value /
-                                      totalExpenses;
+                          final percentage = totalExpenses == 0
+                              ? 0.0
+                              : entry.value / totalExpenses;
 
                           return Padding(
-                            padding:
-                                const EdgeInsets
-                                    .only(
+                            padding: const EdgeInsets.only(
                               bottom: 14,
                             ),
-                            child:
-                                _CategoryDetailRow(
+                            child: _CategoryDetailRow(
                               name: entry.key,
                               amount: entry.value,
-                              percentage:
-                                  percentage,
+                              percentage: percentage,
                             ),
                           );
                         },
                       ).toList(),
                     ),
                   ),
-
                 const SizedBox(height: 26),
-
-                const Text(
+                Text(
                   'Decisión tomada',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: AppTheme.text,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 Container(
-                  padding:
-                      const EdgeInsets.all(
+                  padding: const EdgeInsets.all(
                     16,
                   ),
                   decoration: BoxDecoration(
-                    color: decisionColor
-                        .withOpacity(0.06),
-                    borderRadius:
-                        BorderRadius.circular(
+                    color: decisionColor.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(
                       16,
                     ),
                     border: Border.all(
-                      color: decisionColor
-                          .withOpacity(0.35),
+                      color: decisionColor.withOpacity(0.35),
                     ),
                   ),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Container(
                             width: 42,
                             height: 42,
-                            decoration:
-                                BoxDecoration(
-                              color: decisionColor
-                                  .withOpacity(
+                            decoration: BoxDecoration(
+                              color: decisionColor.withOpacity(
                                 0.12,
                               ),
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
+                              borderRadius: BorderRadius.circular(
                                 12,
                               ),
                             ),
@@ -1316,74 +1097,58 @@ class _ReportDetailScreen
                               _decisionIcon(
                                 report.decision,
                               ),
-                              color:
-                                  decisionColor,
+                              color: decisionColor,
                             ),
                           ),
-
                           const SizedBox(
                             width: 12,
                           ),
-
                           Expanded(
                             child: Text(
                               report.decision,
-                              style:
-                                  const TextStyle(
-                                fontSize: 14,
-                                fontWeight:
-                                    FontWeight
-                                        .w900,
-                                color:
-                                    AppTheme.text,
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.textColor(context),
                               ),
                             ),
                           ),
                         ],
                       ),
-
                       const SizedBox(
                         height: 14,
                       ),
-
                       Text(
                         _decisionSummary(
                           report,
                         ),
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: 13.5,
                           height: 1.5,
-                          fontWeight:
-                              FontWeight.w700,
-                          color: AppTheme.text,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textColor(context),
                         ),
                       ),
-
                       const SizedBox(
                         height: 14,
                       ),
-
                       ..._decisionDetailRows(
+                        context,
                         report,
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 26),
-
-                const Text(
+                Text(
                   'Movimientos confirmados',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: AppTheme.text,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 if (transactions.isEmpty)
                   const _InfoCard(
                     text:
@@ -1393,14 +1158,11 @@ class _ReportDetailScreen
                   ...transactions.map(
                     (transaction) {
                       return Padding(
-                        padding:
-                            const EdgeInsets.only(
+                        padding: const EdgeInsets.only(
                           bottom: 9,
                         ),
-                        child:
-                            _TransactionCard(
-                          transaction:
-                              transaction,
+                        child: _TransactionCard(
+                          transaction: transaction,
                         ),
                       );
                     },
@@ -1436,41 +1198,35 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(14),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             icon,
             color: color,
             size: 20,
           ),
-
           const SizedBox(height: 8),
-
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 9.5,
-              color: AppTheme.muted,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: AppTheme.mutedColor(context),
             ),
           ),
-
           const SizedBox(height: 2),
-
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w900,
               color: color,
             ),
@@ -1485,8 +1241,7 @@ class _SummaryCard extends StatelessWidget {
 // CATEGORÍA
 // =============================================================
 
-class _CategoryDetailRow
-    extends StatelessWidget {
+class _CategoryDetailRow extends StatelessWidget {
   final String name;
   final double amount;
   final double percentage;
@@ -1499,11 +1254,12 @@ class _CategoryDetailRow
 
   @override
   Widget build(BuildContext context) {
-    final safeValue =
-        percentage.clamp(
-      0.0,
-      1.0,
-    ).toDouble();
+    final safeValue = percentage
+        .clamp(
+          0.0,
+          1.0,
+        )
+        .toDouble();
 
     return Column(
       children: [
@@ -1512,47 +1268,38 @@ class _CategoryDetailRow
             Expanded(
               child: Text(
                 name,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight:
-                      FontWeight.w800,
-                  color: AppTheme.text,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textColor(context),
                 ),
               ),
             ),
-
             Text(
               '${(safeValue * 100).toStringAsFixed(0)}%',
-              style: const TextStyle(
-                fontSize: 10,
-                color: AppTheme.muted,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.mutedColor(context),
               ),
             ),
-
             const SizedBox(width: 12),
-
             Text(
               money(amount),
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight:
-                    FontWeight.w900,
-                color: AppTheme.text,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.textColor(context),
               ),
             ),
           ],
         ),
-
         const SizedBox(height: 6),
-
         ClipRRect(
-          borderRadius:
-              BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
             minHeight: 7,
             value: safeValue,
-            backgroundColor:
-                const Color(0xFFEAF3FF),
+            backgroundColor: AppTheme.tintPrimary(context),
           ),
         ),
       ],
@@ -1564,8 +1311,7 @@ class _CategoryDetailRow
 // MOVIMIENTO
 // =============================================================
 
-class _TransactionCard
-    extends StatelessWidget {
+class _TransactionCard extends StatelessWidget {
   final MoneyTransaction transaction;
 
   const _TransactionCard({
@@ -1574,22 +1320,19 @@ class _TransactionCard
 
   @override
   Widget build(BuildContext context) {
-    final income =
-        transaction.type.toLowerCase() ==
-            'income';
+    final income = transaction.type.toLowerCase() == 'income';
 
     final color = income
-        ? AppTheme.success
-        : AppTheme.primary;
+        ? AppTheme.successColor(context)
+        : AppTheme.primaryColor(context);
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(13),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(13),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Row(
@@ -1598,59 +1341,47 @@ class _TransactionCard
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color:
-                  color.withOpacity(0.10),
-              borderRadius:
-                  BorderRadius.circular(10),
+              color: color.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               income
                   ? Icons.arrow_upward_rounded
-                  : Icons
-                      .arrow_downward_rounded,
+                  : Icons.arrow_downward_rounded,
               color: color,
               size: 18,
             ),
           ),
-
           const SizedBox(width: 10),
-
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   transaction.category,
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    fontWeight:
-                        FontWeight.w900,
-                    color: AppTheme.text,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textColor(context),
                   ),
                 ),
-
-                if (transaction.description
-                    .trim()
-                    .isNotEmpty)
+                if (transaction.description.trim().isNotEmpty)
                   Text(
                     transaction.description,
                     maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 9.5,
-                      color: AppTheme.muted,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.mutedColor(context),
                     ),
                   ),
               ],
             ),
           ),
-
           Text(
             '${income ? '+' : '-'}${money(transaction.amount)}',
             style: TextStyle(
-              fontSize: 11.5,
+              fontSize: 13.5,
               fontWeight: FontWeight.w900,
               color: color,
             ),
@@ -1677,20 +1408,18 @@ class _SmallChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 8,
         vertical: 4,
       ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
-        borderRadius:
-            BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 9,
+          fontSize: 11.5,
           fontWeight: FontWeight.w800,
           color: color,
         ),
@@ -1716,19 +1445,18 @@ class _InfoCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(15),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 10.5,
-          color: AppTheme.muted,
+        style: TextStyle(
+          fontSize: 13,
+          color: AppTheme.mutedColor(context),
         ),
       ),
     );
@@ -1746,19 +1474,17 @@ class _EmptyReports extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding:
-          const EdgeInsets.fromLTRB(
+      padding: const EdgeInsets.fromLTRB(
         24,
         35,
         24,
         35,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(18),
+        color: AppTheme.cardBg(context),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: AppTheme.border,
+          color: AppTheme.borderColor(context),
         ),
       ),
       child: Column(
@@ -1766,38 +1492,33 @@ class _EmptyReports extends StatelessWidget {
           Container(
             width: 70,
             height: 70,
-            decoration:
-                const BoxDecoration(
-              color: Color(0xFFEAF3FF),
+            decoration: BoxDecoration(
+              color: AppTheme.tintPrimary(context),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.insert_chart_outlined,
               size: 34,
-              color: AppTheme.primary,
+              color: AppTheme.primaryColor(context),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          const Text(
+          Text(
             'Todavía no tenés reportes',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w900,
-              color: AppTheme.text,
+              color: AppTheme.textColor(context),
             ),
           ),
-
           const SizedBox(height: 6),
-
-          const Text(
+          Text(
             'Hacé una revisión de tus movimientos para descubrir dónde se fue tu dinero y tomar una decisión.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 10.5,
+              fontSize: 13.5,
               height: 1.5,
-              color: AppTheme.muted,
+              color: AppTheme.mutedColor(context),
             ),
           ),
         ],
@@ -1811,10 +1532,10 @@ class _EmptyReports extends StatelessWidget {
 // =============================================================
 
 List<Widget> _decisionDetailRows(
+  BuildContext context,
   ReviewResult report,
 ) {
-  final details =
-      report.decisionDetails;
+  final details = report.decisionDetails;
 
   final rows = <Widget>[];
 
@@ -1828,33 +1549,29 @@ List<Widget> _decisionDetailRows(
 
     rows.add(
       Padding(
-        padding:
-            const EdgeInsets.only(
+        padding: const EdgeInsets.only(
           bottom: 8,
         ),
         child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
               width: 115,
               child: Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: AppTheme.muted,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: AppTheme.mutedColor(context),
                 ),
               ),
             ),
-
             Expanded(
               child: Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 10.5,
-                  fontWeight:
-                      FontWeight.w800,
-                  color: AppTheme.text,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textColor(context),
                 ),
               ),
             ),
@@ -1868,8 +1585,7 @@ List<Widget> _decisionDetailRows(
     case 'Reducir gasto':
       addRow(
         'Categoría',
-        details['category']?.toString() ??
-            '',
+        details['category']?.toString() ?? '',
       );
 
       addRow(
@@ -1893,9 +1609,7 @@ List<Widget> _decisionDetailRows(
     case 'Posponer una compra':
       addRow(
         'Compra',
-        details['purchaseName']
-                ?.toString() ??
-            '',
+        details['purchaseName']?.toString() ?? '',
       );
 
       addRow(
@@ -1923,8 +1637,7 @@ List<Widget> _decisionDetailRows(
     case 'Ajustar mi meta':
       addRow(
         'Meta',
-        details['goalName']?.toString() ??
-            '',
+        details['goalName']?.toString() ?? '',
       );
 
       addRow(
@@ -1966,17 +1679,13 @@ List<Widget> _decisionDetailRows(
 String _decisionSummary(
   ReviewResult report,
 ) {
-  final details =
-      report.decisionDetails;
+  final details = report.decisionDetails;
 
   switch (report.decision) {
     case 'Reducir gasto':
-      final category =
-          details['category']?.toString() ??
-              'gastos';
+      final category = details['category']?.toString() ?? 'gastos';
 
-      final amount =
-          _asDouble(
+      final amount = _asDouble(
         details['targetAmount'],
       );
 
@@ -1987,13 +1696,9 @@ String _decisionSummary(
       return 'Reducir $category en ${money(amount)} ${_periodDescription(details)}.';
 
     case 'Posponer una compra':
-      final name =
-          details['purchaseName']
-                  ?.toString() ??
-              'Compra';
+      final name = details['purchaseName']?.toString() ?? 'Compra';
 
-      final amount =
-          _asDouble(
+      final amount = _asDouble(
         details['purchaseAmount'],
       );
 
@@ -2008,12 +1713,9 @@ String _decisionSummary(
       return 'Posponer $name (${money(amount)}) hasta ${_formatDate(date)}.';
 
     case 'Ajustar mi meta':
-      final name =
-          details['goalName']?.toString() ??
-              'Meta';
+      final name = details['goalName']?.toString() ?? 'Meta';
 
-      final amount =
-          _asDouble(
+      final amount = _asDouble(
         details['targetAmount'],
       );
 
@@ -2034,17 +1736,12 @@ String _decisionSummary(
 String _periodDescription(
   Map<String, dynamic> details,
 ) {
-  final type =
-      details['periodType']?.toString() ??
-          '';
+  final type = details['periodType']?.toString() ?? '';
 
-  final value =
-      int.tryParse(
-            details['periodValue']
-                    ?.toString() ??
-                '',
-          ) ??
-          0;
+  final value = int.tryParse(
+        details['periodValue']?.toString() ?? '',
+      ) ??
+      0;
 
   switch (type) {
     case 'weeks':
@@ -2104,8 +1801,7 @@ IconData _decisionIcon(
 
     case 'Mantener mi plan':
     default:
-      return Icons
-          .check_circle_outline_rounded;
+      return Icons.check_circle_outline_rounded;
   }
 }
 
@@ -2135,16 +1831,12 @@ Color _decisionColor(
 String _formatDate(
   DateTime date,
 ) {
-  final day = date.day
-      .toString()
-      .padLeft(
+  final day = date.day.toString().padLeft(
         2,
         '0',
       );
 
-  final month = date.month
-      .toString()
-      .padLeft(
+  final month = date.month.toString().padLeft(
         2,
         '0',
       );
@@ -2155,9 +1847,7 @@ String _formatDate(
 String _formatDateTime(
   DateTime date,
 ) {
-  final minute = date.minute
-      .toString()
-      .padLeft(
+  final minute = date.minute.toString().padLeft(
         2,
         '0',
       );

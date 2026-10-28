@@ -38,7 +38,8 @@ class ClientSyncService {
   Future<SyncReport> syncNow(String userId) async {
     if (_isSyncing) return _report;
     if (api.token == null || api.token!.isEmpty) {
-      _updateReport(_report.copyWith(state: SyncState.offline, isOnline: false));
+      _updateReport(
+          _report.copyWith(state: SyncState.offline, isOnline: false));
       return _report;
     }
 
@@ -47,7 +48,9 @@ class ClientSyncService {
 
     try {
       // 1. Obtener usuario local y cursor
-      final user = await (db.select(db.localUsers)..where((u) => u.id.equals(userId))).getSingleOrNull();
+      final user = await (db.select(db.localUsers)
+            ..where((u) => u.id.equals(userId)))
+          .getSingleOrNull();
       final currentCursor = user?.lastServerCursor ?? 0;
 
       // 2. Enviar operaciones pendientes (PUSH)
@@ -59,7 +62,8 @@ class ClientSyncService {
           'operations': pendingOps.map((op) {
             Map<String, dynamic> payload = {};
             try {
-              payload = Map<String, dynamic>.from(jsonDecode(op.payloadJson) as Map);
+              payload =
+                  Map<String, dynamic>.from(jsonDecode(op.payloadJson) as Map);
             } catch (_) {}
 
             return {
@@ -99,7 +103,8 @@ class ClientSyncService {
               final entityType = item['entity_type']?.toString() ?? '';
               final entityId = item['entity_id']?.toString() ?? '';
               final baseVersion = (item['base_version'] as num?)?.toInt() ?? 1;
-              final serverVersion = (item['server_version'] as num?)?.toInt() ?? 1;
+              final serverVersion =
+                  (item['server_version'] as num?)?.toInt() ?? 1;
               final serverPayload = item['server_payload'] ?? {};
 
               // Registrar conflicto local
@@ -111,8 +116,10 @@ class ClientSyncService {
                       entityId: Value(entityId),
                       baseVersion: Value(baseVersion),
                       serverVersion: Value(serverVersion),
-                      clientPayloadJson: Value(
-                          pendingOps.firstWhere((p) => p.operationId == opId, orElse: () => pendingOps.first).payloadJson),
+                      clientPayloadJson: Value(pendingOps
+                          .firstWhere((p) => p.operationId == opId,
+                              orElse: () => pendingOps.first)
+                          .payloadJson),
                       serverPayloadJson: Value(jsonEncode(serverPayload)),
                       status: const Value('unresolved'),
                       createdAt: Value(DateTime.now()),
@@ -120,7 +127,8 @@ class ClientSyncService {
                   );
             } else {
               // Error puntual
-              await repository.markOperationFailed(opId, item['message']?.toString() ?? 'Error en servidor');
+              await repository.markOperationFailed(
+                  opId, item['message']?.toString() ?? 'Error en servidor');
             }
           }
         }
@@ -131,7 +139,8 @@ class ClientSyncService {
       bool hasMore = true;
 
       while (hasMore) {
-        final pullResponse = await api.get('/api/sync/pull?cursor=$nextCursor&limit=200');
+        final pullResponse =
+            await api.get('/api/sync/pull?cursor=$nextCursor&limit=200');
 
         if (pullResponse is Map) {
           final changes = pullResponse['changes'] as List? ?? [];
@@ -139,7 +148,8 @@ class ClientSyncService {
           hasMore = pullResponse['has_more'] == true;
 
           for (final change in changes) {
-            await _applyRemoteChange(userId, Map<String, dynamic>.from(change as Map));
+            await _applyRemoteChange(
+                userId, Map<String, dynamic>.from(change as Map));
           }
         } else {
           hasMore = false;
@@ -151,14 +161,17 @@ class ClientSyncService {
       await repository.updateSyncCursor(userId, nextCursor, now);
 
       // 5. Contar pendientes y conflictos
-      final remainingPending = await repository.getPendingOperationsCount(userId);
+      final remainingPending =
+          await repository.getPendingOperationsCount(userId);
       final conflictsQuery = db.select(db.localConflicts)
         ..where((c) => c.userId.equals(userId) & c.status.equals('unresolved'));
       final activeConflicts = await conflictsQuery.get();
 
       _updateReport(
         SyncReport(
-          state: activeConflicts.isNotEmpty ? SyncState.hasConflicts : SyncState.idle,
+          state: activeConflicts.isNotEmpty
+              ? SyncState.hasConflicts
+              : SyncState.idle,
           pendingCount: remainingPending,
           conflictCount: activeConflicts.length,
           lastSyncTime: now,
@@ -167,7 +180,8 @@ class ClientSyncService {
       );
     } catch (e) {
       final isNetwork = e is ApiException && e.isNetworkError;
-      final remainingPending = await repository.getPendingOperationsCount(userId);
+      final remainingPending =
+          await repository.getPendingOperationsCount(userId);
 
       _updateReport(
         _report.copyWith(
@@ -184,42 +198,59 @@ class ClientSyncService {
     return _report;
   }
 
-  Future<void> _updateLocalEntityVersion(String entityType, String entityId, int version) async {
+  Future<void> _updateLocalEntityVersion(
+      String entityType, String entityId, int version) async {
     switch (entityType.toLowerCase()) {
       case 'transaction':
-        await (db.update(db.localTransactions)..where((t) => t.id.equals(entityId))).write(
-          LocalTransactionsCompanion(version: Value(version), syncStatus: const Value('synced')),
+        await (db.update(db.localTransactions)
+              ..where((t) => t.id.equals(entityId)))
+            .write(
+          LocalTransactionsCompanion(
+              version: Value(version), syncStatus: const Value('synced')),
         );
         break;
       case 'account':
-        await (db.update(db.localAccounts)..where((a) => a.id.equals(entityId))).write(
-          LocalAccountsCompanion(version: Value(version), syncStatus: const Value('synced')),
+        await (db.update(db.localAccounts)..where((a) => a.id.equals(entityId)))
+            .write(
+          LocalAccountsCompanion(
+              version: Value(version), syncStatus: const Value('synced')),
         );
         break;
       case 'commitment':
-        await (db.update(db.localCommitments)..where((c) => c.id.equals(entityId))).write(
-          LocalCommitmentsCompanion(version: Value(version), syncStatus: const Value('synced')),
+        await (db.update(db.localCommitments)
+              ..where((c) => c.id.equals(entityId)))
+            .write(
+          LocalCommitmentsCompanion(
+              version: Value(version), syncStatus: const Value('synced')),
         );
         break;
       case 'goal':
-        await (db.update(db.localGoals)..where((g) => g.id.equals(entityId))).write(
-          LocalGoalsCompanion(version: Value(version), syncStatus: const Value('synced')),
+        await (db.update(db.localGoals)..where((g) => g.id.equals(entityId)))
+            .write(
+          LocalGoalsCompanion(
+              version: Value(version), syncStatus: const Value('synced')),
         );
         break;
       case 'decision':
-        await (db.update(db.localDecisions)..where((d) => d.id.equals(entityId))).write(
-          LocalDecisionsCompanion(version: Value(version), syncStatus: const Value('synced')),
+        await (db.update(db.localDecisions)
+              ..where((d) => d.id.equals(entityId)))
+            .write(
+          LocalDecisionsCompanion(
+              version: Value(version), syncStatus: const Value('synced')),
         );
         break;
       case 'review':
-        await (db.update(db.localReviews)..where((r) => r.id.equals(entityId))).write(
-          LocalReviewsCompanion(version: Value(version), syncStatus: const Value('synced')),
+        await (db.update(db.localReviews)..where((r) => r.id.equals(entityId)))
+            .write(
+          LocalReviewsCompanion(
+              version: Value(version), syncStatus: const Value('synced')),
         );
         break;
     }
   }
 
-  Future<void> _applyRemoteChange(String userId, Map<String, dynamic> change) async {
+  Future<void> _applyRemoteChange(
+      String userId, Map<String, dynamic> change) async {
     final entityType = change['entity_type']?.toString().toLowerCase() ?? '';
     final entityId = change['entity_id']?.toString() ?? '';
     final action = change['action']?.toString().toLowerCase() ?? '';
@@ -231,33 +262,69 @@ class ClientSyncService {
       if (action == 'delete') {
         switch (entityType) {
           case 'transaction':
-            await (db.update(db.localTransactions)..where((t) => t.id.equals(entityId) & t.userId.equals(userId))).write(
-              LocalTransactionsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            await (db.update(db.localTransactions)
+                  ..where(
+                      (t) => t.id.equals(entityId) & t.userId.equals(userId)))
+                .write(
+              LocalTransactionsCompanion(
+                  isDeleted: const Value(true),
+                  version: Value(version),
+                  syncStatus: const Value('synced')),
             );
             break;
           case 'account':
-            await (db.update(db.localAccounts)..where((a) => a.id.equals(entityId) & a.userId.equals(userId))).write(
-              LocalAccountsCompanion(isArchived: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            await (db.update(db.localAccounts)
+                  ..where(
+                      (a) => a.id.equals(entityId) & a.userId.equals(userId)))
+                .write(
+              LocalAccountsCompanion(
+                  isArchived: const Value(true),
+                  version: Value(version),
+                  syncStatus: const Value('synced')),
             );
             break;
           case 'commitment':
-            await (db.update(db.localCommitments)..where((c) => c.id.equals(entityId) & c.userId.equals(userId))).write(
-              LocalCommitmentsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            await (db.update(db.localCommitments)
+                  ..where(
+                      (c) => c.id.equals(entityId) & c.userId.equals(userId)))
+                .write(
+              LocalCommitmentsCompanion(
+                  isDeleted: const Value(true),
+                  version: Value(version),
+                  syncStatus: const Value('synced')),
             );
             break;
           case 'goal':
-            await (db.update(db.localGoals)..where((g) => g.id.equals(entityId) & g.userId.equals(userId))).write(
-              LocalGoalsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            await (db.update(db.localGoals)
+                  ..where(
+                      (g) => g.id.equals(entityId) & g.userId.equals(userId)))
+                .write(
+              LocalGoalsCompanion(
+                  isDeleted: const Value(true),
+                  version: Value(version),
+                  syncStatus: const Value('synced')),
             );
             break;
           case 'decision':
-            await (db.update(db.localDecisions)..where((d) => d.id.equals(entityId) & d.userId.equals(userId))).write(
-              LocalDecisionsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            await (db.update(db.localDecisions)
+                  ..where(
+                      (d) => d.id.equals(entityId) & d.userId.equals(userId)))
+                .write(
+              LocalDecisionsCompanion(
+                  isDeleted: const Value(true),
+                  version: Value(version),
+                  syncStatus: const Value('synced')),
             );
             break;
           case 'review':
-            await (db.update(db.localReviews)..where((r) => r.id.equals(entityId) & r.userId.equals(userId))).write(
-              LocalReviewsCompanion(isDeleted: const Value(true), version: Value(version), syncStatus: const Value('synced')),
+            await (db.update(db.localReviews)
+                  ..where(
+                      (r) => r.id.equals(entityId) & r.userId.equals(userId)))
+                .write(
+              LocalReviewsCompanion(
+                  isDeleted: const Value(true),
+                  version: Value(version),
+                  syncStatus: const Value('synced')),
             );
             break;
         }
@@ -272,8 +339,13 @@ class ClientSyncService {
               .getSingleOrNull();
 
           // REGLA INQUEBRANTABLE: Moneda inmutable
-          final currency = existingAcc?.currency ?? (payload['currency']?.toString().toUpperCase() ?? 'CRC');
-          final initBalance = (payload['initial_balance'] ?? payload['initialBalance'] ?? payload['opening_balance'] as num?)?.toDouble() ?? (existingAcc?.initialBalance ?? 0.0);
+          final currency = existingAcc?.currency ??
+              (payload['currency']?.toString().toUpperCase() ?? 'CRC');
+          final initBalance = (payload['initial_balance'] ??
+                      payload['initialBalance'] ??
+                      payload['opening_balance'] as num?)
+                  ?.toDouble() ??
+              (existingAcc?.initialBalance ?? 0.0);
 
           await db.into(db.localAccounts).insertOnConflictUpdate(
                 LocalAccountsCompanion(
@@ -285,8 +357,10 @@ class ClientSyncService {
                   openingBalance: Value(initBalance),
                   color: Value(payload['color']?.toString()),
                   icon: Value(payload['icon']?.toString()),
-                  isDefault: Value(payload['is_default'] == true || payload['is_default'] == 1),
-                  isArchived: Value(payload['is_archived'] == true || payload['is_archived'] == 1),
+                  isDefault: Value(payload['is_default'] == true ||
+                      payload['is_default'] == 1),
+                  isArchived: Value(payload['is_archived'] == true ||
+                      payload['is_archived'] == 1),
                   version: Value(version),
                   syncStatus: const Value('synced'),
                   updatedAt: Value(now),
@@ -297,19 +371,23 @@ class ClientSyncService {
         case 'transaction':
           final amount = (payload['amount'] as num?)?.toDouble() ?? 0.0;
           final dateStr = payload['date']?.toString();
-          final txDate = dateStr != null ? (DateTime.tryParse(dateStr) ?? now) : now;
+          final txDate =
+              dateStr != null ? (DateTime.tryParse(dateStr) ?? now) : now;
 
           await db.into(db.localTransactions).insertOnConflictUpdate(
                 LocalTransactionsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
-                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
+                  accountId: Value(
+                      (payload['account_id'] ?? payload['accountId'])
+                          ?.toString()),
                   type: Value(payload['type']?.toString() ?? 'expense'),
                   category: Value(payload['category']?.toString() ?? 'Otros'),
                   amount: Value(amount),
                   description: Value(payload['description']?.toString() ?? ''),
                   date: Value(txDate),
-                  recognized: Value(payload['recognized'] == true || payload['recognized'] == 1),
+                  recognized: Value(payload['recognized'] == true ||
+                      payload['recognized'] == 1),
                   version: Value(version),
                   syncStatus: const Value('synced'),
                   isDeleted: const Value(false),
@@ -320,14 +398,18 @@ class ClientSyncService {
 
         case 'commitment':
           final amount = (payload['amount'] as num?)?.toDouble() ?? 0.0;
-          final dueStr = (payload['dueDate'] ?? payload['due_date'])?.toString();
-          final dueDate = dueStr != null ? (DateTime.tryParse(dueStr) ?? now) : now;
+          final dueStr =
+              (payload['dueDate'] ?? payload['due_date'])?.toString();
+          final dueDate =
+              dueStr != null ? (DateTime.tryParse(dueStr) ?? now) : now;
 
           await db.into(db.localCommitments).insertOnConflictUpdate(
                 LocalCommitmentsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
-                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
+                  accountId: Value(
+                      (payload['account_id'] ?? payload['accountId'])
+                          ?.toString()),
                   title: Value(payload['title']?.toString() ?? 'Compromiso'),
                   amount: Value(amount),
                   dueDate: Value(dueDate),
@@ -341,14 +423,22 @@ class ClientSyncService {
           break;
 
         case 'goal':
-          final target = (payload['targetAmount'] ?? payload['target_amount'] as num?)?.toDouble() ?? 0.0;
-          final saved = (payload['savedAmount'] ?? payload['saved_amount'] as num?)?.toDouble() ?? 0.0;
+          final target =
+              (payload['targetAmount'] ?? payload['target_amount'] as num?)
+                      ?.toDouble() ??
+                  0.0;
+          final saved =
+              (payload['savedAmount'] ?? payload['saved_amount'] as num?)
+                      ?.toDouble() ??
+                  0.0;
 
           await db.into(db.localGoals).insertOnConflictUpdate(
                 LocalGoalsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
-                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
+                  accountId: Value(
+                      (payload['account_id'] ?? payload['accountId'])
+                          ?.toString()),
                   title: Value(payload['title']?.toString() ?? 'Meta'),
                   targetAmount: Value(target),
                   savedAmount: Value(saved),
@@ -365,10 +455,14 @@ class ClientSyncService {
                 LocalDecisionsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
-                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
+                  accountId: Value(
+                      (payload['account_id'] ?? payload['accountId'])
+                          ?.toString()),
                   action: Value(payload['action']?.toString() ?? ''),
                   note: Value(payload['note']?.toString() ?? ''),
-                  createdAt: Value(DateTime.tryParse(payload['created_at']?.toString() ?? '') ?? now),
+                  createdAt: Value(DateTime.tryParse(
+                          payload['created_at']?.toString() ?? '') ??
+                      now),
                   version: Value(version),
                   syncStatus: const Value('synced'),
                   isDeleted: const Value(false),
@@ -382,15 +476,26 @@ class ClientSyncService {
                 LocalReviewsCompanion(
                   id: Value(entityId),
                   userId: Value(userId),
-                  accountId: Value((payload['account_id'] ?? payload['accountId'])?.toString()),
-                  start: Value(DateTime.tryParse(payload['start']?.toString() ?? '') ?? now),
-                  end: Value(DateTime.tryParse(payload['end']?.toString() ?? '') ?? now),
+                  accountId: Value(
+                      (payload['account_id'] ?? payload['accountId'])
+                          ?.toString()),
+                  start: Value(
+                      DateTime.tryParse(payload['start']?.toString() ?? '') ??
+                          now),
+                  end: Value(
+                      DateTime.tryParse(payload['end']?.toString() ?? '') ??
+                          now),
                   periodTitle: Value(payload['periodTitle']?.toString() ?? ''),
-                  periodSubtitle: Value(payload['periodSubtitle']?.toString() ?? ''),
-                  transactionIdsJson: Value(jsonEncode(payload['transactionIds'] ?? [])),
+                  periodSubtitle:
+                      Value(payload['periodSubtitle']?.toString() ?? ''),
+                  transactionIdsJson:
+                      Value(jsonEncode(payload['transactionIds'] ?? [])),
                   decision: Value(payload['decision']?.toString() ?? ''),
-                  decisionDetailsJson: Value(jsonEncode(payload['decisionDetails'] ?? {})),
-                  createdAt: Value(DateTime.tryParse(payload['createdAt']?.toString() ?? '') ?? now),
+                  decisionDetailsJson:
+                      Value(jsonEncode(payload['decisionDetails'] ?? {})),
+                  createdAt: Value(DateTime.tryParse(
+                          payload['createdAt']?.toString() ?? '') ??
+                      now),
                   version: Value(version),
                   syncStatus: const Value('synced'),
                   isDeleted: const Value(false),
@@ -412,7 +517,9 @@ class ClientSyncService {
   Future<List<EntityConflict>> getUnresolvedConflicts(String userId) async {
     final query = db.select(db.localConflicts)
       ..where((c) => c.userId.equals(userId) & c.status.equals('unresolved'))
-      ..orderBy([(c) => OrderingTerm(expression: c.createdAt, mode: OrderingMode.desc)]);
+      ..orderBy([
+        (c) => OrderingTerm(expression: c.createdAt, mode: OrderingMode.desc)
+      ]);
 
     final rows = await query.get();
     return rows.map((r) {
@@ -439,12 +546,16 @@ class ClientSyncService {
     required ConflictResolutionStrategy strategy,
     Map<String, dynamic>? mergedPayload,
   }) async {
-    final conflictRow = await (db.select(db.localConflicts)..where((c) => c.id.equals(conflictId))).getSingleOrNull();
+    final conflictRow = await (db.select(db.localConflicts)
+          ..where((c) => c.id.equals(conflictId)))
+        .getSingleOrNull();
     if (conflictRow == null) return;
 
     final strategyStr = strategy == ConflictResolutionStrategy.clientWins
         ? 'client_wins'
-        : (strategy == ConflictResolutionStrategy.serverWins ? 'server_wins' : 'merge');
+        : (strategy == ConflictResolutionStrategy.serverWins
+            ? 'server_wins'
+            : 'merge');
 
     // Notificar al servidor si está disponible
     try {
@@ -458,7 +569,9 @@ class ClientSyncService {
 
     // Resolver localmente
     await db.transaction(() async {
-      await (db.update(db.localConflicts)..where((c) => c.id.equals(conflictId))).write(
+      await (db.update(db.localConflicts)
+            ..where((c) => c.id.equals(conflictId)))
+          .write(
         LocalConflictsCompanion(
           status: Value('resolved_$strategyStr'),
           resolvedAt: Value(DateTime.now()),
@@ -467,7 +580,8 @@ class ClientSyncService {
 
       // Si gana el servidor, aplicar la versión del servidor localmente
       if (strategy == ConflictResolutionStrategy.serverWins) {
-        final serverPayload = Map<String, dynamic>.from(jsonDecode(conflictRow.serverPayloadJson) as Map);
+        final serverPayload = Map<String, dynamic>.from(
+            jsonDecode(conflictRow.serverPayloadJson) as Map);
         await _applyRemoteChange(userId, {
           'entity_type': conflictRow.entityType,
           'entity_id': conflictRow.entityId,

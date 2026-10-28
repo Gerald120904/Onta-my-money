@@ -18,7 +18,8 @@ class ApiException implements Exception {
 
 class ApiConfig {
   static const String _envUrl = String.fromEnvironment('API_URL');
-  static const String _envPort = String.fromEnvironment('API_PORT', defaultValue: '8080');
+  static const String _envPort =
+      String.fromEnvironment('API_PORT', defaultValue: '8080');
 
   static String get baseUrl {
     if (_envUrl.isNotEmpty) {
@@ -46,7 +47,8 @@ class ApiClient {
   Map<String, String> get headers => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        if (token != null && token!.isNotEmpty) 'Authorization': 'Bearer $token',
+        if (token != null && token!.isNotEmpty)
+          'Authorization': 'Bearer $token',
         if (deviceId != null && deviceId!.isNotEmpty) 'X-Device-Id': deviceId!,
       };
 
@@ -143,7 +145,9 @@ class ApiClient {
   }
 
   ApiException _wrapNetworkError(Object error) {
-    if (error is SocketException || error is TimeoutException || error is http.ClientException) {
+    if (error is SocketException ||
+        error is TimeoutException ||
+        error is http.ClientException) {
       return ApiException(
         'Sin conexión con el servidor. Modo offline activo.',
         0,
