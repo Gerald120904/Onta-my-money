@@ -43,7 +43,7 @@ class ApiConfig {
       if (configuredUrl.isNotEmpty && configuredUrl != productionUrl) {
         throw StateError('La API de producción debe usar $productionUrl');
       }
-      return productionUrl;
+      return isWeb ? '' : productionUrl;
     }
     if (configuredUrl.isNotEmpty) {
       return configuredUrl;
@@ -69,9 +69,16 @@ class ApiClient {
   String? refreshToken;
   String? deviceId;
   Future<void> Function(String accessToken, String? refreshToken)? onTokensRotated;
+  Future<void> Function()? onRefreshRejected;
   Future<bool>? _refreshInFlight;
 
   String get baseUrl => ApiConfig.baseUrl;
+
+  Uri _uri(String path) =>
+      baseUrl.isEmpty ? Uri.base.resolve(path) : Uri.parse('$baseUrl$path');
+
+  Future<bool> restoreWebSession() =>
+      kIsWeb ? _refreshSession() : Future.value(false);
 
   Map<String, String> get headers => {
         'Content-Type': 'application/json',
@@ -84,7 +91,7 @@ class ApiClient {
   Future<dynamic> get(String path) async {
     return _request(() => _http
           .get(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
           )
           .timeout(const Duration(seconds: 15)));
@@ -96,12 +103,13 @@ class ApiClient {
   ]) async {
     return _request(() => _http
           .post(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
             body: jsonEncode(body ?? {}),
           )
           .timeout(const Duration(seconds: 15)),
-        allowRefresh: path == '/api/auth/logout-all' ||
+        allowRefresh: path == '/api/auth/logout' ||
+            path == '/api/auth/logout-all' ||
             !path.startsWith('/api/auth/'));
   }
 
@@ -111,7 +119,7 @@ class ApiClient {
   ) async {
     return _request(() => _http
           .put(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
             body: jsonEncode(body),
           )
@@ -124,7 +132,7 @@ class ApiClient {
   ]) async {
     return _request(() => _http
           .patch(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
             body: jsonEncode(body ?? {}),
           )
@@ -134,7 +142,7 @@ class ApiClient {
   Future<dynamic> delete(String path) async {
     return _request(() => _http
           .delete(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
           )
           .timeout(const Duration(seconds: 15)));
@@ -146,7 +154,7 @@ class ApiClient {
       final usedToken = token;
       var response = await send();
       if (response.statusCode == 401 && allowRefresh &&
-          refreshToken != null && refreshToken!.isNotEmpty) {
+          ((refreshToken != null && refreshToken!.isNotEmpty) || kIsWeb)) {
         if (token != usedToken || await _refreshSession()) {
           response = await send();
         }
@@ -170,20 +178,25 @@ class ApiClient {
   Future<bool> _rotateTokens() async {
     try {
       final response = await _http.post(
-        Uri.parse('$baseUrl/api/auth/refresh'),
+        _uri('/api/auth/refresh'),
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-        body: jsonEncode({'refresh_token': refreshToken}),
+        body: jsonEncode({if (refreshToken != null) 'refresh_token': refreshToken}),
       ).timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
+        if (kIsWeb && response.statusCode == 401) {
+          token = null;
+          refreshToken = null;
+          await onRefreshRejected?.call();
+        }
         return false;
       }
       final data = jsonDecode(response.body);
       if (data is! Map || data['token'] is! String ||
-          data['refresh_token'] is! String) {
+          (!kIsWeb && data['refresh_token'] is! String)) {
         return false;
       }
       final nextToken = data['token'] as String;
-      final nextRefresh = data['refresh_token'] as String;
+      final nextRefresh = data['refresh_token'] as String?;
       await onTokensRotated?.call(nextToken, nextRefresh);
       token = nextToken;
       refreshToken = nextRefresh;

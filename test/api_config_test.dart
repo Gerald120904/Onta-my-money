@@ -9,7 +9,7 @@ void main() {
           isRelease: true, isWeb: isWeb, isAndroid: !isWeb,
           configuredUrl: '',
         ),
-        ApiConfig.productionUrl,
+        isWeb ? '' : ApiConfig.productionUrl,
       );
       for (final invalid in [
         'http://localhost:8080',

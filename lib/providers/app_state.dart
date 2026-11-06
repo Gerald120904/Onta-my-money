@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -70,8 +71,10 @@ class AppState extends ChangeNotifier {
         financeRepository = FinanceRepository(database),
         reviewRepository = ReviewRepository(database) {
     notificationService = NotificationService(database);
-    api.onTokensRotated = (access, refresh) =>
-        credentialStore.save(access, refresh);
+    api.onTokensRotated = (access, refresh) => kIsWeb
+        ? credentialStore.clear()
+        : credentialStore.save(access, refresh);
+    api.onRefreshRejected = kIsWeb ? credentialStore.clear : null;
     syncService = ClientSyncService(
       api: api,
       db: db,
@@ -86,7 +89,9 @@ class AppState extends ChangeNotifier {
 
   ReviewResult? get latestReview => reviews.isEmpty ? null : reviews.first;
 
-  bool get isAuthenticated => api.token != null && api.token!.isNotEmpty;
+  bool get isAuthenticated =>
+      (api.token != null && api.token!.isNotEmpty) ||
+      (kIsWeb && currentUserId != null && currentUserEmail != null);
 
   int get pendingOperationsCount => syncReport.pendingCount;
 
@@ -172,9 +177,9 @@ class AppState extends ChangeNotifier {
     autoSyncEnabled = prefs.getBool('auto_sync_enabled') ?? true;
     syncService.autoSyncEnabled = autoSyncEnabled;
 
-    api.token = await credentialStore.readAccessToken();
+    api.token = kIsWeb ? null : await credentialStore.readAccessToken();
     api.refreshToken = await credentialStore.readRefreshToken();
-    final legacyToken = prefs.getString('token');
+    final legacyToken = kIsWeb ? null : prefs.getString('token');
     api.token ??= legacyToken;
     currentUserEmail = prefs.getString('current_user_email');
     currentUserId = prefs.getString('current_user_id');
@@ -188,11 +193,17 @@ class AppState extends ChangeNotifier {
       currentUserId ??= localUser.id;
       currentUserEmail ??= localUser.email;
       currentUserName ??= localUser.name;
-      api.token ??= localUser.token;
+      if (!kIsWeb) api.token ??= localUser.token;
       openingBalance = localUser.openingBalance;
     }
 
-    if (api.token != null && (legacyToken != null || localUser?.token != null)) {
+    if (kIsWeb) {
+      unawaited(_restoreWebSession(prefs, localUser));
+    }
+
+    if (!kIsWeb &&
+        api.token != null &&
+        (legacyToken != null || localUser?.token != null)) {
       try {
         await credentialStore.save(api.token!, api.refreshToken);
         await prefs.remove('token');
@@ -210,7 +221,7 @@ class AppState extends ChangeNotifier {
 
     if (currentUserId == null ||
         currentUserEmail == null ||
-        api.token == null) {
+        (!kIsWeb && api.token == null)) {
       reviews = [];
       transactions = [];
       commitments = [];
@@ -236,6 +247,28 @@ class AppState extends ChangeNotifier {
 
     // En segundo plano, si hay conexión disponible y autoSync activo, sincronizar sin bloquear la interfaz
     _backgroundSync();
+  }
+
+  Future<void> _restoreWebSession(
+      SharedPreferences prefs, LocalUser? localUser) async {
+    final restored = await api.restoreWebSession();
+    // Older Web builds kept bearer credentials in browser storage.
+    // Clear them after a successful migration to the HttpOnly cookie.
+    if (restored) {
+      await credentialStore.clear();
+      await prefs.remove('token');
+      if (localUser?.token != null && currentUserId != null) {
+        await financeRepository.saveUser(
+          id: localUser!.id,
+          name: localUser.name,
+          email: localUser.email,
+          token: null,
+          openingBalance: localUser.openingBalance,
+        );
+      }
+      notifyListeners();
+      _backgroundSync();
+    }
   }
 
   Future<void> _backgroundSync() async {
@@ -338,7 +371,11 @@ class AppState extends ChangeNotifier {
             (userMap['opening_balance'] as num?)?.toDouble() ?? 0.0;
 
         final refreshToken = data['refresh_token']?.toString();
-        await credentialStore.save(token, refreshToken);
+        if (kIsWeb) {
+          await credentialStore.clear();
+        } else {
+          await credentialStore.save(token, refreshToken);
+        }
         api.token = token;
         api.refreshToken = refreshToken;
         currentUserId = userId;

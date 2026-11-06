@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/theme/app_theme.dart';
 import '../providers/app_state.dart';
@@ -69,6 +70,10 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (error) {
       if (mounted) AppAlerts.error(context, error.toString());
     }
+  }
+
+  Future<void> _openPrivacyPolicy() async {
+    await launchUrl(Uri.parse('https://onta-my-money.pages.dev/privacy.html'));
   }
 
   Future<void> _resetPassword(String token) async {
@@ -458,6 +463,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed:
                             widget.state.loading ? null : _resendVerification,
                         child: const Text('Reenviar verificación'),
+                      ),
+                      TextButton(
+                        onPressed: _openPrivacyPolicy,
+                        child: const Text('Política de privacidad'),
                       ),
                       if (verifyToken != null && verifyToken.isNotEmpty)
                         FilledButton.tonal(
