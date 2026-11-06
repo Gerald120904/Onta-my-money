@@ -17,12 +17,14 @@ import '../services/notifications/app_notification.dart';
 import '../services/notifications/notification_service.dart';
 import '../services/notifications/android_reminder_scheduler.dart';
 import '../services/notifications/notification_preferences.dart';
+import '../services/auth/credential_store.dart';
 
 class AppState extends ChangeNotifier {
   final ApiClient api = ApiClient();
   final AppDatabase db;
   final FinanceRepository financeRepository;
   final ReviewRepository reviewRepository;
+  final CredentialStore credentialStore;
   late final ClientSyncService syncService;
   late final NotificationService notificationService;
   final AndroidReminderScheduler reminderScheduler = AndroidReminderScheduler();
@@ -59,13 +61,17 @@ class AppState extends ChangeNotifier {
   List<EntityConflict> conflicts = [];
   StreamSubscription? _syncSub;
 
-  AppState({AppDatabase? customDb}) : this._(customDb ?? AppDatabase());
+  AppState({AppDatabase? customDb, CredentialStore? credentialStore})
+      : this._(customDb ?? AppDatabase(),
+            credentialStore ?? SecureCredentialStore());
 
-  AppState._(AppDatabase database)
+  AppState._(AppDatabase database, this.credentialStore)
       : db = database,
         financeRepository = FinanceRepository(database),
         reviewRepository = ReviewRepository(database) {
     notificationService = NotificationService(database);
+    api.onTokensRotated = (access, refresh) =>
+        credentialStore.save(access, refresh);
     syncService = ClientSyncService(
       api: api,
       db: db,
@@ -166,7 +172,10 @@ class AppState extends ChangeNotifier {
     autoSyncEnabled = prefs.getBool('auto_sync_enabled') ?? true;
     syncService.autoSyncEnabled = autoSyncEnabled;
 
-    api.token = prefs.getString('token');
+    api.token = await credentialStore.readAccessToken();
+    api.refreshToken = await credentialStore.readRefreshToken();
+    final legacyToken = prefs.getString('token');
+    api.token ??= legacyToken;
     currentUserEmail = prefs.getString('current_user_email');
     currentUserId = prefs.getString('current_user_id');
     currentUserName = prefs.getString('current_user_name');
@@ -181,6 +190,22 @@ class AppState extends ChangeNotifier {
       currentUserName ??= localUser.name;
       api.token ??= localUser.token;
       openingBalance = localUser.openingBalance;
+    }
+
+    if (api.token != null && (legacyToken != null || localUser?.token != null)) {
+      try {
+        await credentialStore.save(api.token!, api.refreshToken);
+        await prefs.remove('token');
+        if (localUser != null && localUser.token != null) {
+          await financeRepository.saveUser(
+            id: localUser.id, name: localUser.name, email: localUser.email,
+            token: null, openingBalance: localUser.openingBalance,
+          );
+        }
+      } catch (_) {
+        // La sesión local antigua permanece disponible hasta que el almacén
+        // seguro del dispositivo pueda completar la migración.
+      }
     }
 
     if (currentUserId == null ||
@@ -312,7 +337,10 @@ class AppState extends ChangeNotifier {
         final serverOpeningBalance =
             (userMap['opening_balance'] as num?)?.toDouble() ?? 0.0;
 
+        final refreshToken = data['refresh_token']?.toString();
+        await credentialStore.save(token, refreshToken);
         api.token = token;
+        api.refreshToken = refreshToken;
         currentUserId = userId;
         currentUserEmail = userEmail;
         currentUserName = userName;
@@ -320,7 +348,7 @@ class AppState extends ChangeNotifier {
         openingBalance = serverOpeningBalance;
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
+        await prefs.remove('token');
         await prefs.setString('current_user_email', userEmail);
         await prefs.setString('current_user_id', userId);
         await prefs.setString('current_user_name', userName);
@@ -332,7 +360,7 @@ class AppState extends ChangeNotifier {
           id: userId,
           name: userName,
           email: userEmail,
-          token: token,
+          token: null,
           openingBalance: serverOpeningBalance,
           isCurrent: true,
         );
@@ -379,6 +407,14 @@ class AppState extends ChangeNotifier {
     }
 
     api.token = null;
+    api.refreshToken = null;
+    await credentialStore.clear();
+    if (currentUserId != null && currentUserEmail != null && currentUserName != null) {
+      await financeRepository.saveUser(
+        id: currentUserId!, name: currentUserName!, email: currentUserEmail!,
+        token: null, openingBalance: openingBalance, isCurrent: false,
+      );
+    }
     currentUserEmail = null;
     currentUserId = null;
     currentUserName = null;
@@ -402,6 +438,15 @@ class AppState extends ChangeNotifier {
     await prefs.remove('opening_balance');
 
     notifyListeners();
+  }
+
+  Future<void> logoutAll() async {
+    if (currentUserId != null &&
+        await financeRepository.getPendingOperationsCount(currentUserId!) > 0) {
+      throw StateError('Sincronizá los cambios pendientes antes de cerrar todas las sesiones.');
+    }
+    await api.post('/api/auth/logout-all');
+    await logout(force: true);
   }
 
   // =========================================================

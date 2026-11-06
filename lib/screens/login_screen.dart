@@ -20,13 +20,108 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController(
-    text: 'demo@plata.app',
-  );
+  final _emailController = TextEditingController();
 
-  final _passwordController = TextEditingController(
-    text: '123456',
-  );
+  final _passwordController = TextEditingController();
+
+  Future<void> _requestPasswordReset() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      AppAlerts.error(context, 'Ingresá primero tu correo electrónico.');
+      return;
+    }
+    try {
+      await widget.state.api
+          .post('/api/auth/forgot-password', {'email': email});
+      if (mounted) {
+        AppAlerts.success(context,
+            'Si la cuenta existe, recibirás un enlace de recuperación.');
+      }
+    } catch (error) {
+      if (mounted) AppAlerts.error(context, error.toString());
+    }
+  }
+
+  Future<void> _resendVerification() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      AppAlerts.error(context, 'Ingresá primero tu correo electrónico.');
+      return;
+    }
+    try {
+      await widget.state.api
+          .post('/api/auth/resend-verification', {'email': email});
+      if (mounted) {
+        AppAlerts.success(context,
+            'Si tu cuenta requiere verificación, recibirás un enlace.');
+      }
+    } catch (error) {
+      if (mounted) AppAlerts.error(context, error.toString());
+    }
+  }
+
+  Future<void> _verifyEmail(String token) async {
+    try {
+      await widget.state.api.post('/api/auth/verify-email', {'token': token});
+      if (mounted) {
+        AppAlerts.success(context, 'Correo verificado. Ya podés ingresar.');
+      }
+    } catch (error) {
+      if (mounted) AppAlerts.error(context, error.toString());
+    }
+  }
+
+  Future<void> _resetPassword(String token) async {
+    final password = TextEditingController();
+    final confirmation = TextEditingController();
+    try {
+      final submitted = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Restablecer contraseña'),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(
+                controller: password,
+                obscureText: true,
+                decoration:
+                    const InputDecoration(labelText: 'Nueva contraseña')),
+            TextField(
+                controller: confirmation,
+                obscureText: true,
+                decoration:
+                    const InputDecoration(labelText: 'Confirmar contraseña')),
+          ]),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancelar')),
+            FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Restablecer')),
+          ],
+        ),
+      );
+      if (submitted != true || !mounted) return;
+      if (password.text.length < 10 || password.text != confirmation.text) {
+        AppAlerts.error(
+            context, 'Usá al menos 10 caracteres y confirmá la contraseña.');
+        return;
+      }
+      await widget.state.api.post('/api/auth/reset-password', {
+        'token': token,
+        'new_password': password.text,
+      });
+      if (mounted) {
+        AppAlerts.success(
+            context, 'Contraseña actualizada. Ya podés ingresar.');
+      }
+    } catch (error) {
+      if (mounted) AppAlerts.error(context, error.toString());
+    } finally {
+      password.dispose();
+      confirmation.dispose();
+    }
+  }
 
   // =========================================================
   // LOGIN
@@ -101,8 +196,8 @@ class _LoginScreenState extends State<LoginScreen> {
               label: 'Contraseña',
               obscureText: true,
               validator: (value) {
-                if (value == null || value.length < 6) {
-                  return 'Mínimo 6 caracteres';
+                if (value == null || value.length < 10) {
+                  return 'Mínimo 10 caracteres';
                 }
 
                 return null;
@@ -174,7 +269,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       AppAlerts.success(
         context,
-        'Cuenta creada. Ya podés ingresar.',
+        'Cuenta creada. Revisá tu correo para verificarla antes de ingresar.',
       );
     }
 
@@ -205,7 +300,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final borderColor = AppTheme.borderColor(context);
     final titleColor = AppTheme.textColor(context);
     final subtitleColor = AppTheme.mutedColor(context);
-    final demoBg = AppTheme.tintPrimary(context);
+    final resetToken = Uri.base.queryParameters['reset_token'];
+    final verifyToken = Uri.base.queryParameters['verify_token'];
 
     return Scaffold(
       backgroundColor: AppTheme.bg(context),
@@ -353,31 +449,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 18),
-
-                      // =================================================
-                      // CREDENCIALES DEMO
-                      // =================================================
-
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: demoBg,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Demo: demo@plata.app / 123456',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: subtitleColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      TextButton(
+                        onPressed:
+                            widget.state.loading ? null : _requestPasswordReset,
+                        child: const Text('Olvidé mi contraseña'),
                       ),
+                      TextButton(
+                        onPressed:
+                            widget.state.loading ? null : _resendVerification,
+                        child: const Text('Reenviar verificación'),
+                      ),
+                      if (verifyToken != null && verifyToken.isNotEmpty)
+                        FilledButton.tonal(
+                          onPressed: () => _verifyEmail(verifyToken),
+                          child: const Text('Verificar correo desde el enlace'),
+                        ),
+                      if (resetToken != null && resetToken.isNotEmpty)
+                        FilledButton.tonal(
+                          onPressed: () => _resetPassword(resetToken),
+                          child: const Text(
+                              'Restablecer contraseña desde el enlace'),
+                        ),
                     ],
                   ),
                 ),

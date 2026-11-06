@@ -14,6 +14,7 @@ import 'package:donde_se_fue_mi_plata/data/repositories/review_repository.dart';
 import 'package:donde_se_fue_mi_plata/models/models.dart';
 import 'package:donde_se_fue_mi_plata/models/review_result.dart';
 import 'package:donde_se_fue_mi_plata/providers/app_state.dart';
+import 'support/memory_credential_store.dart';
 
 // Mock ApiClient para simular servidor online/offline e interrupciones de red
 class MockNetworkApiClient extends ApiClient {
@@ -579,7 +580,7 @@ void main() {
       () async {
     mockApi.isOnline = false; // Sin Internet
 
-    final appState = AppState(customDb: db);
+    final appState = AppState(customDb: db, credentialStore: MemoryCredentialStore());
     await appState.restoreSession();
 
     expect(appState.isAuthenticated, isTrue);

@@ -18,6 +18,7 @@ import 'package:donde_se_fue_mi_plata/screens/profile_screen.dart';
 import 'package:donde_se_fue_mi_plata/screens/settings_screen.dart';
 import 'package:donde_se_fue_mi_plata/services/notifications/notification_preferences.dart';
 import 'package:donde_se_fue_mi_plata/services/notifications/notification_service.dart';
+import 'support/memory_credential_store.dart';
 
 class MockApiForProfile extends ApiClient {
   bool isOnline = true;
@@ -117,7 +118,7 @@ void main() {
       isCurrent: true,
     );
 
-    appState = AppState(customDb: db);
+    appState = AppState(customDb: db, credentialStore: MemoryCredentialStore());
     appState.currentUserId = testUserId;
     appState.currentUserEmail = testUserEmail;
     appState.currentUserName = testUserName;
