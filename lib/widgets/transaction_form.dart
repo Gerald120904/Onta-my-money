@@ -630,7 +630,7 @@ class _TransactionFormState extends State<TransactionForm> {
                 ),
                 const SizedBox(height: 7),
                 DropdownButtonFormField<String>(
-                  value: _category,
+                  initialValue: _category,
                   isExpanded: true,
                   dropdownColor: surfaceColor,
                   style: TextStyle(color: textColor),

@@ -46,7 +46,6 @@ class _ExpenseFormState extends State<ExpenseForm> {
   late DateTime _date;
   late bool _recognized;
 
-  bool _saving = false;
 
   static const _categories = [
     'Comida',
@@ -355,7 +354,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                     ),
                     IconButton(
                       tooltip: 'Cerrar',
-                      onPressed: _saving ? null : () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(context),
                       icon: Icon(Icons.close_rounded, color: textColor),
                     ),
                   ],
@@ -435,7 +434,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 const _FieldLabel(text: 'Categoría', requiredField: true),
                 const SizedBox(height: 7),
                 DropdownButtonFormField<String>(
-                  value: _category,
+                  initialValue: _category,
                   isExpanded: true,
                   dropdownColor: cardBg,
                   decoration: const InputDecoration(
@@ -525,7 +524,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 ),
                 const SizedBox(height: 22),
                 FilledButton(
-                  onPressed: _saving ? null : _submit,
+                  onPressed: _submit,
                   child: Text(editing ? 'Guardar cambios' : 'Registrar gasto'),
                 ),
               ],

@@ -25,6 +25,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   int _selectedFilter = 0; // 0: Todas, 1: Pendientes, 2: Leídas
   bool _loading = false;
 
+  String _currencyForCommitment(Commitment commitment) {
+    for (final account in widget.state.accounts) {
+      if (account.id == commitment.accountId) return account.currency;
+    }
+    return 'CRC';
+  }
+
+  String _currencyForNotification(AppNotification notification) {
+    for (final commitment in widget.state.notificationCommitments) {
+      if (commitment.id == notification.relatedEntityId) {
+        return _currencyForCommitment(commitment);
+      }
+    }
+    return 'CRC';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -156,7 +172,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } else if (notif.relatedEntityType == 'commitment' &&
         notif.relatedEntityId != null) {
       // Find commitment
-      final commitment = widget.state.commitments.firstWhere(
+      final commitment = widget.state.notificationCommitments.firstWhere(
         (c) => c.id == notif.relatedEntityId,
         orElse: () => Commitment(
           id: '',
@@ -178,7 +194,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Monto: ${NotificationService.formatAmount(commitment.amount)}',
+                'Monto: ${NotificationService.formatAmount(commitment.amount, currency: _currencyForCommitment(commitment))}',
                 style:
                     const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
               ),
@@ -546,7 +562,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                         ? AppTheme
                                                             .primaryDarkTheme
                                                         : AppTheme.primary)
-                                                    .withOpacity(.5),
+                                                    .withValues(alpha: .5),
                                             width: notif.isRead ? 1.0 : 1.5,
                                           ),
                                           boxShadow: notif.isRead
@@ -554,7 +570,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                               : [
                                                   BoxShadow(
                                                     color: AppTheme.primary
-                                                        .withOpacity(.06),
+                                                        .withValues(alpha: .06),
                                                     blurRadius: 6,
                                                     offset: const Offset(0, 2),
                                                   ),
@@ -631,7 +647,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                       color: notif.isRead
                                                           ? mutedColor
                                                           : textColor
-                                                              .withOpacity(.85),
+                                                              .withValues(alpha: .85),
                                                     ),
                                                   ),
                                                   const SizedBox(height: 8),
@@ -664,8 +680,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                                           child: Text(
                                                             NotificationService
                                                                 .formatAmount(
-                                                                    notif
-                                                                        .amount!),
+                                                                    notif.amount!,
+                                                                    currency: _currencyForNotification(notif)),
                                                             style: TextStyle(
                                                               fontSize: 11,
                                                               fontWeight:

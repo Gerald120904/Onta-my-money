@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +19,10 @@ import 'package:donde_se_fue_mi_plata/providers/app_state.dart';
 class MockNetworkApiClient extends ApiClient {
   bool isOnline = true;
   bool failNextRequest = false;
+  ApiException? nextError;
+  bool incompletePushResponse = false;
+  bool rejectOperation = false;
+  Completer<void>? holdPush;
 
   final Map<String, dynamic> remoteServerData = {
     'transactions': <Map<String, dynamic>>[],
@@ -28,6 +33,10 @@ class MockNetworkApiClient extends ApiClient {
 
   @override
   Future<dynamic> post(String path, [Map<String, dynamic>? body]) async {
+    if (holdPush != null) await holdPush!.future;
+    final error = nextError;
+    nextError = null;
+    if (error != null) throw error;
     if (!isOnline) {
       throw ApiException('Sin conexión', 0, isNetworkError: true);
     }
@@ -37,12 +46,21 @@ class MockNetworkApiClient extends ApiClient {
     }
 
     if (path == '/api/sync/push') {
+      if (incompletePushResponse) return {'processed': []};
       final ops =
           (body?['operations'] as List? ?? []).cast<Map<String, dynamic>>();
       final results = <Map<String, dynamic>>[];
 
       for (final op in ops) {
         final opId = op['operation_id'].toString();
+        if (rejectOperation) {
+          results.add({
+            'operation_id': opId,
+            'status': 'error',
+            'message': 'Operación rechazada',
+          });
+          continue;
+        }
         final entityId = op['entity_id'].toString();
         final action = op['action'].toString();
         final payload = op['payload'] as Map<String, dynamic>;
@@ -117,7 +135,8 @@ class MockNetworkApiClient extends ApiClient {
       };
     }
 
-    if (path == '/api/sync/conflicts/conf-op-android-conflict/resolve') {
+    if (path.startsWith('/api/sync/conflicts/') &&
+        path.endsWith('/resolve')) {
       return {'ok': true};
     }
 
@@ -317,6 +336,86 @@ void main() {
     expect(serverTxs.length, equals(1));
   });
 
+  test('Error HTTP y timeout conservan la cola y nunca indican éxito', () async {
+    await financeRepo.saveTransaction(
+      userId: testUserId,
+      transaction: MoneyTransaction(
+        id: 'tx-http-timeout', type: 'expense', category: 'Prueba', description: 'HTTP',
+        amount: 10, date: DateTime.now(), recognized: true,
+      ),
+      isNew: true,
+    );
+    final service = ClientSyncService(api: mockApi, db: db, repository: financeRepo);
+    mockApi.nextError = ApiException('Servidor no disponible', 503);
+    final httpReport = await service.syncNow(testUserId);
+    expect(httpReport.state, SyncState.error);
+    expect(httpReport.completedSuccessfully, isFalse);
+    expect(httpReport.pendingCount, 1);
+
+    mockApi.nextError = ApiException('Tiempo agotado', 0, isNetworkError: true);
+    final timeoutReport = await service.syncNow(testUserId);
+    expect(timeoutReport.state, SyncState.offline);
+    expect(timeoutReport.completedSuccessfully, isFalse);
+    expect(await financeRepo.getPendingOperationsCount(testUserId), 1);
+  });
+
+  test('Respuesta parcial no descarta operaciones y permite reintento', () async {
+    await financeRepo.saveTransaction(
+      userId: testUserId,
+      transaction: MoneyTransaction(
+        id: 'tx-partial', type: 'expense', category: 'Prueba', description: 'Parcial',
+        amount: 20, date: DateTime.now(), recognized: true,
+      ),
+      isNew: true,
+    );
+    final service = ClientSyncService(api: mockApi, db: db, repository: financeRepo);
+    mockApi.incompletePushResponse = true;
+    final incomplete = await service.syncNow(testUserId);
+    expect(incomplete.state, SyncState.error);
+    expect(incomplete.pendingCount, 1);
+    mockApi.incompletePushResponse = false;
+    final retry = await service.syncNow(testUserId);
+    expect(retry.completedSuccessfully, isTrue);
+    expect(await financeRepo.getPendingOperationsCount(testUserId), 0);
+  });
+
+  test('Rechazo puntual produce estado parcial y conserva la operación', () async {
+    await financeRepo.saveTransaction(
+      userId: testUserId,
+      transaction: MoneyTransaction(
+        id: 'tx-rejected', type: 'expense', category: 'Prueba',
+        description: 'Rechazada', amount: 25,
+        date: DateTime.now(), recognized: true,
+      ),
+      isNew: true,
+    );
+    final service = ClientSyncService(api: mockApi, db: db, repository: financeRepo);
+    mockApi.rejectOperation = true;
+    final report = await service.syncNow(testUserId);
+    expect(report.state, SyncState.partial);
+    expect(report.completedSuccessfully, isFalse);
+    expect(report.pendingCount, 1);
+    expect(await financeRepo.getPendingOperationsCount(testUserId), 1);
+  });
+
+  test('Dos solicitudes simultáneas comparten el mismo ciclo', () async {
+    await financeRepo.saveTransaction(
+      userId: testUserId,
+      transaction: MoneyTransaction(
+        id: 'tx-concurrent', type: 'expense', category: 'Prueba', description: 'Concurrente',
+        amount: 30, date: DateTime.now(), recognized: true,
+      ),
+      isNew: true,
+    );
+    final service = ClientSyncService(api: mockApi, db: db, repository: financeRepo);
+    mockApi.holdPush = Completer<void>();
+    final first = service.syncNow(testUserId);
+    final second = service.syncNow(testUserId);
+    expect(identical(first, second), isTrue);
+    mockApi.holdPush!.complete();
+    expect((await first).completedSuccessfully, isTrue);
+  });
+
   // ==========================================
   // PRUEBA E: Detección y Resolución de Conflictos
   // ==========================================
@@ -368,8 +467,26 @@ void main() {
     final conflicts = await syncService.getUnresolvedConflicts(testUserId);
     expect(conflicts, hasLength(1));
     expect(conflicts.first.serverVersion, equals(2));
+    expect(
+      (await financeRepo.getTransactions(testUserId))
+          .firstWhere((transaction) => transaction.id == 'tx-conflict-e')
+          .amount,
+      4500.0,
+      reason: 'La descarga remota no debe pisar la edición local pendiente',
+    );
 
     // 5. Resolver conflicto
+    mockApi.isOnline = false;
+    await expectLater(
+      syncService.resolveConflict(
+        userId: testUserId,
+        conflictId: conflicts.first.id,
+        strategy: ConflictResolutionStrategy.clientWins,
+      ),
+      throwsA(isA<ApiException>()),
+    );
+    expect(await syncService.getUnresolvedConflicts(testUserId), hasLength(1));
+    mockApi.isOnline = true;
     await syncService.resolveConflict(
       userId: testUserId,
       conflictId: conflicts.first.id,

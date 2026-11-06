@@ -5,12 +5,29 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+tasks.configureEach { task ->
+    if (task.name == "compileFlutterBuildRelease") {
+        task.doFirst {
+            def rawDefines = project.findProperty("dart-defines")?.toString() ?: ""
+            def defines = rawDefines.split(",").findAll { it }.collect {
+                new String(Base64.getDecoder().decode(it), "UTF-8")
+            }
+            def apiUrl = defines.find { it.startsWith("API_URL=") }
+            if (apiUrl != null && apiUrl !=
+                    "API_URL=https://onta-my-money-api.gerald.prod.page") {
+                throw new GradleException("El APK release debe usar la API de producción HTTPS")
+            }
+        }
+    }
+}
+
 android {
     namespace = "com.example.frontend"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -20,7 +37,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.frontend"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -30,13 +46,35 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
+    signingConfigs {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            def keyPath = System.getenv("ONTA_ANDROID_KEYSTORE")
+            def storeSecret = System.getenv("ONTA_ANDROID_KEYSTORE_PASSWORD")
+            def aliasName = System.getenv("ONTA_ANDROID_KEY_ALIAS")
+            def keySecret = System.getenv("ONTA_ANDROID_KEY_PASSWORD")
+            if (keyPath && storeSecret && aliasName && keySecret) {
+                storeFile = file(keyPath)
+                storePassword = storeSecret
+                keyAlias = aliasName
+                keyPassword = keySecret
+            }
         }
     }
+
+    buildTypes {
+        release {
+            if (System.getenv("ONTA_ANDROID_KEYSTORE") &&
+                    System.getenv("ONTA_ANDROID_KEYSTORE_PASSWORD") &&
+                    System.getenv("ONTA_ANDROID_KEY_ALIAS") &&
+                    System.getenv("ONTA_ANDROID_KEY_PASSWORD")) {
+                signingConfig = signingConfigs.release
+            }
+        }
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
 
 flutter {

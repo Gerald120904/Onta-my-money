@@ -267,7 +267,7 @@ class _AccessibleFocusActionState extends State<_AccessibleFocusAction> {
             boxShadow: _showFocus
                 ? [
                     BoxShadow(
-                      color: AppTheme.primaryColor(context).withOpacity(.24),
+                      color: AppTheme.primaryColor(context).withValues(alpha: .24),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
@@ -465,7 +465,7 @@ class _DecisionGroupState extends State<_DecisionGroup> {
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
-                          color: widget.color.withOpacity(0.10),
+                          color: widget.color.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(
                             11,
                           ),
@@ -616,7 +616,7 @@ class _DecisionCard extends StatelessWidget {
       onActivate: onTap,
       borderRadius: 14,
       child: Material(
-        color: color.withOpacity(
+        color: color.withValues(alpha:
           0.05,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -1069,12 +1069,12 @@ class _ReportDetailScreen extends StatelessWidget {
                     16,
                   ),
                   decoration: BoxDecoration(
-                    color: decisionColor.withOpacity(0.06),
+                    color: decisionColor.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(
                       16,
                     ),
                     border: Border.all(
-                      color: decisionColor.withOpacity(0.35),
+                      color: decisionColor.withValues(alpha: 0.35),
                     ),
                   ),
                   child: Column(
@@ -1086,7 +1086,7 @@ class _ReportDetailScreen extends StatelessWidget {
                             width: 42,
                             height: 42,
                             decoration: BoxDecoration(
-                              color: decisionColor.withOpacity(
+                              color: decisionColor.withValues(alpha:
                                 0.12,
                               ),
                               borderRadius: BorderRadius.circular(
@@ -1341,7 +1341,7 @@ class _TransactionCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.10),
+              color: color.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -1413,7 +1413,7 @@ class _SmallChip extends StatelessWidget {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

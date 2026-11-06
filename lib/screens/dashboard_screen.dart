@@ -494,7 +494,7 @@ class DashboardScreen extends StatelessWidget {
                                 color: iconBg,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: accent.withOpacity(.25),
+                                  color: accent.withValues(alpha: .25),
                                 ),
                               ),
                               child: Icon(
@@ -678,7 +678,7 @@ class _BalanceDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = AppTheme.cardBg(context).withOpacity(.85);
+    final bg = AppTheme.cardBg(context).withValues(alpha: .85);
     final borderColor = AppTheme.borderColor(context);
     final textColor = AppTheme.textColor(context);
 

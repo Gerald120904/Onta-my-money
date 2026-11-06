@@ -68,7 +68,7 @@ class CommitmentsScreen extends StatelessWidget {
                 },
               ),
               DropdownButtonFormField<String>(
-                value: status,
+                initialValue: status,
                 decoration: const InputDecoration(labelText: 'Estado'),
                 items: const [
                   DropdownMenuItem(value: 'pending', child: Text('Pendiente')),

@@ -29,7 +29,7 @@ class StatCard extends StatelessWidget {
     final isDark = AppTheme.isDarkMode(context);
 
     final cardBg = emphasized
-        ? (isDark ? color.withOpacity(0.18) : color.withOpacity(0.08))
+        ? (isDark ? color.withValues(alpha: 0.18) : color.withValues(alpha: 0.08))
         : AppTheme.cardBg(context);
 
     final semanticDescription =
@@ -46,7 +46,7 @@ class StatCard extends StatelessWidget {
             color: cardBg,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: emphasized ? color.withOpacity(0.35) : borderColor,
+              color: emphasized ? color.withValues(alpha: 0.35) : borderColor,
               width: 1.15,
             ),
           ),
@@ -58,7 +58,7 @@ class StatCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(

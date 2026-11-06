@@ -11,12 +11,18 @@ class NotificationService {
 
   NotificationService(this.db);
 
-  /// Helper to format money amounts in CRC
-  static String formatAmount(double amount) {
+  /// Formats an amount in its account currency without converting it.
+  static String formatAmount(double amount, {String currency = 'CRC'}) {
+    final code = currency.toUpperCase();
+    final symbol = switch (code) {
+      'USD' => r'$',
+      'EUR' => '€',
+      _ => '₡',
+    };
     final fmt = NumberFormat.currency(
       locale: 'es_CR',
-      symbol: '₡',
-      decimalDigits: 0,
+      symbol: symbol,
+      decimalDigits: code == 'CRC' ? 0 : 2,
     );
     return fmt.format(amount);
   }
@@ -37,6 +43,12 @@ class NotificationService {
     final now = nowOverride ?? DateTime.now();
     final today = _normalize(now);
     final prefs = await NotificationPreferences.load(userId);
+    final accountRows = await (db.select(db.localAccounts)
+          ..where((a) => a.userId.equals(userId)))
+        .get();
+    final currencyByAccount = {
+      for (final account in accountRows) account.id: account.currency,
+    };
 
     // 1. Existing notifications for this user
     final existingRows = await (db.select(db.localNotifications)
@@ -59,6 +71,7 @@ class NotificationService {
         await (db.delete(db.localNotifications)
               ..where((n) => n.id.equals(row.id)))
             .go();
+        existingMap.remove(row.id);
       }
     }
 
@@ -68,7 +81,21 @@ class NotificationService {
       final daysDiff = dueDateNorm.difference(today).inDays;
       final dateKey =
           '${c.dueDate.year}-${c.dueDate.month.toString().padLeft(2, '0')}-${c.dueDate.day.toString().padLeft(2, '0')}';
-      final formattedAmount = formatAmount(c.amount);
+      final formattedAmount = formatAmount(c.amount,
+          currency: currencyByAccount[c.accountId] ?? 'CRC');
+
+      // Replace obsolete reminder copies when the due date, amount, or account
+      // currency changes. Financial records and pending operations are untouched.
+      for (final row in existingRows.where((n) => n.relatedEntityId == c.id)) {
+        if (!row.id.endsWith('_$dateKey') ||
+            row.amount != c.amount ||
+            !row.body.contains(formattedAmount)) {
+          await (db.delete(db.localNotifications)
+                ..where((n) => n.id.equals(row.id)))
+              .go();
+          existingMap.remove(row.id);
+        }
+      }
 
       // A. Check if overdue
       if (daysDiff < 0 && prefs.reminderOverdue) {

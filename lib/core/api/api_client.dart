@@ -17,24 +17,47 @@ class ApiException implements Exception {
 }
 
 class ApiConfig {
+  static const String productionUrl =
+      'https://onta-my-money-api.gerald.prod.page';
   static const String _envUrl = String.fromEnvironment('API_URL');
   static const String _envPort =
       String.fromEnvironment('API_PORT', defaultValue: '8080');
 
-  static String get baseUrl {
-    if (_envUrl.isNotEmpty) {
-      return _envUrl;
+  static String get baseUrl => resolveBaseUrl(
+        isRelease: kReleaseMode,
+        isWeb: kIsWeb,
+        isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+        configuredUrl: _envUrl,
+        port: _envPort,
+      );
+
+  @visibleForTesting
+  static String resolveBaseUrl({
+    required bool isRelease,
+    required bool isWeb,
+    required bool isAndroid,
+    required String configuredUrl,
+    String port = '8080',
+  }) {
+    if (isRelease) {
+      if (configuredUrl.isNotEmpty && configuredUrl != productionUrl) {
+        throw StateError('La API de producción debe usar $productionUrl');
+      }
+      return productionUrl;
+    }
+    if (configuredUrl.isNotEmpty) {
+      return configuredUrl;
     }
 
-    if (kIsWeb) {
-      return 'http://localhost:$_envPort';
+    if (isWeb) {
+      return 'http://localhost:$port';
     }
 
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:$_envPort';
+    if (isAndroid) {
+      return 'http://10.0.2.2:$port';
     }
 
-    return 'http://localhost:$_envPort';
+    return 'http://localhost:$port';
   }
 }
 

@@ -277,6 +277,67 @@ void main() {
   });
 
   group('3. NOTIFICACIONES: RECORDATORIOS DE COMPROMISOS Y DESDOPLICACIÓN', () {
+    test('Recordatorios conservan la moneda de cada cuenta', () async {
+      final now = DateTime(2026, 10, 23);
+      for (final currency in ['CRC', 'USD', 'EUR']) {
+        await financeRepo.saveAccount(
+          userId: testUserId,
+          account: Account(
+            id: 'account_$currency', userId: testUserId,
+            name: currency, currency: currency,
+            initialBalance: 0,
+          ),
+          isNew: true,
+        );
+      }
+      final commitments = [
+        for (final currency in ['CRC', 'USD', 'EUR'])
+          Commitment(
+            id: 'due_$currency', title: 'Pago $currency', amount: 1234.5,
+            dueDate: now, status: 'pending', accountId: 'account_$currency',
+          ),
+      ];
+      final service = NotificationService(db);
+      await service.recalculateCommitmentReminders(
+        userId: testUserId, commitments: commitments, nowOverride: now,
+      );
+      final notifications = await service.getNotifications(testUserId);
+      final bodies = {
+        for (final notification in notifications)
+          notification.relatedEntityId: notification.body,
+      };
+      expect(bodies['due_CRC'], contains('₡'));
+      expect(bodies['due_USD'], contains(r'$'));
+      expect(bodies['due_EUR'], contains('€'));
+      expect(NotificationService.formatAmount(1234.56, currency: 'USD'),
+          contains('1.234,56'));
+    });
+
+    test('Cambio de monto y fecha reemplaza el aviso anterior', () async {
+      final now = DateTime(2026, 10, 23);
+      await const NotificationPreferences(reminderWeeklyReview: false)
+          .saveForUser(testUserId);
+      final service = NotificationService(db);
+      Commitment commitment(double amount, DateTime dueDate) => Commitment(
+        id: 'changing_commitment', title: 'Pago variable',
+        amount: amount, dueDate: dueDate, status: 'pending',
+      );
+      await service.recalculateCommitmentReminders(
+        userId: testUserId,
+        commitments: [commitment(100, DateTime(2026, 10, 24))],
+        nowOverride: now,
+      );
+      await service.recalculateCommitmentReminders(
+        userId: testUserId,
+        commitments: [commitment(200, DateTime(2026, 10, 26))],
+        nowOverride: now,
+      );
+      final reminders = (await service.getNotifications(testUserId))
+          .where((n) => n.relatedEntityId == 'changing_commitment').toList();
+      expect(reminders, hasLength(1));
+      expect(reminders.single.type, 'reminder_3d');
+      expect(reminders.single.body, contains('200'));
+    });
     test('3.1 Genera avisos para compromisos vencidos, 7d, 3d, 1d y hoy',
         () async {
       final notifService = NotificationService(db);

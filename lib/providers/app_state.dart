@@ -15,6 +15,8 @@ import '../models/models.dart';
 import '../models/review_result.dart';
 import '../services/notifications/app_notification.dart';
 import '../services/notifications/notification_service.dart';
+import '../services/notifications/android_reminder_scheduler.dart';
+import '../services/notifications/notification_preferences.dart';
 
 class AppState extends ChangeNotifier {
   final ApiClient api = ApiClient();
@@ -23,6 +25,7 @@ class AppState extends ChangeNotifier {
   final ReviewRepository reviewRepository;
   late final ClientSyncService syncService;
   late final NotificationService notificationService;
+  final AndroidReminderScheduler reminderScheduler = AndroidReminderScheduler();
 
   static const _uuid = Uuid();
 
@@ -36,6 +39,7 @@ class AppState extends ChangeNotifier {
 
   List<MoneyTransaction> transactions = [];
   List<Commitment> commitments = [];
+  List<Commitment> notificationCommitments = [];
   List<SavingsGoal> goals = [];
   List<ReviewResult> reviews = [];
   List<AppNotification> notifications = [];
@@ -211,8 +215,9 @@ class AppState extends ChangeNotifier {
 
   Future<void> _backgroundSync() async {
     if (currentUserId == null || !isAuthenticated) return;
-    if (!autoSyncEnabled)
+    if (!autoSyncEnabled) {
       return; // Respeta la preferencia de auto-sincronización
+    }
     try {
       await syncNow();
       await refreshAll(silent: true);
@@ -259,6 +264,7 @@ class AppState extends ChangeNotifier {
         accountId: activeAccount?.id);
     commitments = await financeRepository.getCommitments(userId,
         accountId: activeAccount?.id);
+    notificationCommitments = await financeRepository.getCommitments(userId);
     goals =
         await financeRepository.getGoals(userId, accountId: activeAccount?.id);
     reviews = await reviewRepository.getReviews(userId);
@@ -271,8 +277,9 @@ class AppState extends ChangeNotifier {
     // Recalcular recordatorios para compromisos y cargar avisos
     await notificationService.recalculateCommitmentReminders(
       userId: userId,
-      commitments: commitments,
+      commitments: notificationCommitments,
     );
+    await _scheduleAndroidReminders(userId);
     notifications = await notificationService.getNotifications(userId);
     unreadNotificationsCount = await notificationService.getUnreadCount(userId);
 
@@ -363,6 +370,14 @@ class AppState extends ChangeNotifier {
       await api.post('/api/auth/logout');
     } catch (_) {}
 
+    if (currentUserId != null) {
+      try {
+        await reminderScheduler.cancelForUser(currentUserId!);
+      } catch (e) {
+        debugPrint('No se pudieron cancelar recordatorios Android: $e');
+      }
+    }
+
     api.token = null;
     currentUserEmail = null;
     currentUserId = null;
@@ -371,6 +386,7 @@ class AppState extends ChangeNotifier {
     dashboard = null;
     transactions = [];
     commitments = [];
+    notificationCommitments = [];
     goals = [];
     reviews = [];
     notifications = [];
@@ -466,8 +482,9 @@ class AppState extends ChangeNotifier {
         final trimmedName = name.trim();
         final trimmedCurrency = currency.trim().toUpperCase();
 
-        if (trimmedName.isEmpty)
+        if (trimmedName.isEmpty) {
           throw Exception('El nombre de la cuenta es obligatorio.');
+        }
         if (trimmedCurrency.length != 3) {
           throw Exception(
               'El código de moneda debe tener 3 letras ISO 4217 (ej. CRC, USD, EUR).');
@@ -520,8 +537,9 @@ class AppState extends ChangeNotifier {
         if (existing == null) throw Exception('Cuenta no encontrada.');
 
         final trimmedName = name.trim();
-        if (trimmedName.isEmpty)
+        if (trimmedName.isEmpty) {
           throw Exception('El nombre de la cuenta no puede estar vacío.');
+        }
 
         final updated = Account(
           id: id,
@@ -577,8 +595,9 @@ class AppState extends ChangeNotifier {
           {bool create = false}) =>
       _run(() async {
         if (currentUserId == null) throw Exception('No hay sesión activa.');
-        if (transaction.amount <= 0)
+        if (transaction.amount <= 0) {
           throw Exception('El monto debe ser mayor que 0.');
+        }
 
         // Disponible real proyectado después de descontar compromisos pendientes y ahorro reservado
         double availableBefore = availableBalance;
@@ -809,11 +828,16 @@ class AppState extends ChangeNotifier {
   // MOTOR DE SINCRONIZACIÓN MANUAL & CONFLICTOS
   // =========================================================
 
-  Future<void> syncNow() async {
-    if (currentUserId == null || !isAuthenticated) return;
+  Future<SyncReport> syncNow() async {
+    if (currentUserId == null || !isAuthenticated) {
+      syncReport = syncReport.copyWith(state: SyncState.offline, isOnline: false);
+      notifyListeners();
+      return syncReport;
+    }
     syncReport = await syncService.syncNow(currentUserId!);
     await _loadFromLocalDatabase(currentUserId!);
     notifyListeners();
+    return syncReport;
   }
 
   Future<void> resolveConflict(
@@ -924,14 +948,33 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    notificationCommitments =
+        await financeRepository.getCommitments(currentUserId!);
     await notificationService.recalculateCommitmentReminders(
       userId: currentUserId!,
-      commitments: commitments,
+      commitments: notificationCommitments,
     );
+    await _scheduleAndroidReminders(currentUserId!);
     notifications = await notificationService.getNotifications(currentUserId!);
     unreadNotificationsCount =
         await notificationService.getUnreadCount(currentUserId!);
     notifyListeners();
+  }
+
+  Future<void> _scheduleAndroidReminders(String userId) async {
+    if (!AndroidReminderScheduler.isSupported) return;
+    try {
+      final preferences = await NotificationPreferences.load(userId);
+      await reminderScheduler.reconcile(
+        userId: userId,
+        commitments: notificationCommitments,
+        currencyByAccount: {for (final account in accounts)
+          account.id: account.currency},
+        preferences: preferences,
+      );
+    } catch (e) {
+      debugPrint('No se pudieron programar recordatorios Android: $e');
+    }
   }
 
   Future<void> markNotificationAsRead(String id) async {

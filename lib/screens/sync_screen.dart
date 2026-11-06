@@ -18,6 +18,25 @@ class SyncScreen extends StatefulWidget {
 class _SyncScreenState extends State<SyncScreen> {
   List<LocalChangeHistoryData> _history = [];
   bool _loadingHistory = true;
+  bool _resolving = false;
+
+  Future<void> _resolve(String conflictId,
+      ConflictResolutionStrategy strategy) async {
+    if (_resolving) return;
+    setState(() => _resolving = true);
+    try {
+      await widget.state.resolveConflict(conflictId, strategy);
+      await _loadHistory();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('No se resolvió el conflicto: $error. Intenta de nuevo.'),
+        backgroundColor: AppTheme.errorColor(context),
+      ));
+    } finally {
+      if (mounted) setState(() => _resolving = false);
+    }
+  }
 
   @override
   void initState() {
@@ -144,7 +163,16 @@ class _SyncScreenState extends State<SyncScreen> {
                       onPressed: widget.state.isSyncing
                           ? null
                           : () async {
-                              await widget.state.syncNow();
+                              final result = await widget.state.syncNow();
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(result.manualMessage),
+                                  backgroundColor: result.completedSuccessfully
+                                      ? AppTheme.success
+                                      : AppTheme.errorColor(context),
+                                ),
+                              );
                               await _loadHistory();
                             },
                       icon: widget.state.isSyncing
@@ -181,7 +209,7 @@ class _SyncScreenState extends State<SyncScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
-                        color: AppTheme.errorColor(context).withOpacity(0.4)),
+                        color: AppTheme.errorColor(context).withValues(alpha: 0.4)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
@@ -219,11 +247,8 @@ class _SyncScreenState extends State<SyncScreen> {
                           runSpacing: 8,
                           children: [
                             ElevatedButton(
-                              onPressed: () async {
-                                await widget.state.resolveConflict(c.id,
-                                    ConflictResolutionStrategy.clientWins);
-                                await _loadHistory();
-                              },
+                              onPressed: _resolving ? null : () => _resolve(
+                                  c.id, ConflictResolutionStrategy.clientWins),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryColor(context),
                                 foregroundColor: Colors.white,
@@ -231,11 +256,8 @@ class _SyncScreenState extends State<SyncScreen> {
                               child: const Text('Usar este dispositivo'),
                             ),
                             OutlinedButton(
-                              onPressed: () async {
-                                await widget.state.resolveConflict(c.id,
-                                    ConflictResolutionStrategy.serverWins);
-                                await _loadHistory();
-                              },
+                              onPressed: _resolving ? null : () => _resolve(
+                                  c.id, ConflictResolutionStrategy.serverWins),
                               child: const Text('Usar servidor'),
                             ),
                           ],
@@ -348,7 +370,7 @@ class _SyncScreenState extends State<SyncScreen> {
                         color: (h.syncStatus == 'synced'
                                 ? AppTheme.successColor(context)
                                 : AppTheme.warningColor(context))
-                            .withOpacity(0.3),
+                            .withValues(alpha: 0.3),
                       ),
                     ),
                   ),

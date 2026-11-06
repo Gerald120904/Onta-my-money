@@ -1515,7 +1515,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       subtitle: 'Definí exactamente qué querés reducir.',
       children: [
         DropdownButtonFormField<String>(
-          value: reduceCategory,
+          initialValue: reduceCategory,
           decoration: const InputDecoration(
             labelText: 'Categoría',
             prefixIcon: Icon(
@@ -2051,7 +2051,7 @@ class _PeriodOptionState extends State<_PeriodOption> {
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: AppTheme.primaryColor(context).withOpacity(.18),
+                        color: AppTheme.primaryColor(context).withValues(alpha: .18),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -2182,7 +2182,7 @@ class _MovementCardState extends State<_MovementCard> {
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: color.withOpacity(.18),
+                        color: color.withValues(alpha: .18),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -2195,7 +2195,7 @@ class _MovementCardState extends State<_MovementCard> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.10),
+                    color: color.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -2221,7 +2221,7 @@ class _MovementCardState extends State<_MovementCard> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: color.withOpacity(.10),
+                              color: color.withValues(alpha: .10),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: color,
@@ -2373,7 +2373,7 @@ class _DecisionOptionState extends State<_DecisionOption> {
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: color.withOpacity(.20),
+                        color: color.withValues(alpha: .20),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -2386,7 +2386,7 @@ class _DecisionOptionState extends State<_DecisionOption> {
                   width: 39,
                   height: 39,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.10),
+                    color: color.withValues(alpha: 0.10),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -2594,7 +2594,7 @@ class _PeriodChoiceChipState extends State<_PeriodChoiceChip> {
             boxShadow: _focused
                 ? [
                     BoxShadow(
-                      color: AppTheme.primaryColor(context).withOpacity(.20),
+                      color: AppTheme.primaryColor(context).withValues(alpha: .20),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
@@ -2654,7 +2654,7 @@ class _PeriodQuantitySelector extends StatelessWidget {
     BuildContext context,
   ) {
     return DropdownButtonFormField<int>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(
@@ -2737,7 +2737,7 @@ class _DateSelectorState extends State<_DateSelector> {
           });
         },
         canRequestFocus: true,
-        focusColor: AppTheme.primary.withOpacity(.14),
+        focusColor: AppTheme.primary.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(14),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
@@ -2759,7 +2759,7 @@ class _DateSelectorState extends State<_DateSelector> {
             boxShadow: _focused
                 ? [
                     BoxShadow(
-                      color: AppTheme.primary.withOpacity(.20),
+                      color: AppTheme.primary.withValues(alpha: .20),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),
@@ -2830,7 +2830,7 @@ class _DecisionSummaryCard extends StatelessWidget {
         color: AppTheme.tintSuccess(context),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: AppTheme.successColor(context).withOpacity(0.4),
+          color: AppTheme.successColor(context).withValues(alpha: 0.4),
         ),
       ),
       child: Row(
@@ -2908,13 +2908,13 @@ class _MoneyInfoCard extends StatelessWidget {
     if (success) {
       backgroundColor = AppTheme.tintSuccess(context);
 
-      borderColor = AppTheme.successColor(context).withOpacity(0.4);
+      borderColor = AppTheme.successColor(context).withValues(alpha: 0.4);
     }
 
     if (emphasized) {
       backgroundColor = AppTheme.tintPrimary(context);
 
-      borderColor = AppTheme.primaryColor(context).withOpacity(0.4);
+      borderColor = AppTheme.primaryColor(context).withValues(alpha: 0.4);
     }
 
     return Container(
@@ -2932,7 +2932,7 @@ class _MoneyInfoCard extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.10),
+              color: color.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(

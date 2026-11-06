@@ -58,14 +58,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _handleManualSync() async {
+    if (_syncingManual || widget.state.isSyncing) return;
     setState(() => _syncingManual = true);
     try {
-      await widget.state.syncNow();
+      final report = await widget.state.syncNow();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sincronización completada con éxito.'),
-          backgroundColor: AppTheme.success,
+        SnackBar(
+          content: Text(report.manualMessage),
+          backgroundColor: report.completedSuccessfully
+              ? AppTheme.success
+              : AppTheme.errorColor(context),
         ),
       );
     } catch (e) {
@@ -554,8 +557,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: state.syncReport.isOnline
-                                  ? AppTheme.success.withOpacity(.12)
-                                  : Colors.orange.withOpacity(.12),
+                                  ? AppTheme.success.withValues(alpha: .12)
+                                  : Colors.orange.withValues(alpha: .12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(

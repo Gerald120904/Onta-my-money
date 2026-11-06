@@ -237,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: AppTheme.primaryColor(context)
-                                  .withOpacity(.25),
+                                  .withValues(alpha: .25),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -534,7 +534,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         : const Color(0xFFF0F5FF),
                     borderRadius: BorderRadius.circular(12),
                     border:
-                        Border.all(color: AppTheme.primary.withOpacity(.25)),
+                        Border.all(color: AppTheme.primary.withValues(alpha: .25)),
                   ),
                   child: Row(
                     children: [
