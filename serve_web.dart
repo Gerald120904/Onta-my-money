@@ -3,12 +3,12 @@ import 'dart:io';
 Future<void> main() async {
   final webDir = Directory('build/web');
   if (!webDir.existsSync()) {
-    print('Error: build/web no existe');
+    stderr.writeln('Error: build/web no existe');
     exit(1);
   }
 
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8090);
-  print('Servidor Web estático corriendo en http://localhost:8090');
+  stdout.writeln('Servidor Web estático corriendo en http://localhost:8090');
 
   await for (final HttpRequest request in server) {
     var path = request.uri.path;

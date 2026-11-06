@@ -14,7 +14,7 @@ class ClientSyncService {
   final FinanceRepository repository;
 
   bool autoSyncEnabled = true;
-  bool _isSyncing = false;
+  Future<SyncReport>? _activeSync;
   SyncReport _report = const SyncReport();
 
   final _statusController = StreamController<SyncReport>.broadcast();
@@ -35,15 +35,24 @@ class ClientSyncService {
   }
 
   /// Ejecuta un ciclo de sincronización completo (Push -> Pull -> Status).
-  Future<SyncReport> syncNow(String userId) async {
-    if (_isSyncing) return _report;
+  Future<SyncReport> syncNow(String userId) {
+    if (_activeSync != null) return _activeSync!;
+    final operation = _syncOnce(userId);
+    _activeSync = operation;
+    operation.then(
+      (_) => _activeSync = null,
+      onError: (Object _, StackTrace __) => _activeSync = null,
+    );
+    return operation;
+  }
+
+  Future<SyncReport> _syncOnce(String userId) async {
     if (api.token == null || api.token!.isEmpty) {
       _updateReport(
           _report.copyWith(state: SyncState.offline, isOnline: false));
       return _report;
     }
 
-    _isSyncing = true;
     _updateReport(_report.copyWith(state: SyncState.syncing));
 
     try {
@@ -80,11 +89,16 @@ class ClientSyncService {
 
         final pushResponse = await api.post('/api/sync/push', pushPayload);
 
-        if (pushResponse is Map) {
-          final processed = pushResponse['processed'] as List? ?? [];
+        if (pushResponse is Map && pushResponse['processed'] is List) {
+          final processed = pushResponse['processed'] as List;
+          final acknowledged = <String>{};
+          final pendingById = {for (final op in pendingOps) op.operationId: op};
 
           for (final item in processed) {
             final opId = item['operation_id']?.toString() ?? '';
+            if (!pendingById.containsKey(opId) || !acknowledged.add(opId)) {
+              throw const FormatException('Respuesta de sincronización inválida');
+            }
             final status = item['status']?.toString();
             final version = (item['version'] as num?)?.toInt() ?? 1;
 
@@ -131,6 +145,11 @@ class ClientSyncService {
                   opId, item['message']?.toString() ?? 'Error en servidor');
             }
           }
+          if (acknowledged.length != pendingOps.length) {
+            throw const FormatException('El servidor no confirmó todas las operaciones');
+          }
+        } else {
+          throw const FormatException('Respuesta de sincronización inválida');
         }
       }
 
@@ -143,16 +162,25 @@ class ClientSyncService {
             await api.get('/api/sync/pull?cursor=$nextCursor&limit=200');
 
         if (pullResponse is Map) {
-          final changes = pullResponse['changes'] as List? ?? [];
-          nextCursor = (pullResponse['cursor'] as num?)?.toInt() ?? nextCursor;
+          if (pullResponse['changes'] is! List ||
+              pullResponse['cursor'] is! num) {
+            throw const FormatException('Respuesta de descarga incompleta');
+          }
+          final changes = pullResponse['changes'] as List;
+          final previousCursor = nextCursor;
+          nextCursor = (pullResponse['cursor'] as num).toInt();
           hasMore = pullResponse['has_more'] == true;
+          if (nextCursor < previousCursor ||
+              (hasMore && nextCursor == previousCursor)) {
+            throw const FormatException('Cursor de sincronización inválido');
+          }
 
           for (final change in changes) {
             await _applyRemoteChange(
                 userId, Map<String, dynamic>.from(change as Map));
           }
         } else {
-          hasMore = false;
+          throw const FormatException('Respuesta de descarga inválida');
         }
       }
 
@@ -171,7 +199,9 @@ class ClientSyncService {
         SyncReport(
           state: activeConflicts.isNotEmpty
               ? SyncState.hasConflicts
-              : SyncState.idle,
+              : remainingPending > 0
+                  ? SyncState.partial
+                  : SyncState.idle,
           pendingCount: remainingPending,
           conflictCount: activeConflicts.length,
           lastSyncTime: now,
@@ -191,8 +221,6 @@ class ClientSyncService {
           lastError: e.toString(),
         ),
       );
-    } finally {
-      _isSyncing = false;
     }
 
     return _report;
@@ -257,6 +285,17 @@ class ClientSyncService {
     final version = (change['version'] as num?)?.toInt() ?? 1;
     final payload = Map<String, dynamic>.from(change['payload'] as Map? ?? {});
     final now = DateTime.now();
+
+    // A remote update must not replace an unsent local edit or soft delete.
+    // The pending operation remains available for conflict resolution/retry.
+    final localPending = await (db.select(db.localPendingOperations)
+          ..where((op) =>
+              op.userId.equals(userId) &
+              op.entityType.equals(entityType) &
+              op.entityId.equals(entityId) &
+              op.status.equals('pending')))
+        .get();
+    if (localPending.isNotEmpty) return;
 
     await db.transaction(() async {
       if (action == 'delete') {
@@ -547,7 +586,7 @@ class ClientSyncService {
     Map<String, dynamic>? mergedPayload,
   }) async {
     final conflictRow = await (db.select(db.localConflicts)
-          ..where((c) => c.id.equals(conflictId)))
+          ..where((c) => c.id.equals(conflictId) & c.userId.equals(userId)))
         .getSingleOrNull();
     if (conflictRow == null) return;
 
@@ -556,19 +595,32 @@ class ClientSyncService {
         : (strategy == ConflictResolutionStrategy.serverWins
             ? 'server_wins'
             : 'merge');
-
-    // Notificar al servidor si está disponible
-    try {
-      await api.post('/api/sync/conflicts/$conflictId/resolve', {
-        'strategy': strategyStr,
-        if (mergedPayload != null) 'merged_payload': mergedPayload,
-      });
-    } catch (_) {
-      // Si está offline, se resolverá localmente y se propagará cuando vuelva internet
+    if (strategy == ConflictResolutionStrategy.merge && mergedPayload == null) {
+      throw ArgumentError('La resolución combinada requiere datos');
     }
 
-    // Resolver localmente
+    // Keep the local conflict and operation intact if the server cannot resolve it.
+    final response = await api.post('/api/sync/conflicts/$conflictId/resolve', {
+      'strategy': strategyStr,
+      if (mergedPayload != null) 'merged_payload': mergedPayload,
+    });
+    if (response is! Map || response['ok'] != true) {
+      throw ApiException('El servidor no confirmó la resolución', 409);
+    }
+
+    final pending = await repository.getPendingOperations(userId);
+    final conflictingOps = pending.where((op) =>
+        op.entityType == conflictRow.entityType &&
+        op.entityId == conflictRow.entityId).toList();
+    final resolvedVersion = strategy == ConflictResolutionStrategy.serverWins
+        ? conflictRow.serverVersion
+        : (response['version'] as num?)?.toInt() ??
+            conflictRow.serverVersion + 1;
+
     await db.transaction(() async {
+      if (conflictingOps.isNotEmpty) {
+        await repository.removeOperation(conflictingOps.first.operationId);
+      }
       await (db.update(db.localConflicts)
             ..where((c) => c.id.equals(conflictId)))
           .write(
@@ -578,19 +630,29 @@ class ClientSyncService {
         ),
       );
 
-      // Si gana el servidor, aplicar la versión del servidor localmente
-      if (strategy == ConflictResolutionStrategy.serverWins) {
-        final serverPayload = Map<String, dynamic>.from(
-            jsonDecode(conflictRow.serverPayloadJson) as Map);
+    });
+
+    final remaining = (await repository.getPendingOperations(userId)).where(
+        (op) => op.entityType == conflictRow.entityType &&
+            op.entityId == conflictRow.entityId);
+    if (remaining.isEmpty) {
+      if (strategy == ConflictResolutionStrategy.clientWins) {
+        await _updateLocalEntityVersion(
+            conflictRow.entityType, conflictRow.entityId, resolvedVersion);
+      } else {
+        final payload = strategy == ConflictResolutionStrategy.serverWins
+            ? Map<String, dynamic>.from(
+                jsonDecode(conflictRow.serverPayloadJson) as Map)
+            : mergedPayload!;
         await _applyRemoteChange(userId, {
           'entity_type': conflictRow.entityType,
           'entity_id': conflictRow.entityId,
           'action': 'update',
-          'version': conflictRow.serverVersion,
-          'payload': serverPayload,
+          'version': resolvedVersion,
+          'payload': payload,
         });
       }
-    });
+    }
 
     await syncNow(userId);
   }

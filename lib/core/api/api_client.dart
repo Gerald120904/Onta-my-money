@@ -17,32 +17,68 @@ class ApiException implements Exception {
 }
 
 class ApiConfig {
+  static const String productionUrl =
+      'https://onta-my-money-api.gerald.prod.page';
   static const String _envUrl = String.fromEnvironment('API_URL');
   static const String _envPort =
       String.fromEnvironment('API_PORT', defaultValue: '8080');
 
-  static String get baseUrl {
-    if (_envUrl.isNotEmpty) {
-      return _envUrl;
+  static String get baseUrl => resolveBaseUrl(
+        isRelease: kReleaseMode,
+        isWeb: kIsWeb,
+        isAndroid: !kIsWeb && defaultTargetPlatform == TargetPlatform.android,
+        configuredUrl: _envUrl,
+        port: _envPort,
+      );
+
+  @visibleForTesting
+  static String resolveBaseUrl({
+    required bool isRelease,
+    required bool isWeb,
+    required bool isAndroid,
+    required String configuredUrl,
+    String port = '8080',
+  }) {
+    if (isRelease) {
+      if (configuredUrl.isNotEmpty && configuredUrl != productionUrl) {
+        throw StateError('La API de producción debe usar $productionUrl');
+      }
+      return isWeb ? '' : productionUrl;
+    }
+    if (configuredUrl.isNotEmpty) {
+      return configuredUrl;
     }
 
-    if (kIsWeb) {
-      return 'http://localhost:$_envPort';
+    if (isWeb) {
+      return 'http://localhost:$port';
     }
 
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:$_envPort';
+    if (isAndroid) {
+      return 'http://10.0.2.2:$port';
     }
 
-    return 'http://localhost:$_envPort';
+    return 'http://localhost:$port';
   }
 }
 
 class ApiClient {
+  final http.Client _http;
+  ApiClient({http.Client? client}) : _http = client ?? http.Client();
+
   String? token;
+  String? refreshToken;
   String? deviceId;
+  Future<void> Function(String accessToken, String? refreshToken)? onTokensRotated;
+  Future<void> Function()? onRefreshRejected;
+  Future<bool>? _refreshInFlight;
 
   String get baseUrl => ApiConfig.baseUrl;
+
+  Uri _uri(String path) =>
+      baseUrl.isEmpty ? Uri.base.resolve(path) : Uri.parse('$baseUrl$path');
+
+  Future<bool> restoreWebSession() =>
+      kIsWeb ? _refreshSession() : Future.value(false);
 
   Map<String, String> get headers => {
         'Content-Type': 'application/json',
@@ -53,94 +89,120 @@ class ApiClient {
       };
 
   Future<dynamic> get(String path) async {
-    try {
-      final response = await http
+    return _request(() => _http
           .get(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
-
-      return _decode(response);
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw _wrapNetworkError(e);
-    }
+          .timeout(const Duration(seconds: 15)));
   }
 
   Future<dynamic> post(
     String path, [
     Map<String, dynamic>? body,
   ]) async {
-    try {
-      final response = await http
+    return _request(() => _http
           .post(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
             body: jsonEncode(body ?? {}),
           )
-          .timeout(const Duration(seconds: 15));
-
-      return _decode(response);
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw _wrapNetworkError(e);
-    }
+          .timeout(const Duration(seconds: 15)),
+        allowRefresh: path == '/api/auth/logout' ||
+            path == '/api/auth/logout-all' ||
+            !path.startsWith('/api/auth/'));
   }
 
   Future<dynamic> put(
     String path,
     Map<String, dynamic> body,
   ) async {
-    try {
-      final response = await http
+    return _request(() => _http
           .put(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 15));
-
-      return _decode(response);
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw _wrapNetworkError(e);
-    }
+          .timeout(const Duration(seconds: 15)));
   }
 
   Future<dynamic> patch(
     String path, [
     Map<String, dynamic>? body,
   ]) async {
-    try {
-      final response = await http
+    return _request(() => _http
           .patch(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
             body: jsonEncode(body ?? {}),
           )
-          .timeout(const Duration(seconds: 15));
-
-      return _decode(response);
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw _wrapNetworkError(e);
-    }
+          .timeout(const Duration(seconds: 15)));
   }
 
   Future<dynamic> delete(String path) async {
-    try {
-      final response = await http
+    return _request(() => _http
           .delete(
-            Uri.parse('$baseUrl$path'),
+            _uri(path),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 15)));
+  }
 
+  Future<dynamic> _request(Future<http.Response> Function() send,
+      {bool allowRefresh = true}) async {
+    try {
+      final usedToken = token;
+      var response = await send();
+      if (response.statusCode == 401 && allowRefresh &&
+          ((refreshToken != null && refreshToken!.isNotEmpty) || kIsWeb)) {
+        if (token != usedToken || await _refreshSession()) {
+          response = await send();
+        }
+      }
       return _decode(response);
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw _wrapNetworkError(e);
+    } catch (error) {
+      if (error is ApiException) rethrow;
+      throw _wrapNetworkError(error);
+    }
+  }
+
+  Future<bool> _refreshSession() {
+    if (_refreshInFlight != null) return _refreshInFlight!;
+    final operation = _rotateTokens();
+    _refreshInFlight = operation;
+    operation.then((_) => _refreshInFlight = null,
+        onError: (Object _, StackTrace __) => _refreshInFlight = null);
+    return operation;
+  }
+
+  Future<bool> _rotateTokens() async {
+    try {
+      final response = await _http.post(
+        _uri('/api/auth/refresh'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+        body: jsonEncode({if (refreshToken != null) 'refresh_token': refreshToken}),
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        if (kIsWeb && response.statusCode == 401) {
+          token = null;
+          refreshToken = null;
+          await onRefreshRejected?.call();
+        }
+        return false;
+      }
+      final data = jsonDecode(response.body);
+      if (data is! Map || data['token'] is! String ||
+          (!kIsWeb && data['refresh_token'] is! String)) {
+        return false;
+      }
+      final nextToken = data['token'] as String;
+      final nextRefresh = data['refresh_token'] as String?;
+      await onTokensRotated?.call(nextToken, nextRefresh);
+      token = nextToken;
+      refreshToken = nextRefresh;
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 

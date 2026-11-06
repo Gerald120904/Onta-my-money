@@ -1041,7 +1041,7 @@ class _TransactionCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: onEdit,
-          focusColor: AppTheme.primary.withOpacity(.10),
+          focusColor: AppTheme.primary.withValues(alpha: .10),
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 13,
@@ -1064,7 +1064,7 @@ class _TransactionCard extends StatelessWidget {
                       color: iconBackground,
                       borderRadius: BorderRadius.circular(11),
                       border: Border.all(
-                        color: accent.withOpacity(.25),
+                        color: accent.withValues(alpha: .25),
                       ),
                     ),
                     child: Icon(
@@ -1341,7 +1341,7 @@ class _TypeFilterButtonState extends State<_TypeFilterButton> {
           boxShadow: _hasFocus
               ? [
                   BoxShadow(
-                    color: AppTheme.primaryDark.withOpacity(.28),
+                    color: AppTheme.primaryDark.withValues(alpha: .28),
                     blurRadius: 0,
                     spreadRadius: 2,
                   ),
@@ -1461,7 +1461,7 @@ class _CategoryChipState extends State<_CategoryChip> {
             boxShadow: _hasFocus
                 ? [
                     BoxShadow(
-                      color: AppTheme.primaryDark.withOpacity(.28),
+                      color: AppTheme.primaryDark.withValues(alpha: .28),
                       blurRadius: 0,
                       spreadRadius: 2,
                     ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -15,14 +16,19 @@ import '../models/models.dart';
 import '../models/review_result.dart';
 import '../services/notifications/app_notification.dart';
 import '../services/notifications/notification_service.dart';
+import '../services/notifications/android_reminder_scheduler.dart';
+import '../services/notifications/notification_preferences.dart';
+import '../services/auth/credential_store.dart';
 
 class AppState extends ChangeNotifier {
   final ApiClient api = ApiClient();
   final AppDatabase db;
   final FinanceRepository financeRepository;
   final ReviewRepository reviewRepository;
+  final CredentialStore credentialStore;
   late final ClientSyncService syncService;
   late final NotificationService notificationService;
+  final AndroidReminderScheduler reminderScheduler = AndroidReminderScheduler();
 
   static const _uuid = Uuid();
 
@@ -36,6 +42,7 @@ class AppState extends ChangeNotifier {
 
   List<MoneyTransaction> transactions = [];
   List<Commitment> commitments = [];
+  List<Commitment> notificationCommitments = [];
   List<SavingsGoal> goals = [];
   List<ReviewResult> reviews = [];
   List<AppNotification> notifications = [];
@@ -55,13 +62,19 @@ class AppState extends ChangeNotifier {
   List<EntityConflict> conflicts = [];
   StreamSubscription? _syncSub;
 
-  AppState({AppDatabase? customDb}) : this._(customDb ?? AppDatabase());
+  AppState({AppDatabase? customDb, CredentialStore? credentialStore})
+      : this._(customDb ?? AppDatabase(),
+            credentialStore ?? SecureCredentialStore());
 
-  AppState._(AppDatabase database)
+  AppState._(AppDatabase database, this.credentialStore)
       : db = database,
         financeRepository = FinanceRepository(database),
         reviewRepository = ReviewRepository(database) {
     notificationService = NotificationService(database);
+    api.onTokensRotated = (access, refresh) => kIsWeb
+        ? credentialStore.clear()
+        : credentialStore.save(access, refresh);
+    api.onRefreshRejected = kIsWeb ? credentialStore.clear : null;
     syncService = ClientSyncService(
       api: api,
       db: db,
@@ -76,7 +89,9 @@ class AppState extends ChangeNotifier {
 
   ReviewResult? get latestReview => reviews.isEmpty ? null : reviews.first;
 
-  bool get isAuthenticated => api.token != null && api.token!.isNotEmpty;
+  bool get isAuthenticated =>
+      (api.token != null && api.token!.isNotEmpty) ||
+      (kIsWeb && currentUserId != null && currentUserEmail != null);
 
   int get pendingOperationsCount => syncReport.pendingCount;
 
@@ -162,7 +177,10 @@ class AppState extends ChangeNotifier {
     autoSyncEnabled = prefs.getBool('auto_sync_enabled') ?? true;
     syncService.autoSyncEnabled = autoSyncEnabled;
 
-    api.token = prefs.getString('token');
+    api.token = kIsWeb ? null : await credentialStore.readAccessToken();
+    api.refreshToken = await credentialStore.readRefreshToken();
+    final legacyToken = kIsWeb ? null : prefs.getString('token');
+    api.token ??= legacyToken;
     currentUserEmail = prefs.getString('current_user_email');
     currentUserId = prefs.getString('current_user_id');
     currentUserName = prefs.getString('current_user_name');
@@ -175,13 +193,35 @@ class AppState extends ChangeNotifier {
       currentUserId ??= localUser.id;
       currentUserEmail ??= localUser.email;
       currentUserName ??= localUser.name;
-      api.token ??= localUser.token;
+      if (!kIsWeb) api.token ??= localUser.token;
       openingBalance = localUser.openingBalance;
+    }
+
+    if (kIsWeb) {
+      unawaited(_restoreWebSession(prefs, localUser));
+    }
+
+    if (!kIsWeb &&
+        api.token != null &&
+        (legacyToken != null || localUser?.token != null)) {
+      try {
+        await credentialStore.save(api.token!, api.refreshToken);
+        await prefs.remove('token');
+        if (localUser != null && localUser.token != null) {
+          await financeRepository.saveUser(
+            id: localUser.id, name: localUser.name, email: localUser.email,
+            token: null, openingBalance: localUser.openingBalance,
+          );
+        }
+      } catch (_) {
+        // La sesión local antigua permanece disponible hasta que el almacén
+        // seguro del dispositivo pueda completar la migración.
+      }
     }
 
     if (currentUserId == null ||
         currentUserEmail == null ||
-        api.token == null) {
+        (!kIsWeb && api.token == null)) {
       reviews = [];
       transactions = [];
       commitments = [];
@@ -209,10 +249,33 @@ class AppState extends ChangeNotifier {
     _backgroundSync();
   }
 
+  Future<void> _restoreWebSession(
+      SharedPreferences prefs, LocalUser? localUser) async {
+    final restored = await api.restoreWebSession();
+    // Older Web builds kept bearer credentials in browser storage.
+    // Clear them after a successful migration to the HttpOnly cookie.
+    if (restored) {
+      await credentialStore.clear();
+      await prefs.remove('token');
+      if (localUser?.token != null && currentUserId != null) {
+        await financeRepository.saveUser(
+          id: localUser!.id,
+          name: localUser.name,
+          email: localUser.email,
+          token: null,
+          openingBalance: localUser.openingBalance,
+        );
+      }
+      notifyListeners();
+      _backgroundSync();
+    }
+  }
+
   Future<void> _backgroundSync() async {
     if (currentUserId == null || !isAuthenticated) return;
-    if (!autoSyncEnabled)
+    if (!autoSyncEnabled) {
       return; // Respeta la preferencia de auto-sincronización
+    }
     try {
       await syncNow();
       await refreshAll(silent: true);
@@ -259,6 +322,7 @@ class AppState extends ChangeNotifier {
         accountId: activeAccount?.id);
     commitments = await financeRepository.getCommitments(userId,
         accountId: activeAccount?.id);
+    notificationCommitments = await financeRepository.getCommitments(userId);
     goals =
         await financeRepository.getGoals(userId, accountId: activeAccount?.id);
     reviews = await reviewRepository.getReviews(userId);
@@ -271,8 +335,9 @@ class AppState extends ChangeNotifier {
     // Recalcular recordatorios para compromisos y cargar avisos
     await notificationService.recalculateCommitmentReminders(
       userId: userId,
-      commitments: commitments,
+      commitments: notificationCommitments,
     );
+    await _scheduleAndroidReminders(userId);
     notifications = await notificationService.getNotifications(userId);
     unreadNotificationsCount = await notificationService.getUnreadCount(userId);
 
@@ -305,7 +370,14 @@ class AppState extends ChangeNotifier {
         final serverOpeningBalance =
             (userMap['opening_balance'] as num?)?.toDouble() ?? 0.0;
 
+        final refreshToken = data['refresh_token']?.toString();
+        if (kIsWeb) {
+          await credentialStore.clear();
+        } else {
+          await credentialStore.save(token, refreshToken);
+        }
         api.token = token;
+        api.refreshToken = refreshToken;
         currentUserId = userId;
         currentUserEmail = userEmail;
         currentUserName = userName;
@@ -313,7 +385,7 @@ class AppState extends ChangeNotifier {
         openingBalance = serverOpeningBalance;
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
+        await prefs.remove('token');
         await prefs.setString('current_user_email', userEmail);
         await prefs.setString('current_user_id', userId);
         await prefs.setString('current_user_name', userName);
@@ -325,7 +397,7 @@ class AppState extends ChangeNotifier {
           id: userId,
           name: userName,
           email: userEmail,
-          token: token,
+          token: null,
           openingBalance: serverOpeningBalance,
           isCurrent: true,
         );
@@ -363,7 +435,23 @@ class AppState extends ChangeNotifier {
       await api.post('/api/auth/logout');
     } catch (_) {}
 
+    if (currentUserId != null) {
+      try {
+        await reminderScheduler.cancelForUser(currentUserId!);
+      } catch (e) {
+        debugPrint('No se pudieron cancelar recordatorios Android: $e');
+      }
+    }
+
     api.token = null;
+    api.refreshToken = null;
+    await credentialStore.clear();
+    if (currentUserId != null && currentUserEmail != null && currentUserName != null) {
+      await financeRepository.saveUser(
+        id: currentUserId!, name: currentUserName!, email: currentUserEmail!,
+        token: null, openingBalance: openingBalance, isCurrent: false,
+      );
+    }
     currentUserEmail = null;
     currentUserId = null;
     currentUserName = null;
@@ -371,6 +459,7 @@ class AppState extends ChangeNotifier {
     dashboard = null;
     transactions = [];
     commitments = [];
+    notificationCommitments = [];
     goals = [];
     reviews = [];
     notifications = [];
@@ -386,6 +475,15 @@ class AppState extends ChangeNotifier {
     await prefs.remove('opening_balance');
 
     notifyListeners();
+  }
+
+  Future<void> logoutAll() async {
+    if (currentUserId != null &&
+        await financeRepository.getPendingOperationsCount(currentUserId!) > 0) {
+      throw StateError('Sincronizá los cambios pendientes antes de cerrar todas las sesiones.');
+    }
+    await api.post('/api/auth/logout-all');
+    await logout(force: true);
   }
 
   // =========================================================
@@ -466,8 +564,9 @@ class AppState extends ChangeNotifier {
         final trimmedName = name.trim();
         final trimmedCurrency = currency.trim().toUpperCase();
 
-        if (trimmedName.isEmpty)
+        if (trimmedName.isEmpty) {
           throw Exception('El nombre de la cuenta es obligatorio.');
+        }
         if (trimmedCurrency.length != 3) {
           throw Exception(
               'El código de moneda debe tener 3 letras ISO 4217 (ej. CRC, USD, EUR).');
@@ -520,8 +619,9 @@ class AppState extends ChangeNotifier {
         if (existing == null) throw Exception('Cuenta no encontrada.');
 
         final trimmedName = name.trim();
-        if (trimmedName.isEmpty)
+        if (trimmedName.isEmpty) {
           throw Exception('El nombre de la cuenta no puede estar vacío.');
+        }
 
         final updated = Account(
           id: id,
@@ -577,8 +677,9 @@ class AppState extends ChangeNotifier {
           {bool create = false}) =>
       _run(() async {
         if (currentUserId == null) throw Exception('No hay sesión activa.');
-        if (transaction.amount <= 0)
+        if (transaction.amount <= 0) {
           throw Exception('El monto debe ser mayor que 0.');
+        }
 
         // Disponible real proyectado después de descontar compromisos pendientes y ahorro reservado
         double availableBefore = availableBalance;
@@ -809,11 +910,16 @@ class AppState extends ChangeNotifier {
   // MOTOR DE SINCRONIZACIÓN MANUAL & CONFLICTOS
   // =========================================================
 
-  Future<void> syncNow() async {
-    if (currentUserId == null || !isAuthenticated) return;
+  Future<SyncReport> syncNow() async {
+    if (currentUserId == null || !isAuthenticated) {
+      syncReport = syncReport.copyWith(state: SyncState.offline, isOnline: false);
+      notifyListeners();
+      return syncReport;
+    }
     syncReport = await syncService.syncNow(currentUserId!);
     await _loadFromLocalDatabase(currentUserId!);
     notifyListeners();
+    return syncReport;
   }
 
   Future<void> resolveConflict(
@@ -924,14 +1030,33 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    notificationCommitments =
+        await financeRepository.getCommitments(currentUserId!);
     await notificationService.recalculateCommitmentReminders(
       userId: currentUserId!,
-      commitments: commitments,
+      commitments: notificationCommitments,
     );
+    await _scheduleAndroidReminders(currentUserId!);
     notifications = await notificationService.getNotifications(currentUserId!);
     unreadNotificationsCount =
         await notificationService.getUnreadCount(currentUserId!);
     notifyListeners();
+  }
+
+  Future<void> _scheduleAndroidReminders(String userId) async {
+    if (!AndroidReminderScheduler.isSupported) return;
+    try {
+      final preferences = await NotificationPreferences.load(userId);
+      await reminderScheduler.reconcile(
+        userId: userId,
+        commitments: notificationCommitments,
+        currencyByAccount: {for (final account in accounts)
+          account.id: account.currency},
+        preferences: preferences,
+      );
+    } catch (e) {
+      debugPrint('No se pudieron programar recordatorios Android: $e');
+    }
   }
 
   Future<void> markNotificationAsRead(String id) async {

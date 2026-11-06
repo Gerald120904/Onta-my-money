@@ -100,7 +100,7 @@ class AccountSelectorBar extends StatelessWidget {
                               color: badgeBg,
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: badgeColor.withOpacity(0.3),
+                                color: badgeColor.withValues(alpha: 0.3),
                                 width: 0.8,
                               ),
                             ),

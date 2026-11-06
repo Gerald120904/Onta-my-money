@@ -132,10 +132,10 @@ class AppTheme {
       cardColor: surface,
       dividerColor: border,
       fontFamily: 'Arial',
-      splashColor: primary.withOpacity(.08),
-      highlightColor: primary.withOpacity(.06),
-      focusColor: primary.withOpacity(.20),
-      hoverColor: primary.withOpacity(.06),
+      splashColor: primary.withValues(alpha: .08),
+      highlightColor: primary.withValues(alpha: .06),
+      focusColor: primary.withValues(alpha: .20),
+      hoverColor: primary.withValues(alpha: .06),
       dividerTheme: const DividerThemeData(
         color: border,
         space: 1,
@@ -213,7 +213,7 @@ class AppTheme {
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.disabled)) {
-              return primary.withOpacity(.45);
+              return primary.withValues(alpha: .45);
             }
             return primary;
           }),
@@ -340,10 +340,10 @@ class AppTheme {
       cardColor: surfaceDark,
       dividerColor: borderDark,
       fontFamily: 'Arial',
-      splashColor: primaryDarkTheme.withOpacity(.12),
-      highlightColor: primaryDarkTheme.withOpacity(.08),
-      focusColor: primaryDarkTheme.withOpacity(.25),
-      hoverColor: primaryDarkTheme.withOpacity(.08),
+      splashColor: primaryDarkTheme.withValues(alpha: .12),
+      highlightColor: primaryDarkTheme.withValues(alpha: .08),
+      focusColor: primaryDarkTheme.withValues(alpha: .25),
+      hoverColor: primaryDarkTheme.withValues(alpha: .08),
       dividerTheme: const DividerThemeData(
         color: borderDark,
         space: 1,
@@ -421,7 +421,7 @@ class AppTheme {
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.disabled)) {
-              return primaryDarkTheme.withOpacity(.45);
+              return primaryDarkTheme.withValues(alpha: .45);
             }
             return primaryDarkTheme;
           }),

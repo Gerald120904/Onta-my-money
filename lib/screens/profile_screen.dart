@@ -26,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditingName = false;
   bool _savingName = false;
   bool _changingPassword = false;
+  bool _loggingOutAll = false;
   bool _revokeOtherSessions = true;
 
   bool _obscureCurrent = true;
@@ -54,6 +55,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return DateFormat('d \'de\' MMMM, yyyy', 'es_CR').format(dt);
     } catch (_) {
       return isoString;
+    }
+  }
+
+  Future<void> _handleLogoutAll() async {
+    if (_loggingOutAll) return;
+    setState(() => _loggingOutAll = true);
+    try {
+      await widget.state.logoutAll();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(error.toString()),
+          backgroundColor: AppTheme.errorColor(context),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _loggingOutAll = false);
     }
   }
 
@@ -113,11 +131,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
-    if (newPass.length < 6) {
+    if (newPass.length < 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content:
-                Text('La nueva contraseña debe tener al menos 6 caracteres.')),
+                Text('La nueva contraseña debe tener al menos 10 caracteres.')),
       );
       return;
     }
@@ -237,7 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: AppTheme.primaryColor(context)
-                                  .withOpacity(.25),
+                                  .withValues(alpha: .25),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -534,7 +552,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         : const Color(0xFFF0F5FF),
                     borderRadius: BorderRadius.circular(12),
                     border:
-                        Border.all(color: AppTheme.primary.withOpacity(.25)),
+                        Border.all(color: AppTheme.primary.withValues(alpha: .25)),
                   ),
                   child: Row(
                     children: [
@@ -627,7 +645,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         controller: _newPasswordController,
                         obscureText: _obscureNew,
                         decoration: InputDecoration(
-                          hintText: 'Mínimo 6 caracteres',
+                          hintText: 'Mínimo 10 caracteres',
                           suffixIcon: IconButton(
                             icon: Icon(_obscureNew
                                 ? Icons.visibility_outlined
@@ -696,6 +714,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: CircularProgressIndicator(
                                     color: Colors.white, strokeWidth: 2))
                             : const Text('Guardar nueva contraseña'),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _loggingOutAll ? null : _handleLogoutAll,
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Cerrar todas las sesiones'),
                       ),
                     ],
                   ),

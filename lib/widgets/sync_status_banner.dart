@@ -14,8 +14,7 @@ class SyncStatusBanner extends StatelessWidget {
     required this.state,
   });
 
-  /// blitz.cloud Free solo se despierta con una visita real del navegador.
-  /// Abrir health en una pestana externa mantiene los cambios locales intactos.
+  /// Abre health en una pestaña externa sin tocar los cambios locales.
   Future<void> _openWakePage(BuildContext context) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/api/health');
     try {

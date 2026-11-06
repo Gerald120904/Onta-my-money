@@ -133,7 +133,7 @@ class GoalsScreen extends StatelessWidget {
                 color: AppTheme.tintPrimary(context),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: AppTheme.primaryColor(context).withOpacity(.35),
+                  color: AppTheme.primaryColor(context).withValues(alpha: .35),
                 ),
               ),
               child: Row(

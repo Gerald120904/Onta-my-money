@@ -13,6 +13,7 @@ import 'package:donde_se_fue_mi_plata/screens/commitments_screen.dart';
 import 'package:donde_se_fue_mi_plata/screens/dashboard_screen.dart';
 import 'package:donde_se_fue_mi_plata/screens/goals_screen.dart';
 import 'package:donde_se_fue_mi_plata/screens/more_screen.dart';
+import 'support/memory_credential_store.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -89,7 +90,7 @@ void main() {
       isNew: true,
     );
 
-    appState = AppState(customDb: db);
+    appState = AppState(customDb: db, credentialStore: MemoryCredentialStore());
     appState.currentUserId = testUserId;
     appState.currentUserEmail = testUserEmail;
     appState.currentUserName = testUserName;

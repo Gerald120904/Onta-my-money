@@ -241,7 +241,7 @@ class _OptionTileState extends State<_OptionTile> {
           borderRadius: BorderRadius.circular(12),
           onTap: widget.onTap,
           canRequestFocus: true,
-          focusColor: AppTheme.primaryColor(context).withOpacity(.10),
+          focusColor: AppTheme.primaryColor(context).withValues(alpha: .10),
           onFocusChange: (focused) {
             setState(() {
               _focused = focused;
@@ -266,7 +266,7 @@ class _OptionTileState extends State<_OptionTile> {
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: AppTheme.primaryColor(context).withOpacity(.16),
+                        color: AppTheme.primaryColor(context).withValues(alpha: .16),
                         blurRadius: 0,
                         spreadRadius: 2,
                       ),
@@ -609,7 +609,7 @@ class _HelpScreen extends StatelessWidget {
                     color: bannerBg,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: primaryColor.withOpacity(.35),
+                      color: primaryColor.withValues(alpha: .35),
                     ),
                   ),
                   child: Row(
