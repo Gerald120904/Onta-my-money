@@ -33,7 +33,7 @@ jobs:
       - name: Pruebas Flutter
         run: flutter test
       - name: Compilar Flutter Web
-        run: flutter build web --release --dart-define=API_URL=https://onta-my-money-api.gerald.blitz.cloud
+        run: flutter build web --release --dart-define=API_URL=https://onta-my-money-api.gerald.prod.page
       - name: Preparar Node para Wrangler
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/setup-node@v4

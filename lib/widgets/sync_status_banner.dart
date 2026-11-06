@@ -164,7 +164,7 @@ class SyncStatusBanner extends StatelessWidget {
             ),
             IconButton(
               icon: Icon(Icons.open_in_new_rounded, size: 19, color: iconColor),
-              tooltip: 'Activar servidor de blitz.cloud en el navegador',
+              tooltip: 'Abrir servidor en el navegador',
               visualDensity: VisualDensity.compact,
               onPressed: () => _openWakePage(context),
             ),
